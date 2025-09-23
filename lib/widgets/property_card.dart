@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../models/property.dart';
 import '../utils/app_colors.dart';
 import '../providers/location_provider.dart';
+import '../providers/favorite_provider.dart';
 import 'package:provider/provider.dart';
 
 class PropertyCard extends StatefulWidget {
@@ -39,14 +40,24 @@ class _PropertyCardState extends State<PropertyCard> {
     super.dispose();
   }
 
+  bool _isValidImageUrl(String url) {
+    if (url.isEmpty) return false;
+    // Check if it's a valid URL (starts with http/https) or a valid relative path
+    return url.startsWith('http://') || 
+           url.startsWith('https://') || 
+           url.startsWith('/') ||
+           url.contains('.') && !url.startsWith('default');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<LocationProvider>(
       builder: (context, locationProvider, child) {
         final distance = locationProvider.calculateDistanceToProperty(widget.property);
         final List<String> imageUrls = [
-          if (widget.property.cover != null) widget.property.cover!,
-          ...?widget.property.images,
+          if (widget.property.cover != null && _isValidImageUrl(widget.property.cover!)) 
+            widget.property.cover!,
+          ...?widget.property.images?.where((url) => _isValidImageUrl(url)).toList(),
         ];
         
         return Card(
@@ -155,20 +166,25 @@ class _PropertyCardState extends State<PropertyCard> {
                       Positioned(
                         bottom: 12,
                         right: 12,
-                        child: GestureDetector(
-                          onTap: widget.onFavorite,
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: AppColors.white.withOpacity(0.9),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: const Icon(
-                              Icons.favorite_border,
-                              size: 20,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
+                        child: Consumer<FavoriteProvider>(
+                          builder: (context, favoriteProvider, child) {
+                            final isFavorite = favoriteProvider.isFavorite(widget.property.id);
+                            return GestureDetector(
+                              onTap: widget.onFavorite,
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: AppColors.white.withOpacity(0.9),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Icon(
+                                  isFavorite ? Icons.favorite : Icons.favorite_border,
+                                  size: 20,
+                                  color: isFavorite ? Colors.red : AppColors.textPrimary,
+                                ),
+                              ),
+                            );
+                          },
                         ),
                       ),
 

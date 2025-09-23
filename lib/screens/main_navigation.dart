@@ -49,6 +49,7 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
+    print('🔍 MainNavigation build: currentIndex=$_currentIndex');
     return Consumer<AuthProvider>(
       builder: (context, authProvider, child) {
         if (!authProvider.isAuthenticated) {
@@ -91,6 +92,7 @@ class _MainNavigationState extends State<MainNavigation> {
 
                     return GestureDetector(
                       onTap: () {
+                        print('🔍 Navigation tapped: index=$index, label=${item.label}');
                         setState(() {
                           _currentIndex = index;
                         });

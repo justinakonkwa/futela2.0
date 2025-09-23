@@ -116,6 +116,7 @@ class PropertyProvider with ChangeNotifier {
     String? town,
     String? type,
     bool refresh = false,
+    int retryCount = 0,
   }) async {
     if (refresh) {
       _myProperties.clear();
@@ -157,7 +158,35 @@ class PropertyProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     } catch (e) {
-      _error = e.toString();
+      // Log the error for debugging
+      print('❌ Error loading my properties: $e');
+      
+      // If it's a 500 error and we haven't retried too many times, retry
+      if (e.toString().contains('500') && retryCount < 2) {
+        print('🔄 Retrying loadMyProperties (attempt ${retryCount + 1})');
+        await Future.delayed(Duration(seconds: 2 * (retryCount + 1))); // Exponential backoff
+        return loadMyProperties(
+          direction: direction,
+          cursor: cursor,
+          limit: limit,
+          minPrice: minPrice,
+          maxPrice: maxPrice,
+          category: category,
+          owner: owner,
+          town: town,
+          type: type,
+          refresh: refresh,
+          retryCount: retryCount + 1,
+        );
+      }
+      
+      // Set error message and stop loading
+      if (e.toString().contains('500')) {
+        _error = 'Erreur serveur temporaire. Veuillez réessayer plus tard.';
+      } else {
+        _error = e.toString();
+      }
+      
       _isLoading = false;
       notifyListeners();
     }

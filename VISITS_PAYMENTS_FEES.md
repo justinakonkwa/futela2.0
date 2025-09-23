@@ -125,3 +125,5 @@ Toutes les fonctionnalités sont intégrées avec l'API Futela :
 - Historique des paiements
 - Gestion des favoris pour les visites
 - Interface d'administration pour les propriétaires
+
+

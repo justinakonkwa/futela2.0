@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/favorite.dart';
 import '../models/property.dart';
+import '../models/favorite_list.dart';
 import '../services/api_service.dart';
 
 class FavoriteProvider with ChangeNotifier {
@@ -73,11 +74,11 @@ class FavoriteProvider with ChangeNotifier {
     _clearError();
 
     try {
-      // Pour l'instant, utilisons un stockage local en attendant que l'API soit complètement fonctionnelle
+      // D'abord, ajouter au stockage local pour une réponse immédiate
       await _addToLocalFavorites(propertyId);
       
-      // Essayer l'API en arrière-plan (sans bloquer l'interface)
-      _tryApiAddToFavorites(propertyId, listId);
+      // Ensuite, essayer l'API
+      await _tryApiAddToFavorites(propertyId, listId);
       
     } catch (e) {
       _setError('Erreur lors de l\'ajout aux favoris: $e');
@@ -107,22 +108,24 @@ class FavoriteProvider with ChangeNotifier {
       if (listId != null) {
         effectiveListId = listId;
       } else {
-        // Essayer de récupérer les listes existantes d'abord
-        try {
-          final response = await ApiService.getFavoriteProperties();
-          if (response.listProperties.isNotEmpty) {
-            // Utiliser l'ID de la première liste trouvée
-            effectiveListId = response.listProperties.first.list.id;
-            await ApiService.savePropertyToFavorites(propertyId, effectiveListId);
-          }
-        } catch (e) {
-          // Ignorer les erreurs API pour l'instant
-          print('Erreur API favoris (ignorée): $e');
+        // Récupérer les listes de favoris pour obtenir l'ID de la liste par défaut
+        final favoriteListsResponse = await ApiService.getFavoriteLists();
+        if (favoriteListsResponse.lists.isNotEmpty) {
+          // Utiliser la première liste (généralement "favoris")
+          effectiveListId = favoriteListsResponse.lists.first.id;
+        } else {
+          throw Exception('Aucune liste de favoris trouvée');
         }
       }
+      
+      // Ajouter la propriété à la liste de favoris
+      await ApiService.savePropertyToFavoriteList(propertyId, effectiveListId);
+      
     } catch (e) {
-      // Ignorer les erreurs API pour l'instant
-      print('Erreur API favoris (ignorée): $e');
+      // Log l'erreur mais ne pas faire échouer l'ajout local
+      print('Erreur API favoris: $e');
+      // Optionnel: on pourrait choisir de re-lancer l'erreur ici
+      // throw e;
     }
   }
 

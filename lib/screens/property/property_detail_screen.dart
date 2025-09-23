@@ -26,6 +26,7 @@ class PropertyDetailScreen extends StatefulWidget {
 class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
   late final PageController _pageController;
   int _currentPage = 0;
+  List<String> _imageUrls = [];
 
   @override
   void initState() {
@@ -230,15 +231,9 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                 flexibleSpace: FlexibleSpaceBar(
                   background: Builder(
                     builder: (context) {
-                      final List<String> imageUrls = [
-                        if (property.cover != null && property.cover!.startsWith('http')) property.cover!,
-                        ...[property.images].whereType<List<String>>()
-                            .expand((e) => e)
-                            .where((u) => u.startsWith('http'))
-                            .toList(),
-                      ];
+                      _imageUrls = _buildImageUrls(property);
 
-                      if (imageUrls.isEmpty) {
+                      if (_imageUrls.isEmpty) {
                         return Container(
                           color: AppColors.grey100,
                           child: const Icon(
@@ -255,30 +250,36 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                           PageView.builder(
                             controller: _pageController,
                             onPageChanged: (i) => setState(() => _currentPage = i),
-                            itemCount: imageUrls.length,
+                            itemCount: _imageUrls.length,
                             itemBuilder: (context, index) {
-                              final url = imageUrls[index];
-                              return CachedNetworkImage(
-                                imageUrl: url,
-                                fit: BoxFit.cover,
-                                placeholder: (context, _) => Container(
-                                  color: AppColors.grey100,
-                                  child: const Center(child: CircularProgressIndicator()),
-                                ),
-                                errorWidget: (context, _, __) => Container(
-                                  color: AppColors.grey100,
-                                  child: const Icon(
-                                    Icons.home_work,
-                                    size: 64,
-                                    color: AppColors.textTertiary,
+                              final url = _imageUrls[index];
+                              return Hero(
+                                tag: 'property_image_$index',
+                                child: CachedNetworkImage(
+                                  imageUrl: url,
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, _) => Container(
+                                    color: AppColors.grey100,
+                                    child: const Center(child: CircularProgressIndicator()),
+                                  ),
+                                  errorWidget: (context, _, __) => Container(
+                                    color: AppColors.grey100,
+                                    child: const Icon(
+                                      Icons.home_work,
+                                      size: 64,
+                                      color: AppColors.textTertiary,
+                                    ),
                                   ),
                                 ),
                               );
                             },
                           ),
+                          
+                          // Indicateur de position
                           Positioned(
+                            
                             left: 12,
-                            bottom: 12,
+                            bottom: MediaQuery.of(context).size.height * 0.25,
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                               decoration: BoxDecoration(
@@ -290,7 +291,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                                   const Icon(Icons.photo_library, size: 16, color: Colors.white),
                                   const SizedBox(width: 6),
                                   Text(
-                                    '${_currentPage + 1}/${imageUrls.length}',
+                                    '${_currentPage + 1}/${_imageUrls.length}',
                                     style: Theme.of(context).textTheme.labelMedium?.copyWith(
                                           color: Colors.white,
                                           fontWeight: FontWeight.w600,
@@ -300,6 +301,95 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                               ),
                             ),
                           ),
+                          
+                          // Miniatures en bas
+                          if (_imageUrls.length > 1)
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              child: Container(
+                                height: 70,
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      Colors.transparent,
+                                      Colors.black.withOpacity(0.7),
+                                    ],
+                                  ),
+                                ),
+                                child: Center(
+                                  child: Container(
+                                    constraints: const BoxConstraints(maxWidth: 300),
+                                    child: ListView.builder(
+                                      scrollDirection: Axis.horizontal,
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                      itemCount: _imageUrls.length,
+                                      itemBuilder: (context, index) {
+                                        final isSelected = index == _currentPage;
+                                        return GestureDetector(
+                                          onTap: () {
+                                            _pageController.animateToPage(
+                                              index,
+                                              duration: const Duration(milliseconds: 300),
+                                              curve: Curves.easeInOut,
+                                            );
+                                          },
+                                          child: Container(
+                                            width: 60,
+                                            height: 60,
+                                            margin: const EdgeInsets.only(right: 8),
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(8),
+                                              border: Border.all(
+                                                color: isSelected ? Colors.white : Colors.transparent,
+                                                width: 2,
+                                              ),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black.withOpacity(0.3),
+                                                  blurRadius: 4,
+                                                  offset: const Offset(0, 2),
+                                                ),
+                                              ],
+                                            ),
+                                            child: ClipRRect(
+                                              borderRadius: BorderRadius.circular(6),
+                                              child: CachedNetworkImage(
+                                                imageUrl: _imageUrls[index],
+                                                fit: BoxFit.cover,
+                                                placeholder: (context, _) => Container(
+                                                  color: AppColors.grey100,
+                                                  child: const Center(
+                                                    child: SizedBox(
+                                                      width: 20,
+                                                      height: 20,
+                                                      child: CircularProgressIndicator(
+                                                        strokeWidth: 2,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                                errorWidget: (context, _, __) => Container(
+                                                  color: AppColors.grey100,
+                                                  child: const Icon(
+                                                    Icons.image,
+                                                    size: 24,
+                                                    color: AppColors.textTertiary,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
                         ],
                       );
                     },
@@ -321,36 +411,60 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Header avec prix et type
-                      Padding(
+                      Container(
+                        margin: const EdgeInsets.all(20),
                         padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: AppColors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.shadow.withOpacity(0.1),
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
                               children: [
                                 Expanded(
-                                  child: Text(
-                                    property.formattedPrice,
-                                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                                      color: AppColors.primary,
-                                      fontWeight: FontWeight.w700,
-                                    ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        property.formattedPrice,
+                                        style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                                          color: AppColors.primary,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                      if (property.type == 'for-rent')
+                                        Text(
+                                          '/mois',
+                                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                            color: AppColors.textSecondary,
+                                          ),
+                                        ),
+                                    ],
                                   ),
                                 ),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
+                                    horizontal: 16,
+                                    vertical: 8,
                                   ),
                                   decoration: BoxDecoration(
                                     color: property.type == 'for-rent' 
                                         ? AppColors.primary 
                                         : AppColors.secondary,
-                                    borderRadius: BorderRadius.circular(16),
+                                    borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Text(
                                     property.typeDisplayName,
-                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                       color: AppColors.white,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -359,7 +473,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                               ],
                             ),
                             
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 16),
                             
                             Text(
                               property.title,
@@ -369,21 +483,29 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                               ),
                             ),
                             
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 12),
                             
                             Row(
                               children: [
-                                Icon(
-                                  Icons.location_on_outlined,
-                                  size: 16,
-                                  color: AppColors.textTertiary,
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(
+                                    Icons.location_on_outlined,
+                                    size: 18,
+                                    color: AppColors.primary,
+                                  ),
                                 ),
-                                const SizedBox(width: 4),
+                                const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
                                     property.address,
-                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                                       color: AppColors.textSecondary,
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
                                 ),
@@ -391,10 +513,18 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                                   builder: (context, locationProvider, child) {
                                     final distance = locationProvider.calculateDistanceToProperty(property);
                                     if (distance != null) {
-                                      return Text(
-                                        locationProvider.formatDistance(distance),
-                                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                          color: AppColors.textTertiary,
+                                      return Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.grey100,
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: Text(
+                                          locationProvider.formatDistance(distance),
+                                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                            color: AppColors.textTertiary,
+                                            fontWeight: FontWeight.w500,
+                                          ),
                                         ),
                                       );
                                     }
@@ -482,38 +612,107 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
     
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.grey50,
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border.withOpacity(0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadow.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Détails',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 12),
           Row(
             children: [
-              _buildDetailItem(context, Icons.bed_outlined, '${details.beds} chambres'),
-              const SizedBox(width: 24),
-              _buildDetailItem(context, Icons.bathtub_outlined, '${details.baths} SDB'),
-              const SizedBox(width: 24),
-              _buildDetailItem(context, Icons.square_foot, '${details.area.toInt()} m²'),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.info_outline,
+                  size: 20,
+                  color: AppColors.primary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Caractéristiques',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+              ),
             ],
           ),
+          const SizedBox(height: 20),
+          
+          // Grille des caractéristiques principales
+          Row(
+            children: [
+              Expanded(
+                child: _buildDetailCard(
+                  context, 
+                  Icons.bed_outlined, 
+                  '${details.beds}', 
+                  'Chambre${details.beds > 1 ? 's' : ''}',
+                  AppColors.primary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildDetailCard(
+                  context, 
+                  Icons.bathtub_outlined, 
+                  '${details.baths}', 
+                  'SDB',
+                  AppColors.secondary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildDetailCard(
+                  context, 
+                  Icons.square_foot, 
+                  '${details.area.toInt()}', 
+                  'm²',
+                  AppColors.success,
+                ),
+              ),
+            ],
+          ),
+          
           if (property.apartment != null) ...[
-            const SizedBox(height: 8),
+            const SizedBox(height: 16),
             Row(
               children: [
-                _buildDetailItem(context, Icons.stairs, 'Étage ${property.apartment.floor}'),
+                Expanded(
+                  child: _buildDetailCard(
+                    context, 
+                    Icons.stairs, 
+                    '${property.apartment.floor}', 
+                    'Étage',
+                    AppColors.warning,
+                  ),
+                ),
                 if (property.apartment.isFurnished) ...[
-                  const SizedBox(width: 24),
-                  _buildDetailItem(context, Icons.chair, 'Meublé'),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildDetailCard(
+                      context, 
+                      Icons.chair, 
+                      '', 
+                      'Meublé',
+                      AppColors.info,
+                    ),
+                  ),
                 ],
               ],
             ),
@@ -523,40 +722,92 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
     );
   }
 
-  Widget _buildDetailItem(BuildContext context, IconData icon, String text) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 16, color: AppColors.textTertiary),
-        const SizedBox(width: 4),
-        Text(
-          text,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: AppColors.textSecondary,
+  Widget _buildDetailCard(BuildContext context, IconData icon, String value, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            icon,
+            size: 24,
+            color: color,
           ),
-        ),
-      ],
+          const SizedBox(height: 8),
+          if (value.isNotEmpty)
+            Text(
+              value,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: color,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildDescription(BuildContext context, property) {
-    return Padding(
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border.withOpacity(0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadow.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Description',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.info.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.description_outlined,
+                  size: 20,
+                  color: AppColors.info,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Description',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
           Text(
             property.description,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               color: AppColors.textSecondary,
-              height: 1.5,
+              height: 1.6,
             ),
           ),
         ],
@@ -592,43 +843,74 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
 
     if (availableAmenities.isEmpty) return const SizedBox.shrink();
 
-    return Padding(
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border.withOpacity(0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadow.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Équipements',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: availableAmenities.map((amenity) {
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: AppColors.success.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.check_circle_outline,
+                  size: 20,
+                  color: AppColors.success,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Équipements inclus',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: availableAmenities.map((amenity) {
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppColors.success.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
                   border: Border.all(color: AppColors.success.withOpacity(0.3)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      Icons.check,
-                      size: 16,
+                      Icons.check_circle,
+                      size: 18,
                       color: AppColors.success,
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: 8),
                     Text(
                       amenity,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.success,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
@@ -643,67 +925,120 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
 
   Widget _buildOwnerInfo(BuildContext context, property) {
     return Container(
-      margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.grey50,
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border.withOpacity(0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadow.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 25,
-            backgroundColor: AppColors.primary,
-            backgroundImage: property.owner.profilePictureFilePath != null
-                ? NetworkImage(property.owner.profilePictureFilePath!)
-                : null,
-            child: property.owner.profilePictureFilePath == null
-                ? Text(
-                    property.owner.firstName.isNotEmpty
-                        ? property.owner.firstName[0].toUpperCase()
-                        : 'U',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: AppColors.white,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  )
-                : null,
+          Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.primary.withOpacity(0.2), width: 2),
+            ),
+            child: CircleAvatar(
+              radius: 30,
+              backgroundColor: AppColors.primary.withOpacity(0.1),
+              backgroundImage: property.owner.profilePictureFilePath != null
+                  ? NetworkImage(property.owner.profilePictureFilePath!)
+                  : null,
+              child: property.owner.profilePictureFilePath == null
+                  ? Text(
+                      property.owner.firstName.isNotEmpty
+                          ? property.owner.firstName[0].toUpperCase()
+                          : 'U',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    )
+                  : null,
+            ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Propriétaire',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: AppColors.textTertiary,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      'Propriétaire',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: AppColors.textTertiary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    if (property.owner.isIdVerified) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.success,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.verified,
+                              size: 12,
+                              color: AppColors.white,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Vérifié',
+                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                color: AppColors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
+                const SizedBox(height: 4),
                 Text(
                   property.owner.fullName,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
                   ),
                 ),
               ],
             ),
           ),
-          if (property.owner.isIdVerified)
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: AppColors.success,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Icon(
-                Icons.verified,
-                size: 16,
-                color: AppColors.white,
-              ),
-            ),
         ],
       ),
     );
+  }
+
+  List<String> _buildImageUrls(property) {
+    final List<String> urls = [];
+    if (property.cover != null && _isValidUrl(property.cover!)) {
+      urls.add(property.cover!);
+    }
+    if (property.images != null) {
+      urls.addAll(property.images!.where(_isValidUrl));
+    }
+    return urls;
+  }
+
+  bool _isValidUrl(String url) {
+    if (url.isEmpty) return false;
+    if (url.toLowerCase() == 'default.png') return false;
+    return url.startsWith('http://') || url.startsWith('https://');
   }
 }

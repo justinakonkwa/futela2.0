@@ -27,9 +27,15 @@ class ListProperty {
   });
 
   factory ListProperty.fromJson(Map<String, dynamic> json) {
+    final dynamic rawProperty = json['property'];
+    final dynamic rawList = json['list'];
     return ListProperty(
-      property: Property.fromJson(json['property']),
-      list: FavoriteList.fromJson(json['list']),
+      property: Property.fromJson(
+        (rawProperty is Map<String, dynamic>) ? rawProperty : <String, dynamic>{},
+      ),
+      list: FavoriteList.fromJson(
+        (rawList is Map<String, dynamic>) ? rawList : <String, dynamic>{},
+      ),
     );
   }
 
@@ -57,12 +63,20 @@ class FavoriteList {
   });
 
   factory FavoriteList.fromJson(Map<String, dynamic> json) {
+    final String id = json['id'] ?? '';
+    final String? createdStr = json['createdTimestamp'];
+    final String? updatedStr = json['updatedTimestamp'];
+    final DateTime createdTs = _tryParseDate(createdStr) ?? DateTime.now();
+    final DateTime updatedTs = _tryParseDate(updatedStr) ?? createdTs;
+    final dynamic rawUser = json['user'];
     return FavoriteList(
-      id: json['id'] ?? '',
-      createdTimestamp: DateTime.parse(json['createdTimestamp']),
-      updatedTimestamp: DateTime.parse(json['updatedTimestamp']),
+      id: id,
+      createdTimestamp: createdTs,
+      updatedTimestamp: updatedTs,
       name: json['name'] ?? '',
-      user: FavoriteUser.fromJson(json['user']),
+      user: FavoriteUser.fromJson(
+        (rawUser is Map<String, dynamic>) ? rawUser : <String, dynamic>{},
+      ),
     );
   }
 
@@ -97,6 +111,15 @@ class FavoriteUser {
   }
 }
 
+DateTime? _tryParseDate(String? value) {
+  if (value == null) return null;
+  try {
+    return DateTime.parse(value);
+  } catch (_) {
+    return null;
+  }
+}
+
 class FavoritesResponse {
   final Map<String, dynamic> metaData;
   final List<ListProperty> listProperties;
@@ -107,11 +130,21 @@ class FavoritesResponse {
   });
 
   factory FavoritesResponse.fromJson(Map<String, dynamic> json) {
+    final dynamic rawMeta = json['metaData'];
+    final Map<String, dynamic> safeMeta =
+        (rawMeta is Map<String, dynamic>) ? rawMeta : <String, dynamic>{};
+
+    final dynamic rawList = json['listProperties'];
+    final List<dynamic> safeList = (rawList is List) ? rawList : const <dynamic>[];
+
     return FavoritesResponse(
-      metaData: json['metaData'] ?? {},
-      listProperties: (json['listProperties'] as List?)
-          ?.map((item) => ListProperty.fromJson(item))
-          .toList() ?? [],
+      metaData: safeMeta,
+      listProperties: safeList
+          .whereType<Map<String, dynamic>>()
+          .map((item) => ListProperty.fromJson(item))
+          .toList(),
     );
   }
 }
+
+

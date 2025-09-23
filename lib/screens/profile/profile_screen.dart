@@ -5,6 +5,7 @@ import '../../utils/app_colors.dart';
 import '../../widgets/custom_button.dart';
 import '../auth/login_screen.dart';
 import 'edit_profile_screen.dart';
+import 'change_password_screen.dart';
 import '../property/add_property_screen.dart';
 import '../../providers/property_provider.dart';
 import '../../widgets/property_card.dart';
@@ -51,66 +52,139 @@ class ProfileScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(16),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppColors.primary.withOpacity(0.1),
+                        AppColors.secondary.withOpacity(0.05),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: AppColors.primary.withOpacity(0.2),
+                      width: 1,
+                    ),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.shadow,
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
+                        color: AppColors.shadow.withOpacity(0.1),
+                        blurRadius: 20,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
                   child: Column(
                     children: [
-                      // Photo de profil
-                      CircleAvatar(
-                        radius: 50,
-                        backgroundColor: AppColors.primary,
-                        backgroundImage: user.profilePictureFilePath != null
-                            ? NetworkImage(user.profilePictureFilePath!)
-                            : null,
-                        child: user.profilePictureFilePath == null
-                            ? Text(
-                                user.firstName.isNotEmpty
-                                    ? user.firstName[0].toUpperCase()
-                                    : 'U',
-                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                  color: AppColors.white,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              )
-                            : null,
+                      // Photo de profil avec bordure
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: AppColors.primary.withOpacity(0.3),
+                            width: 3,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withOpacity(0.2),
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: CircleAvatar(
+                          radius: 50,
+                          backgroundColor: AppColors.primary.withOpacity(0.1),
+                          backgroundImage: user.profilePictureFilePath != null
+                              ? NetworkImage(user.profilePictureFilePath!)
+                              : null,
+                          child: user.profilePictureFilePath == null
+                              ? Text(
+                                  user.firstName.isNotEmpty
+                                      ? user.firstName[0].toUpperCase()
+                                      : 'U',
+                                  style: const TextStyle(
+                                    fontFamily: 'Gilroy',
+                                    fontSize: 32,
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                )
+                              : null,
+                        ),
                       ),
                       
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 20),
                       
                       // Nom complet
                       Text(
                         user.fullName,
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        style: const TextStyle(
+                          fontFamily: 'Gilroy',
+                          fontSize: 24,
                           fontWeight: FontWeight.w700,
                           color: AppColors.textPrimary,
                         ),
                       ),
                       
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 8),
                       
                       // Email
-                      Text(
-                        user.email,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.grey100,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.email_outlined,
+                              size: 16,
+                              color: AppColors.textSecondary,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              user.email,
+                              style: const TextStyle(
+                                fontFamily: 'Gilroy',
+                                fontSize: 14,
+                                color: AppColors.textSecondary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       
                       const SizedBox(height: 8),
                       
                       // Téléphone
-                      Text(
-                        user.phone,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.grey100,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.phone_outlined,
+                              size: 16,
+                              color: AppColors.textSecondary,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              user.phone,
+                              style: const TextStyle(
+                                fontFamily: 'Gilroy',
+                                fontSize: 14,
+                                color: AppColors.textSecondary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       
@@ -120,28 +194,41 @@ class ProfileScreen extends StatelessWidget {
                       if (user.isIdVerified)
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
+                            horizontal: 16,
+                            vertical: 8,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.success.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: AppColors.success),
+                            gradient: LinearGradient(
+                              colors: [
+                                AppColors.success,
+                                AppColors.success.withOpacity(0.8),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(25),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.success.withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.verified,
-                                size: 16,
-                                color: AppColors.success,
+                                size: 18,
+                                color: Colors.white,
                               ),
-                              const SizedBox(width: 4),
-                              Text(
+                              const SizedBox(width: 6),
+                              const Text(
                                 'Profil vérifié',
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: AppColors.success,
+                                style: TextStyle(
+                                  fontFamily: 'Gilroy',
+                                  color: Colors.white,
                                   fontWeight: FontWeight.w600,
+                                  fontSize: 14,
                                 ),
                               ),
                             ],
@@ -173,7 +260,11 @@ class ProfileScreen extends StatelessWidget {
                       icon: Icons.lock_outline,
                       title: 'Changer le mot de passe',
                       onTap: () {
-                        // TODO: Implémenter le changement de mot de passe
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const ChangePasswordScreen(),
+                          ),
+                        );
                       },
                     ),
                     _MenuItem(
@@ -368,26 +459,61 @@ class ProfileScreen extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: AppColors.border.withOpacity(0.5),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadow,
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+            color: AppColors.shadow.withOpacity(0.08),
+            blurRadius: 15,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primary.withOpacity(0.05),
+                  AppColors.secondary.withOpacity(0.02),
+                ],
               ),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    _getSectionIcon(title),
+                    size: 20,
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontFamily: 'Gilroy',
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ],
             ),
           ),
           ...items.map((item) => _buildMenuItem(context, item)),
@@ -396,24 +522,67 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+  IconData _getSectionIcon(String title) {
+    switch (title) {
+      case 'Mon compte':
+        return Icons.person_outline;
+      case 'Mes propriétés':
+        return Icons.home_work_outlined;
+      case 'Visites et Paiements':
+        return Icons.payment_outlined;
+      case 'Informations':
+        return Icons.info_outline;
+      case 'Support':
+        return Icons.support_agent_outlined;
+      default:
+        return Icons.menu_outlined;
+    }
+  }
+
   Widget _buildMenuItem(BuildContext context, _MenuItem item) {
-    return ListTile(
-      leading: Icon(
-        item.icon,
-        color: AppColors.textPrimary,
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.grey50.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(12),
       ),
-      title: Text(
-        item.title,
-        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-          color: AppColors.textPrimary,
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            item.icon,
+            size: 20,
+            color: AppColors.primary,
+          ),
         ),
+        title: Text(
+          item.title,
+          style: const TextStyle(
+            fontFamily: 'Gilroy',
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        trailing: Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: AppColors.grey100,
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: const Icon(
+            Icons.arrow_forward_ios,
+            size: 14,
+            color: AppColors.textTertiary,
+          ),
+        ),
+        onTap: item.onTap,
       ),
-      trailing: const Icon(
-        Icons.arrow_forward_ios,
-        size: 16,
-        color: AppColors.textTertiary,
-      ),
-      onTap: item.onTap,
     );
   }
 
@@ -752,13 +921,61 @@ class _MyPropertiesScreenState extends State<_MyPropertiesScreen> {
       ),
       body: Consumer<PropertyProvider>(
         builder: (context, provider, child) {
+          // Debug: Print current state
+          print('🔍 MyPropertiesScreen State: isLoading=${provider.isLoading}, error=${provider.error}, propertiesCount=${provider.myProperties.length}');
+          
           if (provider.isLoading && provider.myProperties.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Chargement de vos propriétés...'),
+                ],
+              ),
+            );
           }
 
           if (provider.error != null && provider.myProperties.isEmpty) {
-            return Center(
-              child: Text(provider.error!),
+            return Padding(
+              padding: const EdgeInsets.all(16),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Colors.red[300],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Erreur de chargement',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      provider.error!,
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    CustomButton(
+                      text: 'Réessayer',
+                      onPressed: () {
+                        provider.clearError();
+                        provider.loadMyProperties(refresh: true);
+                      },
+                    ),
+                  ],
+                ),
+              ),
             );
           }
 

@@ -6,6 +6,7 @@ import 'providers/location_provider.dart';
 import 'providers/visit_provider.dart';
 import 'providers/fee_provider.dart';
 import 'providers/favorite_provider.dart';
+import 'providers/favorite_list_provider.dart';
 import 'screens/splash_screen.dart';
 import 'utils/app_theme.dart';
 
@@ -26,6 +27,7 @@ class FutelaApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => VisitProvider()),
         ChangeNotifierProvider(create: (_) => FeeProvider()),
         ChangeNotifierProvider(create: (_) => FavoriteProvider()),
+        ChangeNotifierProvider(create: (_) => FavoriteListProvider()),
       ],
       child: MaterialApp(
         title: 'Futela',

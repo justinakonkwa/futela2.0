@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/property_provider.dart';
 import '../../providers/location_provider.dart';
+import '../../providers/favorite_provider.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/property_card.dart';
 import '../../widgets/search_bar_widget.dart';
@@ -38,11 +39,13 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final propertyProvider = Provider.of<PropertyProvider>(context, listen: false);
       final locationProvider = Provider.of<LocationProvider>(context, listen: false);
+      final favoriteProvider = Provider.of<FavoriteProvider>(context, listen: false);
 
       propertyProvider.loadProperties(refresh: true);
       propertyProvider.loadCategories();
       propertyProvider.loadProvinces();
       locationProvider.getCurrentLocation();
+      favoriteProvider.loadLocalFavorites();
     });
   }
 
@@ -230,15 +233,23 @@ class _HomeScreenState extends State<HomeScreen> {
                           final property = propertyProvider.properties[index];
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 16),
-                            child: PropertyCard(
-                              property: property,
-                              onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => PropertyDetailScreen(
-                                      propertyId: property.id,
-                                    ),
-                                  ),
+                            child: Consumer<FavoriteProvider>(
+                              builder: (context, favoriteProvider, child) {
+                                return PropertyCard(
+                                  property: property,
+                                  onTap: () {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (context) => PropertyDetailScreen(
+                                          propertyId: property.id,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  onFavorite: () {
+                                    favoriteProvider.toggleFavorite(property.id);
+                                  },
+                                  showFavorite: true,
                                 );
                               },
                             ),

@@ -8,6 +8,7 @@ import '../models/auth_response.dart';
 import '../models/visit.dart';
 import '../models/fee.dart';
 import '../models/favorite.dart';
+import '../models/favorite_list.dart';
 
 class ApiService {
   static const String baseUrl = 'https://cpanel.futela.com'; // URL de l'API Futela
@@ -342,6 +343,14 @@ class ApiService {
         };
       }
       return decoded as Map<String, dynamic>;
+    } else if (response.statusCode == 500) {
+      try {
+        final errorData = jsonDecode(response.body);
+        final message = errorData['message'] ?? 'Erreur serveur interne';
+        throw Exception('Erreur serveur: $message');
+      } catch (e) {
+        throw Exception('Erreur serveur interne (500). Veuillez réessayer plus tard.');
+      }
     } else {
       throw Exception('Erreur de récupération de mes propriétés: ${response.statusCode}');
     }
@@ -973,6 +982,120 @@ class ApiService {
       }
     } else {
       throw Exception('Erreur de récupération des favoris: ${response.statusCode}');
+    }
+  }
+
+  // Favorite Lists endpoints
+  static Future<FavoriteListResponse> getFavoriteLists({
+    String? direction,
+    String? cursor,
+    int? limit,
+    String? name,
+  }) async {
+    final queryParams = <String, String>{};
+    if (direction != null) queryParams['direction'] = direction;
+    if (cursor != null) queryParams['cursor'] = cursor;
+    if (limit != null) queryParams['limit'] = limit.toString();
+    if (name != null) queryParams['name'] = name;
+
+    final uri = Uri.parse('$fullBaseUrl/lists').replace(queryParameters: queryParams);
+    final headers = await _getHeaders();
+
+    print('📋 GET FAVORITE LISTS REQUEST');
+    print('URL: ${uri.toString()}');
+    print('Headers: $headers');
+    print('Query: $queryParams');
+
+    final response = await http.get(uri, headers: headers);
+
+    print('📋 GET FAVORITE LISTS RESPONSE');
+    print('Status Code: ${response.statusCode}');
+    print('Headers: ${response.headers}');
+    print('Body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return FavoriteListResponse.fromJson(data);
+    } else if (response.statusCode == 500) {
+      try {
+        final errorData = jsonDecode(response.body);
+        final message = errorData['message'] ?? 'Erreur serveur interne';
+        throw Exception('Erreur serveur: $message');
+      } catch (e) {
+        throw Exception('Erreur serveur interne (500). Veuillez réessayer plus tard.');
+      }
+    } else {
+      throw Exception('Erreur de récupération des listes de favoris: ${response.statusCode}');
+    }
+  }
+
+  // Test method to check if /lists/properties API exists
+  static Future<void> testFavoritePropertiesAPI(String listId) async {
+    final url = '$fullBaseUrl/lists?list=$listId';
+    final headers = await _getHeaders();
+
+    print('🧪 TEST API /lists');
+    print('URL: $url');
+    print('Headers: $headers');
+
+    final response = await http.get(Uri.parse(url), headers: headers);
+
+    print('🧪 TEST API RESPONSE');
+    print('Status Code: ${response.statusCode}');
+    print('Headers: ${response.headers}');
+    print('Body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      print('✅ API /lists/properties works!');
+    } else {
+      print('❌ API /lists/properties failed with status: ${response.statusCode}');
+    }
+  }
+
+  static Future<void> savePropertyToFavoriteList(String propertyId, String listId) async {
+    final url = '$fullBaseUrl/lists/save-properties';
+    final headers = await _getHeaders();
+    final body = jsonEncode(SavePropertyToFavoriteRequest(
+      property: propertyId,
+      list: listId,
+    ).toJson());
+
+    print('❤️ SAVE TO FAVORITE LIST REQUEST');
+    print('URL: $url');
+    print('Headers: $headers');
+    print('Body: $body');
+
+    final response = await http.post(
+      Uri.parse(url),
+      headers: headers,
+      body: body,
+    );
+
+    print('❤️ SAVE TO FAVORITE LIST RESPONSE');
+    print('Status Code: ${response.statusCode}');
+    print('Headers: ${response.headers}');
+    print('Body: ${response.body}');
+
+    if (response.statusCode == 201) {
+      return;
+    } else if (response.statusCode == 400) {
+      try {
+        final errorData = jsonDecode(response.body);
+        final message = errorData['message'] ?? 'Requête invalide';
+        throw Exception('Erreur de validation: $message. Vérifiez que la liste existe.');
+      } catch (e) {
+        throw Exception('Erreur de validation: ${response.body}. L\'ID de liste pourrait être invalide.');
+      }
+    } else if (response.statusCode == 500) {
+      try {
+        final errorData = jsonDecode(response.body);
+        final message = errorData['message'] ?? 'Erreur serveur';
+        throw Exception('Erreur serveur: $message. La liste pourrait ne pas exister.');
+      } catch (e) {
+        throw Exception('Erreur serveur: ${response.body}. Vérifiez que la liste existe.');
+      }
+    } else {
+      throw Exception('Erreur de sauvegarde en liste de favoris: ${response.statusCode}');
     }
   }
 }

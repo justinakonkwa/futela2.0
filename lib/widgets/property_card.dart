@@ -270,7 +270,7 @@ class _PropertyCardState extends State<PropertyCard> {
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
-                              widget.property.address,
+                              widget.property.fullAddress,
                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 color: AppColors.textSecondary,
                               ),

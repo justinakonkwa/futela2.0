@@ -121,7 +121,7 @@ class FavoritePropertyCard extends StatelessWidget {
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
-                            property.address,
+                            property.fullAddress,
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: AppColors.textSecondary,
                             ),

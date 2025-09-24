@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/role_permissions.dart';
 import '../../widgets/custom_button.dart';
 import '../auth/login_screen.dart';
 import 'edit_profile_screen.dart';
@@ -190,6 +191,52 @@ class ProfileScreen extends StatelessWidget {
                       
                       const SizedBox(height: 16),
                       
+                      // Badge de rôle
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Color(int.parse(RolePermissions.getRoleColor(user.role).replaceFirst('#', '0xFF'))),
+                              Color(int.parse(RolePermissions.getRoleColor(user.role).replaceFirst('#', '0xFF'))).withOpacity(0.8),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(25),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Color(int.parse(RolePermissions.getRoleColor(user.role).replaceFirst('#', '0xFF'))).withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.person,
+                              size: 18,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              RolePermissions.getRoleDisplayName(user.role),
+                              style: const TextStyle(
+                                fontFamily: 'Gilroy',
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 8),
+                      
                       // Badge de vérification
                       if (user.isIdVerified)
                         Container(
@@ -283,28 +330,30 @@ class ProfileScreen extends StatelessWidget {
                   context,
                   title: 'Mes propriétés',
                   items: [
-                    _MenuItem(
-                      icon: Icons.home_work_outlined,
-                      title: 'Mes annonces',
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const _MyPropertiesScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    _MenuItem(
-                      icon: Icons.favorite_outline,
-                      title: 'Mes favoris',
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const FavoritesScreen(),
-                          ),
-                        );
-                      },
-                    ),
+                    if (RolePermissions.canViewOwnProperties(user))
+                      _MenuItem(
+                        icon: Icons.home_work_outlined,
+                        title: 'Mes annonces',
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const _MyPropertiesScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    if (RolePermissions.canManageFavorites(user))
+                      _MenuItem(
+                        icon: Icons.favorite_outline,
+                        title: 'Mes favoris',
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const FavoritesScreen(),
+                            ),
+                          );
+                        },
+                      ),
                   ],
                 ),
                 
@@ -314,36 +363,39 @@ class ProfileScreen extends StatelessWidget {
                   context,
                   title: 'Visites et Paiements',
                   items: [
-                    _MenuItem(
-                      icon: Icons.calendar_today_outlined,
-                      title: 'Mes visites',
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const MyVisitsScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    _MenuItem(
-                      icon: Icons.payment_outlined,
-                      title: 'Historique des paiements',
-                      onTap: () {
-                        // TODO: Créer l'écran d'historique des paiements
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Fonctionnalité à venir'),
-                          ),
-                        );
-                      },
-                    ),
-                    _MenuItem(
-                      icon: Icons.account_balance_wallet_outlined,
-                      title: 'Demander un retrait',
-                      onTap: () {
-                        _showWithdrawalDialog(context);
-                      },
-                    ),
+                    if (RolePermissions.canViewOwnVisits(user))
+                      _MenuItem(
+                        icon: Icons.calendar_today_outlined,
+                        title: 'Mes visites',
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const MyVisitsScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    if (RolePermissions.canViewPaymentHistory(user))
+                      _MenuItem(
+                        icon: Icons.payment_outlined,
+                        title: 'Historique des paiements',
+                        onTap: () {
+                          // TODO: Créer l'écran d'historique des paiements
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Fonctionnalité à venir'),
+                            ),
+                          );
+                        },
+                      ),
+                    if (RolePermissions.canRequestWithdrawal(user))
+                      _MenuItem(
+                        icon: Icons.account_balance_wallet_outlined,
+                        title: 'Demander un retrait',
+                        onTap: () {
+                          _showWithdrawalDialog(context);
+                        },
+                      ),
                   ],
                 ),
                 

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Couleurs principales inspirées d'Airbnb
-  static const Color primary = Color(0xFFE31C5F); // Rouge Airbnb
-  static const Color primaryDark = Color(0xFFD50000);
-  static const Color primaryLight = Color(0xFFFF6B9D);
+  // Couleurs principales - Vert
+  static const Color primary = Color(0xFF00A699); // Vert principal
+  static const Color primaryDark = Color(0xFF007A6B);
+  static const Color primaryLight = Color(0xFF4DB6AC);
   
   // Couleurs secondaires
-  static const Color secondary = Color(0xFF00A699); // Teal
+  static const Color secondary = Color(0xFF4DB6AC); // Vert clair
   static const Color accent = Color(0xFFFFB400); // Orange
   
   // Couleurs neutres
@@ -46,7 +46,7 @@ class AppColors {
   static const Color shadow = Color(0x1A000000);
   
   // Couleurs spécifiques aux propriétés
-  static const Color priceHighlight = Color(0xFFE31C5F);
+  static const Color priceHighlight = Color(0xFF00A699);
   static const Color available = Color(0xFF00A699);
   static const Color unavailable = Color(0xFF999999);
   static const Color featured = Color(0xFFFFB400);

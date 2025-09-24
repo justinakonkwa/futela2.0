@@ -81,8 +81,7 @@ class Visit {
 class VisitRequest {
   final String visitor;
   final String property;
-  final DateTime dates;
-  final String status;
+  final List<String> dates;
   final String? message;
   final String? contact;
 
@@ -90,7 +89,6 @@ class VisitRequest {
     required this.visitor,
     required this.property,
     required this.dates,
-    required this.status,
     this.message,
     this.contact,
   });
@@ -99,8 +97,7 @@ class VisitRequest {
     return VisitRequest(
       visitor: json['visitor'] ?? '',
       property: json['property'] ?? '',
-      dates: DateTime.parse(json['dates']),
-      status: json['status'] ?? '',
+      dates: List<String>.from(json['dates'] ?? []),
       message: json['message'],
       contact: json['contact'],
     );
@@ -110,8 +107,7 @@ class VisitRequest {
     return {
       'visitor': visitor,
       'property': property,
-      'dates': dates.toUtc().toIso8601String(),
-      'status': status,
+      'dates': dates,
       'message': message ?? '',
       'contact': contact ?? '',
     };

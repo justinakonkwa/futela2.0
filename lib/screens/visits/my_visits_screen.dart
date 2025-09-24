@@ -17,8 +17,6 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final visitProvider = context.read<VisitProvider>();
-      visitProvider.loadLocalVisits();
-      // Essayer aussi de charger depuis l'API (en arrière-plan)
       visitProvider.loadMyVisits();
     });
   }
@@ -81,7 +79,7 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
             );
           }
 
-          if (visitProvider.visits.isEmpty && visitProvider.localVisits.isEmpty) {
+          if (visitProvider.visits.isEmpty) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -113,20 +111,12 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
 
           return RefreshIndicator(
             onRefresh: () => visitProvider.loadMyVisits(),
-            child: ListView.builder(
+            child:             ListView.builder(
               padding: const EdgeInsets.all(16),
-              itemCount: visitProvider.visits.length + visitProvider.localVisits.length,
+              itemCount: visitProvider.visits.length,
               itemBuilder: (context, index) {
-                if (index < visitProvider.visits.length) {
-                  // Visites de l'API
-                  final visitId = visitProvider.visits[index];
-                  return _buildVisitCard(visitId, isLocal: false);
-                } else {
-                  // Visites locales
-                  final localIndex = index - visitProvider.visits.length;
-                  final localVisit = visitProvider.localVisits[localIndex];
-                  return _buildLocalVisitCard(localVisit);
-                }
+                final visitId = visitProvider.visits[index];
+                return _buildVisitCard(visitId);
               },
             ),
           );
@@ -135,7 +125,7 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
     );
   }
 
-  Widget _buildVisitCard(String visitId, {bool isLocal = false}) {
+  Widget _buildVisitCard(String visitId) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
@@ -235,101 +225,6 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
     );
   }
 
-  Widget _buildLocalVisitCard(dynamic localVisit) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(
-                    Icons.phone_android,
-                    color: Colors.blue,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Visite locale',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Sauvegardée localement',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    localVisit.status ?? 'En attente',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.blue[700],
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            if (localVisit.message != null && localVisit.message!.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Text(
-                  'Message: ${localVisit.message}',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ),
-            if (localVisit.contact != null && localVisit.contact!.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Text(
-                  'Contact: ${localVisit.contact}',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ),
-            Text(
-              'Date: ${_formatLocalDate(localVisit.dates)}',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey[600],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _formatLocalDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year} à ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
-  }
 
   void _showPaymentDialog(String visitId) {
     final phoneController = TextEditingController();

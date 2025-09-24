@@ -23,9 +23,8 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
   final _messageController = TextEditingController();
   final _contactController = TextEditingController();
   
-  DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
+  List<DateTime> _selectedDates = [];
   TimeOfDay _selectedTime = const TimeOfDay(hour: 10, minute: 0);
-  String _selectedStatus = 'pending';
 
   @override
   void dispose() {
@@ -69,16 +68,12 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
                       ),
                       const SizedBox(height: 16),
                       
-                      // Date de la visite
-                      _buildDateSelector(),
+                      // Dates préférées pour la visite
+                      _buildDatesSelector(),
                       const SizedBox(height: 16),
                       
                       // Heure de la visite
                       _buildTimeSelector(),
-                      const SizedBox(height: 16),
-                      
-                      // Statut de la visite
-                      _buildStatusSelector(),
                       const SizedBox(height: 16),
                       
                       // Message optionnel
@@ -134,40 +129,135 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
     );
   }
 
-  Widget _buildDateSelector() {
+  Widget _buildDatesSelector() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Date de la visite',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w500,
-          ),
+        Row(
+          children: [
+            Text(
+              'Dates préférées pour la visite',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '${_selectedDates.length}/3+',
+                style: TextStyle(
+                  fontFamily: 'Gilroy',
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 8),
+        Text(
+          'Sélectionnez au moins 3 dates qui vous conviennent',
+          style: TextStyle(
+            fontFamily: 'Gilroy',
+            fontSize: 12,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        const SizedBox(height: 12),
+        
+        // Dates sélectionnées
+        if (_selectedDates.isNotEmpty)
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _selectedDates.map((date) {
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _formatDate(date),
+                      style: TextStyle(
+                        fontFamily: 'Gilroy',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    GestureDetector(
+                      onTap: () => _removeDate(date),
+                      child: Icon(
+                        Icons.close,
+                        size: 16,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        
+        const SizedBox(height: 12),
+        
+        // Bouton pour ajouter une date
         InkWell(
           onTap: _selectDate,
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey[300]!),
-              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: _selectedDates.length >= 3 
+                    ? AppColors.success 
+                    : AppColors.primary,
+                style: BorderStyle.solid,
+              ),
+              borderRadius: BorderRadius.circular(12),
+              color: _selectedDates.length >= 3 
+                  ? AppColors.success.withOpacity(0.1)
+                  : AppColors.primary.withOpacity(0.05),
             ),
             child: Row(
               children: [
                 Icon(
-                  Icons.calendar_today,
-                  color: AppColors.primary,
+                  Icons.add_circle_outline,
+                  color: _selectedDates.length >= 3 
+                      ? AppColors.success 
+                      : AppColors.primary,
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  _formatDate(_selectedDate),
-                  style: Theme.of(context).textTheme.bodyLarge,
+                  _selectedDates.length >= 3 
+                      ? 'Ajouter une date supplémentaire'
+                      : 'Ajouter une date (${3 - _selectedDates.length} restantes)',
+                  style: TextStyle(
+                    fontFamily: 'Gilroy',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: _selectedDates.length >= 3 
+                        ? AppColors.success 
+                        : AppColors.primary,
+                  ),
                 ),
                 const Spacer(),
                 Icon(
-                  Icons.arrow_drop_down,
-                  color: Colors.grey[600],
+                  Icons.calendar_today,
+                  color: _selectedDates.length >= 3 
+                      ? AppColors.success 
+                      : AppColors.primary,
                 ),
               ],
             ),
@@ -220,55 +310,16 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
     );
   }
 
-  Widget _buildStatusSelector() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Statut de la visite',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          value: _selectedStatus,
-          decoration: InputDecoration(
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          ),
-          items: const [
-            DropdownMenuItem(
-              value: 'pending',
-              child: Text('En attente'),
-            ),
-            DropdownMenuItem(
-              value: 'confirmed',
-              child: Text('Confirmée'),
-            ),
-            DropdownMenuItem(
-              value: 'cancelled',
-              child: Text('Annulée'),
-            ),
-          ],
-          onChanged: (value) {
-            if (value != null) {
-              setState(() {
-                _selectedStatus = value;
-              });
-            }
-          },
-        ),
-      ],
-    );
+  void _removeDate(DateTime date) {
+    setState(() {
+      _selectedDates.remove(date);
+    });
   }
 
   Future<void> _selectDate() async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate,
+      initialDate: DateTime.now().add(const Duration(days: 1)),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
       builder: (context, child) {
@@ -283,9 +334,10 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
       },
     );
     
-    if (picked != null && picked != _selectedDate) {
+    if (picked != null && !_selectedDates.contains(picked)) {
       setState(() {
-        _selectedDate = picked;
+        _selectedDates.add(picked);
+        _selectedDates.sort(); // Trier les dates par ordre chronologique
       });
     }
   }
@@ -327,6 +379,17 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
       return;
     }
 
+    // Vérifier qu'au moins 3 dates sont sélectionnées
+    if (_selectedDates.length < 3) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Veuillez sélectionner au moins 3 dates préférées'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
     final authProvider = context.read<AuthProvider>();
     final visitProvider = context.read<VisitProvider>();
 
@@ -341,14 +404,17 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
     }
 
     try {
-      // Combiner la date et l'heure
-      final visitDateTime = DateTime(
-        _selectedDate.year,
-        _selectedDate.month,
-        _selectedDate.day,
-        _selectedTime.hour,
-        _selectedTime.minute,
-      );
+      // Convertir les dates en format ISO avec l'heure sélectionnée
+      final List<String> datesISO = _selectedDates.map((date) {
+        final dateTime = DateTime(
+          date.year,
+          date.month,
+          date.day,
+          _selectedTime.hour,
+          _selectedTime.minute,
+        );
+        return dateTime.toIso8601String();
+      }).toList();
 
       // Nettoyer et valider les données avant envoi
       final message = _messageController.text.trim();
@@ -360,8 +426,7 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
       await visitProvider.createVisit(
         visitor: authProvider.user!.id,
         property: widget.propertyId,
-        dates: visitDateTime,
-        status: _selectedStatus,
+        dates: datesISO, // Envoyer la liste des dates au format ISO
         message: cleanMessage,
         contact: contact,
       );

@@ -1,18 +1,14 @@
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 import '../models/visit.dart';
 import '../services/api_service.dart';
 
 class VisitProvider with ChangeNotifier {
   List<String> _visits = [];
-  List<VisitRequest> _localVisits = []; // Visites stockées localement
   Map<String, dynamic> _metaData = {};
   bool _isLoading = false;
   String? _error;
 
   List<String> get visits => _visits;
-  List<VisitRequest> get localVisits => _localVisits;
   Map<String, dynamic> get metaData => _metaData;
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -44,8 +40,7 @@ class VisitProvider with ChangeNotifier {
   Future<String> createVisit({
     required String visitor,
     required String property,
-    required DateTime dates,
-    required String status,
+    required List<String> dates,
     String? message,
     String? contact,
   }) async {
@@ -57,27 +52,20 @@ class VisitProvider with ChangeNotifier {
         visitor: visitor,
         property: property,
         dates: dates,
-        status: status,
         message: message,
         contact: contact,
       );
 
-      try {
-        // Essayer d'abord l'API
-        final visitId = await ApiService.createVisit(visitRequest);
-        
-        // Recharger la liste des visites après création
-        await loadMyVisits();
-        
-        return visitId;
-      } catch (apiError) {
-        // Si l'API échoue, sauvegarder localement
-        print('Erreur API visite (sauvegarde locale): $apiError');
-        await _saveVisitLocally(visitRequest);
-        
-        // Retourner un ID local temporaire
-        return 'local_${DateTime.now().millisecondsSinceEpoch}';
-      }
+      // Appel direct à l'API
+      final visitId = await ApiService.createVisit(visitRequest);
+      
+      // Attendre un peu pour laisser l'API synchroniser
+      await Future.delayed(const Duration(seconds: 2));
+      
+      // Recharger la liste des visites après création
+      await loadMyVisits();
+      
+      return visitId;
     } catch (e) {
       _setError('Erreur lors de la création de la visite: $e');
       rethrow;
@@ -86,31 +74,7 @@ class VisitProvider with ChangeNotifier {
     }
   }
 
-  Future<void> _saveVisitLocally(VisitRequest visitRequest) async {
-    final prefs = await SharedPreferences.getInstance();
-    _localVisits.add(visitRequest);
-    
-    // Sauvegarder dans SharedPreferences
-    final visitsJson = _localVisits.map((visit) => visit.toJson()).toList();
-    await prefs.setString('local_visits', jsonEncode(visitsJson));
-    
-    notifyListeners();
-  }
 
-  Future<void> loadLocalVisits() async {
-    final prefs = await SharedPreferences.getInstance();
-    final visitsJson = prefs.getString('local_visits');
-    
-    if (visitsJson != null) {
-      try {
-        final List<dynamic> visitsList = jsonDecode(visitsJson);
-        _localVisits = visitsList.map((json) => VisitRequest.fromJson(json)).toList();
-        notifyListeners();
-      } catch (e) {
-        print('Erreur lors du chargement des visites locales: $e');
-      }
-    }
-  }
 
   Future<PaymentResponse> payVisit({
     required String visitId,

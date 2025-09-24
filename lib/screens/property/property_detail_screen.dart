@@ -3,8 +3,11 @@ import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../providers/property_provider.dart';
 import '../../providers/location_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/role_permissions.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/address_display.dart';
 import '../visits/request_visit_screen.dart';
 import 'add_property_screen.dart';
 import '../../providers/favorite_provider.dart';
@@ -155,34 +158,57 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                       },
                     ),
                   ),
-                  if (widget.myProperty) Container(
-                    margin: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.white.withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: IconButton(
-                      icon: const Icon(Icons.edit, color: AppColors.textPrimary),
-                      tooltip: 'Modifier',
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const AddPropertyScreen(),
-                          ),
-                        );
-                      },
-                    ),
+                  Consumer<AuthProvider>(
+                    builder: (context, authProvider, child) {
+                      // Afficher le bouton d'édition si c'est la propriété de l'utilisateur
+                      final canEdit = widget.myProperty && authProvider.user != null;
+                      
+                      if (!canEdit) return const SizedBox.shrink();
+                      
+                      return Container(
+                        margin: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.white.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: IconButton(
+                          icon: const Icon(Icons.edit, color: AppColors.textPrimary),
+                          tooltip: 'Modifier',
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => AddPropertyScreen(
+                                  propertyId: widget.propertyId,
+                                  isEditMode: true,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    },
                   ),
-                  if (widget.myProperty) Container(
-                    margin: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppColors.white.withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: IconButton(
-                      icon: const Icon(Icons.delete_outline, color: AppColors.error),
-                      tooltip: 'Supprimer',
-                      onPressed: () async {
+                  Consumer<AuthProvider>(
+                    builder: (context, authProvider, child) {
+                      // Afficher le bouton de suppression si :
+                      // 1. C'est la propriété de l'utilisateur ET
+                      // 2. L'utilisateur a le droit d'ajouter des propriétés
+                      final canDelete = widget.myProperty && 
+                          authProvider.user != null && 
+                          RolePermissions.canAddProperties(authProvider.user!);
+                      
+                      if (!canDelete) return const SizedBox.shrink();
+                      
+                      return Container(
+                        margin: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.white.withOpacity(0.9),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: IconButton(
+                          icon: const Icon(Icons.delete_outline, color: AppColors.error),
+                          tooltip: 'Supprimer',
+                          onPressed: () async {
                         final confirm = await showDialog<bool>(
                           context: context,
                           builder: (context) => AlertDialog(
@@ -224,8 +250,10 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                             }
                           }
                         }
-                      },
-                    ),
+                          },
+                        ),
+                      );
+                    },
                   ),
                 ],
                 flexibleSpace: FlexibleSpaceBar(
@@ -501,8 +529,8 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
-                                  child: Text(
-                                    property.address,
+                                  child: AddressDisplay(
+                                    property: property,
                                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                                       color: AppColors.textSecondary,
                                       fontWeight: FontWeight.w500,

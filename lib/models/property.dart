@@ -100,6 +100,20 @@ class Property {
   String get typeDisplayName {
     return type == 'for-rent' ? 'À louer' : 'À vendre';
   }
+
+  String get fullAddress {
+    // Si l'adresse est vide ou ne contient que "string", construire l'adresse à partir de la localisation
+    if (address.isEmpty || address.toLowerCase() == 'string') {
+      // Vérifier si les noms sont disponibles, sinon utiliser les IDs
+      final townName = town.name.isNotEmpty ? town.name : 'Ville inconnue';
+      final cityName = town.city.name.isNotEmpty ? town.city.name : 'Ville inconnue';
+      final provinceName = town.city.province.name.isNotEmpty ? town.city.province.name : 'Province inconnue';
+      
+      return '$townName, $cityName, $provinceName';
+    }
+    return address;
+  }
+
 }
 
 class PropertyCategory {

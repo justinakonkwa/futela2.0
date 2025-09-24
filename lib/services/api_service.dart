@@ -386,7 +386,7 @@ class ApiService {
 
   // My properties endpoints
   static Future<Property> getMyProperty(String id) async {
-    final url = '$fullBaseUrl/properties/users/my-properties/$id';
+    final url = '$fullBaseUrl/properties/$id';
     final headers = await _getHeaders();
 
     print('👤🔎 GET MY PROPERTY REQUEST');
@@ -607,8 +607,18 @@ class ApiService {
     print('Body: ${response.body}');
 
     if (response.statusCode == 201) {
-      final data = jsonDecode(response.body);
-      return data['id'] ?? '';
+      // Si la réponse est vide, générer un ID temporaire
+      if (response.body.isEmpty) {
+        return 'visit_${DateTime.now().millisecondsSinceEpoch}';
+      }
+      
+      try {
+        final data = jsonDecode(response.body);
+        return data['id'] ?? 'visit_${DateTime.now().millisecondsSinceEpoch}';
+      } catch (e) {
+        // Si le parsing échoue, retourner un ID temporaire
+        return 'visit_${DateTime.now().millisecondsSinceEpoch}';
+      }
     } else if (response.statusCode == 409) {
       throw Exception('Conflit: Cette visite existe déjà');
     } else if (response.statusCode == 400) {
@@ -840,7 +850,7 @@ class ApiService {
           ? MediaType('image', 'png')
           : MediaType('image', 'jpeg');
       final file = await http.MultipartFile.fromPath(
-        'images',
+        'image',
         path,
         contentType: mediaType,
       );
@@ -848,8 +858,10 @@ class ApiService {
       final streamedResponse = await singleRequest.send();
       final response = await http.Response.fromStream(streamedResponse);
       print('📸 UPLOAD IMAGE [$i/${imagePaths.length}] RESPONSE: ${response.statusCode}');
+      print('📸 UPLOAD IMAGE [$i/${imagePaths.length}] BODY: ${response.body}');
       if (response.statusCode != 201) {
-        throw Exception('Erreur d\'upload de l\'image ${i + 1}: ${response.statusCode}');
+        print('📸 UPLOAD IMAGE [$i/${imagePaths.length}] ERROR: ${response.statusCode} - ${response.body}');
+        throw Exception('Erreur d\'upload de l\'image ${i + 1}: ${response.statusCode} - ${response.body}');
       }
     }
     return;
@@ -1026,6 +1038,52 @@ class ApiService {
       }
     } else {
       throw Exception('Erreur de récupération des listes de favoris: ${response.statusCode}');
+    }
+  }
+
+  // Récupérer les détails d'une ville par ID
+  static Future<Map<String, dynamic>> getCityById(String cityId) async {
+    final url = '$fullBaseUrl/cities/$cityId';
+    final headers = await _getHeaders();
+
+    print('🏙️ GET CITY BY ID REQUEST');
+    print('URL: $url');
+    print('Headers: $headers');
+
+    final response = await http.get(Uri.parse(url), headers: headers);
+
+    print('🏙️ GET CITY BY ID RESPONSE');
+    print('Status Code: ${response.statusCode}');
+    print('Headers: ${response.headers}');
+    print('Body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Erreur de récupération de la ville: ${response.statusCode}');
+    }
+  }
+
+  // Récupérer les détails d'une province par ID
+  static Future<Map<String, dynamic>> getProvinceById(String provinceId) async {
+    final url = '$fullBaseUrl/provinces/$provinceId';
+    final headers = await _getHeaders();
+
+    print('🌍 GET PROVINCE BY ID REQUEST');
+    print('URL: $url');
+    print('Headers: $headers');
+
+    final response = await http.get(Uri.parse(url), headers: headers);
+
+    print('🌍 GET PROVINCE BY ID RESPONSE');
+    print('Status Code: ${response.statusCode}');
+    print('Headers: ${response.headers}');
+    print('Body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Erreur de récupération de la province: ${response.statusCode}');
     }
   }
 

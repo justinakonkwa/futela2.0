@@ -9,7 +9,14 @@ import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
 
 class AddPropertyScreen extends StatefulWidget {
-  const AddPropertyScreen({super.key});
+  final String? propertyId; // Pour l'édition
+  final bool isEditMode;
+  
+  const AddPropertyScreen({
+    super.key,
+    this.propertyId,
+    this.isEditMode = false,
+  });
 
   @override
   State<AddPropertyScreen> createState() => _AddPropertyScreenState();
@@ -79,6 +86,97 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
     
     propertyProvider.loadCategories();
     propertyProvider.loadProvinces();
+    
+    // Si on est en mode édition, charger les données de la propriété
+    if (widget.isEditMode && widget.propertyId != null) {
+      _loadPropertyData();
+    }
+  }
+
+  Future<void> _loadPropertyData() async {
+    if (widget.propertyId == null) return;
+    
+    try {
+      final propertyProvider = Provider.of<PropertyProvider>(context, listen: false);
+      final property = await propertyProvider.getPropertyById(widget.propertyId!);
+      
+      if (property == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Propriété non trouvée'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
+      
+      // Remplir les champs avec les données existantes
+      _titleController.text = property.title;
+      _priceController.text = property.price.toString();
+      _addressController.text = property.address;
+      _descriptionController.text = property.description;
+      _keywordsController.text = property.keywords;
+      
+      // Sélectionner la catégorie
+      _selectedCategory = property.category.id;
+      
+      // Sélectionner le type
+      _selectedType = property.type;
+      
+      // Sélectionner la localisation
+      _selectedProvince = property.town.city.province.id;
+      _selectedCity = property.town.city.id;
+      _selectedTown = property.town.id;
+      
+      // Attendre que les listes de base soient chargées
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      // Charger les villes et communes après avoir sélectionné la province
+      if (_selectedProvince != null && _selectedProvince!.isNotEmpty) {
+        await propertyProvider.loadCities(province: _selectedProvince!);
+        // Attendre que les villes soient chargées avant de charger les communes
+        await Future.delayed(const Duration(milliseconds: 300));
+      }
+      if (_selectedCity != null && _selectedCity!.isNotEmpty) {
+        await propertyProvider.loadTowns(city: _selectedCity!);
+      }
+      
+      // Remplir les détails de l'appartement
+      if (property.apartment != null) {
+        final apt = property.apartment!;
+        _bedsController.text = apt.beds.toString();
+        _bathsController.text = apt.baths.toString();
+        _areaController.text = apt.area.toString();
+        _floorController.text = apt.floor.toString();
+        
+        _kitchen = apt.kitchen;
+        _equippedKitchen = apt.equippedKitchen;
+        _catsAllowed = apt.catsAllowed;
+        _dogsAllowed = apt.dogsAllowed;
+        _pool = apt.pool;
+        _balcony = apt.balcony;
+        _parking = apt.parking;
+        _laundry = apt.laundry;
+        _airConditioning = apt.airConditioning;
+        _chimney = apt.chimney;
+        _heating = apt.heating;
+        _barbecue = apt.barbecue;
+        _isFurnished = apt.isFurnished;
+      }
+      
+      setState(() {});
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors du chargement: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   void _onProvinceChanged(String? provinceId) {
@@ -232,11 +330,20 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
     print('Keywords: ${propertyData['keywords']}');
     print('Apartment: ${propertyData['apartment']}');
 
-    final propertyId = await propertyProvider.createProperty(propertyData);
+    String? propertyId;
+    
+    if (widget.isEditMode && widget.propertyId != null) {
+      // Mode édition - mettre à jour la propriété existante
+      propertyId = widget.propertyId!;
+      await propertyProvider.updateProperty(propertyId, propertyData);
+    } else {
+      // Mode création - créer une nouvelle propriété
+      propertyId = await propertyProvider.createProperty(propertyData);
+    }
     
     if (propertyId != null && mounted) {
-      // Upload des images si elles existent
-      if (_selectedImages.isNotEmpty) {
+      // Upload des images si elles existent (seulement en mode création)
+      if (!widget.isEditMode && _selectedImages.isNotEmpty) {
         try {
           final imagePaths = _selectedImages.map((image) => image.path).toList();
           await propertyProvider.uploadImages(propertyId, imagePaths);
@@ -245,8 +352,8 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
         }
       }
       
-      // Upload de l'image de couverture si elle existe
-      if (_coverImage != null) {
+      // Upload de l'image de couverture si elle existe (seulement en mode création)
+      if (!widget.isEditMode && _coverImage != null) {
         try {
           await propertyProvider.uploadCoverImage(propertyId, _coverImage!.path);
         } catch (e) {
@@ -255,8 +362,8 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
       }
       
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Propriété créée avec succès'),
+        SnackBar(
+          content: Text(widget.isEditMode ? 'Propriété modifiée avec succès' : 'Propriété créée avec succès'),
           backgroundColor: AppColors.success,
         ),
       );
@@ -264,7 +371,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(propertyProvider.error ?? 'Erreur de création'),
+          content: Text(propertyProvider.error ?? (widget.isEditMode ? 'Erreur de modification' : 'Erreur de création')),
           backgroundColor: AppColors.error,
         ),
       );
@@ -276,13 +383,13 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Ajouter une propriété'),
+        title: Text(widget.isEditMode ? 'Modifier la propriété' : 'Ajouter une propriété'),
         backgroundColor: AppColors.white,
         elevation: 0,
         actions: [
           TextButton(
             onPressed: _saveProperty,
-            child: const Text('Publier'),
+            child: Text(widget.isEditMode ? 'Modifier' : 'Publier'),
           ),
         ],
       ),
@@ -370,7 +477,9 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                     Consumer<PropertyProvider>(
                       builder: (context, propertyProvider, child) {
                         return DropdownButtonFormField<String>(
-                          value: _selectedCategory,
+                          value: _selectedCategory != null && 
+                                 propertyProvider.categories.any((c) => c.id == _selectedCategory) 
+                                 ? _selectedCategory : null,
                           decoration: const InputDecoration(
                             labelText: 'Catégorie',
                             border: OutlineInputBorder(),
@@ -402,7 +511,9 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                     Consumer<PropertyProvider>(
                       builder: (context, propertyProvider, child) {
                         return DropdownButtonFormField<String>(
-                          value: _selectedProvince,
+                          value: _selectedProvince != null && 
+                                 propertyProvider.provinces.any((p) => p.id == _selectedProvince) 
+                                 ? _selectedProvince : null,
                           decoration: const InputDecoration(
                             labelText: 'Province',
                             border: OutlineInputBorder(),
@@ -431,7 +542,9 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                     Consumer<PropertyProvider>(
                       builder: (context, propertyProvider, child) {
                         return DropdownButtonFormField<String>(
-                          value: _selectedCity,
+                          value: _selectedCity != null && 
+                                 propertyProvider.cities.any((c) => c.id == _selectedCity) 
+                                 ? _selectedCity : null,
                           decoration: const InputDecoration(
                             labelText: 'Ville',
                             border: OutlineInputBorder(),
@@ -460,7 +573,9 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                     Consumer<PropertyProvider>(
                       builder: (context, propertyProvider, child) {
                         return DropdownButtonFormField<String>(
-                          value: _selectedTown,
+                          value: _selectedTown != null && 
+                                 propertyProvider.towns.any((t) => t.id == _selectedTown) 
+                                 ? _selectedTown : null,
                           decoration: const InputDecoration(
                             labelText: 'Commune',
                             border: OutlineInputBorder(),
@@ -849,7 +964,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                 Consumer<PropertyProvider>(
                   builder: (context, propertyProvider, child) {
                     return CustomButton(
-                      text: 'Publier la propriété',
+                      text: widget.isEditMode ? 'Modifier la propriété' : 'Publier la propriété',
                       onPressed: propertyProvider.isLoading ? null : _saveProperty,
                       isLoading: propertyProvider.isLoading,
                       fullWidth: true,

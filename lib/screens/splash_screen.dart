@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../utils/app_colors.dart';
+import '../widgets/futela_logo.dart';
 import 'auth/login_screen.dart';
 import 'main_navigation.dart';
 
@@ -90,26 +91,11 @@ class _SplashScreenState extends State<SplashScreen>
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    // Logo
-                    Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.shadow,
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.home_work,
-                        size: 60,
-                        color: AppColors.primary,
-                      ),
+                    // Logo Futela
+                    const FutelaLogo(
+                      size: 120,
+                      backgroundColor: AppColors.white,
+                      borderRadius: BorderRadius.all(Radius.circular(24)),
                     ),
                     const SizedBox(height: 32),
                     

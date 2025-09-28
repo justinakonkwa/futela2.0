@@ -9,11 +9,17 @@ import 'edit_profile_screen.dart';
 import 'change_password_screen.dart';
 import '../property/add_property_screen.dart';
 import '../../providers/property_provider.dart';
+import '../../providers/visit_provider.dart';
 import '../../widgets/property_card.dart';
+import '../../widgets/property_card_shimmer.dart';
 import '../visits/my_visits_screen.dart';
 import '../fees/fees_screen.dart';
 import '../favorites/favorites_screen.dart';
 import '../property/property_detail_screen.dart';
+import '../support/help_center_screen.dart';
+import '../support/contact_us_screen.dart';
+import '../support/about_screen.dart';
+import '../../widgets/futela_logo.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -51,26 +57,35 @@ class ProfileScreen extends StatelessWidget {
               children: [
                 // Profil header
                 Container(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(28),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        AppColors.primary.withOpacity(0.1),
-                        AppColors.secondary.withOpacity(0.05),
+                        AppColors.primary.withOpacity(0.08),
+                        AppColors.secondary.withOpacity(0.12),
+                        AppColors.primary.withOpacity(0.05),
                       ],
+                      stops: const [0.0, 0.5, 1.0],
                     ),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(24),
                     border: Border.all(
-                      color: AppColors.primary.withOpacity(0.2),
-                      width: 1,
+                      color: AppColors.primary.withOpacity(0.15),
+                      width: 1.5,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.shadow.withOpacity(0.1),
-                        blurRadius: 20,
-                        offset: const Offset(0, 4),
+                        color: AppColors.primary.withOpacity(0.08),
+                        blurRadius: 25,
+                        offset: const Offset(0, 8),
+                        spreadRadius: 0,
+                      ),
+                      BoxShadow(
+                        color: AppColors.shadow.withOpacity(0.05),
+                        blurRadius: 15,
+                        offset: const Offset(0, 2),
+                        spreadRadius: 0,
                       ),
                     ],
                   ),
@@ -81,19 +96,26 @@ class ProfileScreen extends StatelessWidget {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: AppColors.primary.withOpacity(0.3),
-                            width: 3,
+                            color: AppColors.white,
+                            width: 4,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primary.withOpacity(0.2),
-                              blurRadius: 10,
+                              color: AppColors.primary.withOpacity(0.25),
+                              blurRadius: 15,
+                              offset: const Offset(0, 4),
+                              spreadRadius: 0,
+                            ),
+                            BoxShadow(
+                              color: AppColors.shadow.withOpacity(0.1),
+                              blurRadius: 8,
                               offset: const Offset(0, 2),
+                              spreadRadius: 0,
                             ),
                           ],
                         ),
                         child: CircleAvatar(
-                          radius: 50,
+                          radius: 55,
                           backgroundColor: AppColors.primary.withOpacity(0.1),
                           backgroundImage: user.profilePictureFilePath != null
                               ? NetworkImage(user.profilePictureFilePath!)
@@ -105,182 +127,328 @@ class ProfileScreen extends StatelessWidget {
                                       : 'U',
                                   style: const TextStyle(
                                     fontFamily: 'Gilroy',
-                                    fontSize: 32,
+                                    fontSize: 36,
                                     color: AppColors.primary,
-                                    fontWeight: FontWeight.w700,
+                                    fontWeight: FontWeight.w800,
                                   ),
                                 )
                               : null,
                         ),
                       ),
                       
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 24),
                       
                       // Nom complet
                       Text(
                         user.fullName,
                         style: const TextStyle(
                           fontFamily: 'Gilroy',
-                          fontSize: 24,
-                          fontWeight: FontWeight.w700,
+                          fontSize: 26,
+                          fontWeight: FontWeight.w800,
                           color: AppColors.textPrimary,
+                          letterSpacing: 0.5,
                         ),
+                        textAlign: TextAlign.center,
                       ),
                       
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 12),
                       
-                      // Email
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: AppColors.grey100,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.email_outlined,
-                              size: 16,
-                              color: AppColors.textSecondary,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              user.email,
-                              style: const TextStyle(
-                                fontFamily: 'Gilroy',
-                                fontSize: 14,
-                                color: AppColors.textSecondary,
-                                fontWeight: FontWeight.w500,
+                      // Email et Téléphone en row
+                      Row(
+                        children: [
+                          // Email
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: AppColors.white.withOpacity(0.7),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: AppColors.primary.withOpacity(0.1),
+                                  width: 1,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.shadow.withOpacity(0.05),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Icon(
+                                      Icons.email_outlined,
+                                      size: 18,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      user.email,
+                                      style: const TextStyle(
+                                        fontFamily: 'Gilroy',
+                                        fontSize: 14,
+                                        color: AppColors.textPrimary,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                      
-                      const SizedBox(height: 8),
-                      
-                      // Téléphone
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: AppColors.grey100,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.phone_outlined,
-                              size: 16,
-                              color: AppColors.textSecondary,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              user.phone,
-                              style: const TextStyle(
-                                fontFamily: 'Gilroy',
-                                fontSize: 14,
-                                color: AppColors.textSecondary,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      
-                      const SizedBox(height: 16),
-                      
-                      // Badge de rôle
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Color(int.parse(RolePermissions.getRoleColor(user.role).replaceFirst('#', '0xFF'))),
-                              Color(int.parse(RolePermissions.getRoleColor(user.role).replaceFirst('#', '0xFF'))).withOpacity(0.8),
-                            ],
                           ),
-                          borderRadius: BorderRadius.circular(25),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Color(int.parse(RolePermissions.getRoleColor(user.role).replaceFirst('#', '0xFF'))).withOpacity(0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.person,
-                              size: 18,
-                              color: Colors.white,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              RolePermissions.getRoleDisplayName(user.role),
-                              style: const TextStyle(
-                                fontFamily: 'Gilroy',
-                                color: Colors.white,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
+                          
+                          const SizedBox(width: 12),
+                          
+                          // Téléphone
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              decoration: BoxDecoration(
+                                color: AppColors.white.withOpacity(0.7),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: AppColors.primary.withOpacity(0.1),
+                                  width: 1,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.shadow.withOpacity(0.05),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Icon(
+                                      Icons.phone_outlined,
+                                      size: 18,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      user.phone,
+                                      style: const TextStyle(
+                                        fontFamily: 'Gilroy',
+                                        fontSize: 14,
+                                        color: AppColors.textPrimary,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                       
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 20),
                       
-                      // Badge de vérification
-                      if (user.isIdVerified)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                AppColors.success,
-                                AppColors.success.withOpacity(0.8),
-                              ],
+                      // Badges en row
+                      Row(
+                        children: [
+                          // Badge de rôle
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Color(int.parse(RolePermissions.getRoleColor(user.role).replaceFirst('#', '0xFF'))),
+                                    Color(int.parse(RolePermissions.getRoleColor(user.role).replaceFirst('#', '0xFF'))).withOpacity(0.8),
+                                  ],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Color(int.parse(RolePermissions.getRoleColor(user.role).replaceFirst('#', '0xFF'))).withOpacity(0.3),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 4),
+                                    spreadRadius: 0,
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: const Icon(
+                                      Icons.person,
+                                      size: 16,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      RolePermissions.getRoleDisplayName(user.role),
+                                      style: const TextStyle(
+                                        fontFamily: 'Gilroy',
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 14,
+                                        letterSpacing: 0.3,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                            borderRadius: BorderRadius.circular(25),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.success.withOpacity(0.3),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.verified,
-                                size: 18,
-                                color: Colors.white,
-                              ),
-                              const SizedBox(width: 6),
-                              const Text(
-                                'Profil vérifié',
-                                style: TextStyle(
-                                  fontFamily: 'Gilroy',
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 14,
+                          
+                          if (user.isIdVerified) ...[
+                            const SizedBox(width: 12),
+                            
+                            // Badge de vérification
+                            Expanded(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      AppColors.success,
+                                      AppColors.success.withOpacity(0.8),
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.success.withOpacity(0.3),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 4),
+                                      spreadRadius: 0,
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: const Icon(
+                                        Icons.verified,
+                                        size: 16,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Expanded(
+                                      child: Text(
+                                        'Profil vérifié',
+                                        style: TextStyle(
+                                          fontFamily: 'Gilroy',
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 14,
+                                          letterSpacing: 0.3,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 24),
+                
+                // Logo Futela
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.shadow.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      // Logo
+                      const FutelaLogo(size: 50),
+                      const SizedBox(width: 16),
+                      
+                      // Informations
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Futela',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Version 1.0.0',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
                         ),
+                      ),
+                      
+                      // Indicateur
+                      Icon(
+                        Icons.verified,
+                        color: AppColors.success,
+                        size: 20,
+                      ),
                     ],
                   ),
                 ),
@@ -436,21 +604,33 @@ class ProfileScreen extends StatelessWidget {
                       icon: Icons.help_outline,
                       title: 'Centre d\'aide',
                       onTap: () {
-                        // TODO: Implémenter le centre d'aide
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const HelpCenterScreen(),
+                          ),
+                        );
                       },
                     ),
                     _MenuItem(
                       icon: Icons.contact_support_outlined,
                       title: 'Nous contacter',
                       onTap: () {
-                        // TODO: Implémenter le contact
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const ContactUsScreen(),
+                          ),
+                        );
                       },
                     ),
                     _MenuItem(
                       icon: Icons.info_outline,
                       title: 'À propos',
                       onTap: () {
-                        // TODO: Implémenter la page à propos
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const AboutScreen(),
+                          ),
+                        );
                       },
                     ),
                   ],
@@ -641,12 +821,15 @@ class ProfileScreen extends StatelessWidget {
   void _showWithdrawalDialog(BuildContext context) {
     final phoneController = TextEditingController();
     final amountController = TextEditingController();
-    String selectedType = '1';
-    String selectedCurrency = 'USD';
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          String selectedType = '1';
+          String selectedCurrency = 'USD';
+          
+          return AlertDialog(
         title: const Text('Demande de retrait'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -663,7 +846,9 @@ class ProfileScreen extends StatelessWidget {
               ],
               onChanged: (value) {
                 if (value != null) {
-                  selectedType = value;
+                  setState(() {
+                    selectedType = value;
+                  });
                 }
               },
             ),
@@ -702,7 +887,9 @@ class ProfileScreen extends StatelessWidget {
                   ],
                   onChanged: (value) {
                     if (value != null) {
-                      selectedCurrency = value;
+                      setState(() {
+                        selectedCurrency = value;
+                      });
                     }
                   },
                 ),
@@ -741,13 +928,18 @@ class ProfileScreen extends StatelessWidget {
                       return;
                     }
 
-                    // TODO: Implémenter la demande de retrait
-                    // await visitProvider.requestWithdrawal(...)
+                    final visitProvider = Provider.of<VisitProvider>(context, listen: false);
+                    await visitProvider.requestWithdrawal(
+                      currency: selectedCurrency,
+                      amount: amount,
+                      phone: phoneController.text,
+                      type: selectedType,
+                    );
                     
                     Navigator.of(context).pop();
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Demande de retrait envoyée'),
+                        content: Text('Demande de retrait envoyée avec succès'),
                         backgroundColor: Colors.green,
                       ),
                     );
@@ -765,6 +957,9 @@ class ProfileScreen extends StatelessWidget {
             },
           ),
         ],
+      
+          );
+        },
       ),
     );
   }
@@ -940,8 +1135,14 @@ class _MyPropertiesScreenState extends State<_MyPropertiesScreen> {
     final provider = Provider.of<PropertyProvider>(context, listen: false);
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      if (!provider.isLoading && provider.nextCursor != null) {
+      // Protection contre les appels multiples
+      if (!provider.isLoading && 
+          provider.nextCursor != null && 
+          provider.nextCursor!.isNotEmpty) {
+        print('🔄 Loading more properties with cursor: ${provider.nextCursor}');
         provider.loadMyProperties();
+      } else if (provider.nextCursor == null || provider.nextCursor!.isEmpty) {
+        print('✅ No more properties to load (nextCursor is null or empty)');
       }
     }
   }
@@ -961,14 +1162,21 @@ class _MyPropertiesScreenState extends State<_MyPropertiesScreen> {
         backgroundColor: AppColors.white,
         elevation: 0,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (context) => const AddPropertyScreen()),
-              );
+          Consumer<AuthProvider>(
+            builder: (context, authProvider, child) {
+              if (authProvider.user != null && RolePermissions.canAddProperties(authProvider.user!)) {
+                return IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => const AddPropertyScreen()),
+                    );
+                  },
+                );
+              }
+              return const SizedBox.shrink();
             },
-          )
+          ),
         ],
       ),
       body: Consumer<PropertyProvider>(
@@ -977,15 +1185,15 @@ class _MyPropertiesScreenState extends State<_MyPropertiesScreen> {
           print('🔍 MyPropertiesScreen State: isLoading=${provider.isLoading}, error=${provider.error}, propertiesCount=${provider.myProperties.length}');
           
           if (provider.isLoading && provider.myProperties.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text('Chargement de vos propriétés...'),
-                ],
-              ),
+            return ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: 6,
+              itemBuilder: (context, index) {
+                return const Padding(
+                  padding: EdgeInsets.only(bottom: 16),
+                  child: PropertyCardShimmer(),
+                );
+              },
             );
           }
 
@@ -1047,8 +1255,8 @@ class _MyPropertiesScreenState extends State<_MyPropertiesScreen> {
             itemBuilder: (context, index) {
               if (index == provider.myProperties.length) {
                 return const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Center(child: CircularProgressIndicator()),
+                  padding: EdgeInsets.only(bottom: 16),
+                  child: PropertyCardShimmer(),
                 );
               }
               final property = provider.myProperties[index];

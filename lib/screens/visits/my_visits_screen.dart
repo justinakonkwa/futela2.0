@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../../providers/visit_provider.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/property_card_shimmer.dart';
+import '../../widgets/futela_logo.dart';
 
 class MyVisitsScreen extends StatefulWidget {
   const MyVisitsScreen({super.key});
@@ -33,10 +35,15 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
       body: Consumer<VisitProvider>(
         builder: (context, visitProvider, child) {
           if (visitProvider.isLoading && visitProvider.visits.isEmpty) {
-            return const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-              ),
+            return ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: 6,
+              itemBuilder: (context, index) {
+                return const Padding(
+                  padding: EdgeInsets.only(bottom: 16),
+                  child: PropertyCardShimmer(),
+                );
+              },
             );
           }
 
@@ -81,30 +88,44 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
 
           if (visitProvider.visits.isEmpty) {
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.calendar_today_outlined,
-                    size: 64,
-                    color: Colors.grey[400],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Aucune visite',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: Colors.grey[600],
+              child: Padding(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Logo Futela avec icône de calendrier
+                    const FutelaLogoWithBadge(
+                      size: 120,
+                      badgeIcon: Icons.calendar_today,
+                      badgeColor: AppColors.primary,
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Vous n\'avez pas encore de visites programmées.',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey[500],
+                    const SizedBox(height: 24),
+                    Text(
+                      'Aucune visite',
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 8),
+                    Text(
+                      'Vous n\'avez pas encore de visites programmées.\nTrouvez une propriété et demandez une visite !',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    CustomButton(
+                      text: 'Explorer les propriétés',
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      backgroundColor: AppColors.primary,
+                      textColor: Colors.white,
+                    ),
+                  ],
+                ),
               ),
             );
           }

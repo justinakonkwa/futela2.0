@@ -6,16 +6,22 @@ import 'home/home_screen.dart';
 import 'search/search_screen.dart';
 import 'favorites/favorites_screen.dart';
 import 'profile/profile_screen.dart';
+import 'auth/login_screen.dart';
 
 class MainNavigation extends StatefulWidget {
-  const MainNavigation({super.key});
+  final int initialIndex;
+  
+  const MainNavigation({
+    super.key,
+    this.initialIndex = 0,
+  });
 
   @override
   State<MainNavigation> createState() => _MainNavigationState();
 }
 
 class _MainNavigationState extends State<MainNavigation> {
-  int _currentIndex = 0;
+  late int _currentIndex;
 
   final List<Widget> _screens = [
     const HomeScreen(),
@@ -48,6 +54,12 @@ class _MainNavigationState extends State<MainNavigation> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+  }
+
+  @override
   Widget build(BuildContext context) {
     print('🔍 MainNavigation build: currentIndex=$_currentIndex');
     return Consumer<AuthProvider>(
@@ -55,7 +67,9 @@ class _MainNavigationState extends State<MainNavigation> {
         if (!authProvider.isAuthenticated) {
           // Rediriger vers l'écran de connexion si l'utilisateur n'est pas authentifié
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            Navigator.of(context).pushReplacementNamed('/login');
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const LoginScreen()),
+            );
           });
           return const Scaffold(
             body: Center(

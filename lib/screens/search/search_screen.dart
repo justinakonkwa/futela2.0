@@ -4,6 +4,7 @@ import '../../providers/property_provider.dart';
 import '../../providers/location_provider.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/property_card.dart';
+import '../../widgets/property_card_shimmer.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/category_chips.dart';
@@ -221,8 +222,15 @@ class _SearchScreenState extends State<SearchScreen> {
             child: Consumer<PropertyProvider>(
               builder: (context, propertyProvider, child) {
                 if (propertyProvider.isLoading && propertyProvider.properties.isEmpty) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
+                  return ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: 6,
+                    itemBuilder: (context, index) {
+                      return const Padding(
+                        padding: EdgeInsets.only(bottom: 16),
+                        child: PropertyCardShimmer(),
+                      );
+                    },
                   );
                 }
 
@@ -301,10 +309,8 @@ class _SearchScreenState extends State<SearchScreen> {
                     itemBuilder: (context, index) {
                       if (index == propertyProvider.properties.length) {
                         return const Padding(
-                          padding: EdgeInsets.all(16),
-                          child: Center(
-                            child: CircularProgressIndicator(),
-                          ),
+                          padding: EdgeInsets.only(bottom: 16),
+                          child: PropertyCardShimmer(),
                         );
                       }
 

@@ -127,3 +127,7 @@ Toutes les fonctionnalités sont intégrées avec l'API Futela :
 - Interface d'administration pour les propriétaires
 
 
+
+
+
+

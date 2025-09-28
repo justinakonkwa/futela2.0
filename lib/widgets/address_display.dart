@@ -32,6 +32,13 @@ class _AddressDisplayState extends State<AddressDisplay> {
   }
 
   Future<void> _loadAddress() async {
+    // Afficher d'abord l'adresse simple avec les informations disponibles
+    setState(() {
+      _displayAddress = widget.property.simpleAddress;
+      _isLoading = false;
+    });
+
+    // Ensuite, essayer d'enrichir avec l'AddressService en arrière-plan
     try {
       final fullAddress = await AddressService.buildFullAddress(
         address: widget.property.address,
@@ -40,19 +47,15 @@ class _AddressDisplayState extends State<AddressDisplay> {
         provinceId: widget.property.town.city.province.id,
       );
 
-      if (mounted) {
+      // Si l'adresse enrichie est différente et plus complète, la mettre à jour
+      if (mounted && fullAddress != _displayAddress && fullAddress.length > _displayAddress.length) {
         setState(() {
           _displayAddress = fullAddress;
-          _isLoading = false;
         });
       }
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _displayAddress = widget.property.fullAddress;
-          _isLoading = false;
-        });
-      }
+      // Ignorer les erreurs, on garde l'adresse simple déjà affichée
+      print('Erreur lors de l\'enrichissement de l\'adresse: $e');
     }
   }
 

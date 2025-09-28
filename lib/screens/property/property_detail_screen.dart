@@ -1,6 +1,13 @@
+import 'dart:io';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import '../../models/property.dart';
 import '../../providers/property_provider.dart';
 import '../../providers/location_provider.dart';
 import '../../providers/auth_provider.dart';
@@ -8,6 +15,8 @@ import '../../utils/app_colors.dart';
 import '../../utils/role_permissions.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/address_display.dart';
+import '../../widgets/property_share_widget.dart';
+import '../../widgets/property_card_shimmer.dart';
 import '../visits/request_visit_screen.dart';
 import 'add_property_screen.dart';
 import '../../providers/favorite_provider.dart';
@@ -59,14 +68,53 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
       backgroundColor: AppColors.background,
       body: Consumer<PropertyProvider>(
         builder: (context, propertyProvider, child) {
-          final property = propertyProvider.properties
-              .where((p) => p.id == widget.propertyId)
-              .firstOrNull;
+          final property = widget.myProperty 
+              ? propertyProvider.myProperties
+                  .where((p) => p.id == widget.propertyId)
+                  .firstOrNull
+              : propertyProvider.properties
+                  .where((p) => p.id == widget.propertyId)
+                  .firstOrNull;
 
           if (property == null) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            if (propertyProvider.isLoading) {
+              return const PropertyDetailShimmer();
+            } else if (propertyProvider.error != null) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Colors.red[300],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Erreur de chargement',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      propertyProvider.error!,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () => _loadProperty(),
+                      child: const Text('Réessayer'),
+                    ),
+                  ],
+                ),
+              );
+            } else {
+              return const Center(
+                child: Text('Propriété non trouvée'),
+              );
+            }
           }
 
           return CustomScrollView(
@@ -154,7 +202,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                     child: IconButton(
                       icon: const Icon(Icons.share, color: AppColors.textPrimary),
                       onPressed: () {
-                        // TODO: Implémenter le partage
+                        _showShareDialog(context, property);
                       },
                     ),
                   ),
@@ -1068,5 +1116,74 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
     if (url.isEmpty) return false;
     if (url.toLowerCase() == 'default.png') return false;
     return url.startsWith('http://') || url.startsWith('https://');
+  }
+
+  void _showShareDialog(BuildContext context, Property property) {
+    final GlobalKey repaintBoundaryKey = GlobalKey();
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Partager cette propriété'),
+        content: SizedBox(
+          width: 350,
+          height: 500,
+          child: PropertyShareWidget(
+            property: property,
+            repaintBoundaryKey: repaintBoundaryKey,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Annuler'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              await _shareProperty(context, property, repaintBoundaryKey);
+            },
+            child: const Text('Partager'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _shareProperty(BuildContext context, Property property, GlobalKey repaintBoundaryKey) async {
+    try {
+      // Capturer l'image du widget
+      final RenderRepaintBoundary boundary = repaintBoundaryKey.currentContext!
+          .findRenderObject() as RenderRepaintBoundary;
+      final ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+      final ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      final Uint8List pngBytes = byteData!.buffer.asUint8List();
+
+      // Sauvegarder l'image temporairement
+      final Directory tempDir = await getTemporaryDirectory();
+      final String fileName = 'futela_property_${property.id}.png';
+      final File file = File('${tempDir.path}/$fileName');
+      await file.writeAsBytes(pngBytes);
+
+      // Partager l'image
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: 'Découvrez cette propriété sur Futela !\n\n'
+              '${property.title}\n'
+              '${property.formattedPrice}${property.type == 'for-rent' ? '/mois' : ''}\n'
+              '${property.fullAddress}\n\n'
+              'Téléchargez l\'app Futela ou visitez futela.com',
+        subject: 'Propriété Futela - ${property.title}',
+      );
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors du partage: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
   }
 }

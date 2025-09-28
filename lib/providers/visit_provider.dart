@@ -40,7 +40,8 @@ class VisitProvider with ChangeNotifier {
   Future<String> createVisit({
     required String visitor,
     required String property,
-    required List<String> dates,
+    required DateTime startTime,
+    required DateTime endTime,
     String? message,
     String? contact,
   }) async {
@@ -51,7 +52,8 @@ class VisitProvider with ChangeNotifier {
       final visitRequest = VisitRequest(
         visitor: visitor,
         property: property,
-        dates: dates,
+        startTime: startTime,
+        endTime: endTime,
         message: message,
         contact: contact,
       );

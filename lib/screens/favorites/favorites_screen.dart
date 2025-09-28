@@ -4,7 +4,9 @@ import '../../utils/app_colors.dart';
 import '../../providers/favorite_provider.dart';
 import '../../providers/favorite_list_provider.dart';
 import '../../widgets/favorite_property_card.dart';
+import '../../widgets/futela_logo.dart';
 import '../property/property_detail_screen.dart';
+import '../main_navigation.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -163,18 +165,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(60),
-                      ),
-                      child: Icon(
-                        Icons.favorite_border,
-                        size: 60,
-                        color: AppColors.primary,
-                      ),
+                    // Logo Futela avec icône de favori
+                    const FutelaLogoWithBadge(
+                      size: 120,
+                      badgeIcon: Icons.favorite,
+                      badgeColor: AppColors.primary,
                     ),
                     const SizedBox(height: 24),
                     Text(
@@ -195,7 +190,12 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     const SizedBox(height: 32),
                     ElevatedButton.icon(
                       onPressed: () {
-                        Navigator.of(context).pop();
+                        // Naviguer vers la page d'accueil avec la navigation principale
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (context) => const MainNavigation(initialIndex: 0),
+                          ),
+                        );
                       },
                       icon: const Icon(Icons.explore),
                       label: const Text('Explorer les propriétés'),

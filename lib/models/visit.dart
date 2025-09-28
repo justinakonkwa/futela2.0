@@ -81,14 +81,16 @@ class Visit {
 class VisitRequest {
   final String visitor;
   final String property;
-  final List<String> dates;
+  final DateTime startTime;
+  final DateTime endTime;
   final String? message;
   final String? contact;
 
   VisitRequest({
     required this.visitor,
     required this.property,
-    required this.dates,
+    required this.startTime,
+    required this.endTime,
     this.message,
     this.contact,
   });
@@ -97,7 +99,8 @@ class VisitRequest {
     return VisitRequest(
       visitor: json['visitor'] ?? '',
       property: json['property'] ?? '',
-      dates: List<String>.from(json['dates'] ?? []),
+      startTime: DateTime.parse(json['startTime']),
+      endTime: DateTime.parse(json['endTime']),
       message: json['message'],
       contact: json['contact'],
     );
@@ -107,7 +110,8 @@ class VisitRequest {
     return {
       'visitor': visitor,
       'property': property,
-      'dates': dates,
+      'startTime': startTime.toIso8601String(),
+      'endTime': endTime.toIso8601String(),
       'message': message ?? '',
       'contact': contact ?? '',
     };

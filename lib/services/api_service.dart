@@ -386,7 +386,7 @@ class ApiService {
 
   // My properties endpoints
   static Future<Property> getMyProperty(String id) async {
-    final url = '$fullBaseUrl/properties/$id';
+    final url = '$fullBaseUrl/properties/users/my-properties/$id';
     final headers = await _getHeaders();
 
     print('👤🔎 GET MY PROPERTY REQUEST');
@@ -840,28 +840,39 @@ class ApiService {
     request.headers['Authorization'] = 'Bearer $token';
 
     // IMPORTANT: envoyer une seule image par requête pour éviter 413
+    // Certains backends utilisent des noms de champs différents.
+    // On essaie une liste de champs courants jusqu'à succès.
+    // Préférence: l'API accepte 'photos'. On garde d'autres alias en secours.
+    const candidateFieldNames = ['photos', 'photo', 'images', 'image', 'files', 'file'];
     for (int i = 0; i < imagePaths.length; i++) {
-      final singleRequest = http.MultipartRequest('POST', Uri.parse(url));
-      singleRequest.headers['Authorization'] = 'Bearer $token';
       final path = imagePaths[i];
       final lower = path.toLowerCase();
       final isPng = lower.endsWith('.png');
-      final mediaType = isPng
-          ? MediaType('image', 'png')
-          : MediaType('image', 'jpeg');
-      final file = await http.MultipartFile.fromPath(
-        'image',
-        path,
-        contentType: mediaType,
-      );
-      singleRequest.files.add(file);
-      final streamedResponse = await singleRequest.send();
-      final response = await http.Response.fromStream(streamedResponse);
-      print('📸 UPLOAD IMAGE [$i/${imagePaths.length}] RESPONSE: ${response.statusCode}');
-      print('📸 UPLOAD IMAGE [$i/${imagePaths.length}] BODY: ${response.body}');
-      if (response.statusCode != 201) {
-        print('📸 UPLOAD IMAGE [$i/${imagePaths.length}] ERROR: ${response.statusCode} - ${response.body}');
-        throw Exception('Erreur d\'upload de l\'image ${i + 1}: ${response.statusCode} - ${response.body}');
+      final mediaType = isPng ? MediaType('image', 'png') : MediaType('image', 'jpeg');
+
+      bool uploaded = false;
+      String lastStatus = '';
+      for (final field in candidateFieldNames) {
+        final singleRequest = http.MultipartRequest('POST', Uri.parse(url));
+        singleRequest.headers['Authorization'] = 'Bearer $token';
+        final mpFile = await http.MultipartFile.fromPath(field, path, contentType: mediaType);
+        singleRequest.files.add(mpFile);
+        final streamedResponse = await singleRequest.send();
+        final response = await http.Response.fromStream(streamedResponse);
+        print('📸 UPLOAD IMAGE [$i/${imagePaths.length}] FIELD=$field → ${response.statusCode}');
+        if (response.statusCode == 201) {
+          uploaded = true;
+          break;
+        }
+        lastStatus = 'status=${response.statusCode}, body=${response.body}';
+        // Si champ inattendu, on tente le suivant
+        if (response.statusCode == 400 && response.body.contains('Unexpected field')) {
+          continue;
+        }
+      }
+
+      if (!uploaded) {
+        throw Exception('Erreur d\'upload de l\'image ${i + 1}: $lastStatus');
       }
     }
     return;

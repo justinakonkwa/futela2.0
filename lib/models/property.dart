@@ -58,7 +58,20 @@ class Property {
       address: json['address'] ?? '',
       location: json['location'],
       isValidated: json['isValidated'] ?? false,
-      owner: User.fromJson(json['owner'] ?? {}),
+      owner: json['owner'] != null && json['owner'] is Map 
+          ? User.fromJson(json['owner'] as Map<String, dynamic>)
+          : User(
+              id: json['owner']?['id'] ?? '',
+              updatedTimestamp: DateTime.now(),
+              createdTimestamp: DateTime.now(),
+              firstName: '',
+              lastName: '',
+              email: '',
+              phone: '',
+              isIdVerified: false,
+              isDesactivated: false,
+              role: 'user',
+            ),
       town: Town.fromJson(json['town'] ?? {}),
       type: json['type'] ?? 'for-rent',
       description: json['description'] ?? '',
@@ -102,16 +115,58 @@ class Property {
   }
 
   String get fullAddress {
-    // Si l'adresse est vide ou ne contient que "string", construire l'adresse à partir de la localisation
-    if (address.isEmpty || address.toLowerCase() == 'string') {
-      // Vérifier si les noms sont disponibles, sinon utiliser les IDs
-      final townName = town.name.isNotEmpty ? town.name : 'Ville inconnue';
-      final cityName = town.city.name.isNotEmpty ? town.city.name : 'Ville inconnue';
-      final provinceName = town.city.province.name.isNotEmpty ? town.city.province.name : 'Province inconnue';
-      
-      return '$townName, $cityName, $provinceName';
+    // Construire l'adresse complète en combinant l'adresse et la localisation
+    final List<String> addressParts = [];
+    
+    // Ajouter l'adresse si elle n'est pas vide et n'est pas "string"
+    if (address.isNotEmpty && address.toLowerCase() != 'string') {
+      addressParts.add(address);
     }
-    return address;
+    
+    // Ajouter le nom de la commune
+    if (town.name.isNotEmpty) {
+      addressParts.add(town.name);
+    }
+    
+    // Ajouter le nom de la ville si disponible
+    if (town.city.name.isNotEmpty) {
+      addressParts.add(town.city.name);
+    }
+    
+    // Ajouter le nom de la province si disponible
+    if (town.city.province.name.isNotEmpty) {
+      addressParts.add(town.city.province.name);
+    }
+    
+    // Si aucune partie d'adresse n'est disponible, retourner un message par défaut
+    if (addressParts.isEmpty) {
+      return 'Adresse non disponible';
+    }
+    
+    return addressParts.join(', ');
+  }
+
+  // Méthode pour obtenir une adresse simple (sans appel API)
+  String get simpleAddress {
+    final List<String> parts = [];
+    
+    // Ajouter l'adresse si elle est valide
+    if (address.isNotEmpty && address.toLowerCase() != 'string') {
+      parts.add(address);
+    }
+    
+    // Ajouter le nom de la commune
+    if (town.name.isNotEmpty) {
+      parts.add(town.name);
+    }
+    
+    // Si on a au moins une partie, l'afficher
+    if (parts.isNotEmpty) {
+      return parts.join(', ');
+    }
+    
+    // Sinon, afficher un message par défaut
+    return 'Localisation non disponible';
   }
 
 }
@@ -162,7 +217,13 @@ class Town {
   factory Town.fromJson(Map<String, dynamic> json) {
     return Town(
       id: json['id'] ?? '',
-      city: City.fromJson(json['city'] ?? {}),
+      city: json['city'] != null && json['city'] is Map 
+          ? City.fromJson(json['city'] as Map<String, dynamic>)
+          : City(
+              id: json['city']?['id'] ?? '',
+              province: Province(id: '', name: ''),
+              name: '',
+            ),
       name: json['name'] ?? '',
     );
   }
@@ -190,7 +251,9 @@ class City {
   factory City.fromJson(Map<String, dynamic> json) {
     return City(
       id: json['id'] ?? '',
-      province: Province.fromJson(json['province'] ?? {}),
+      province: json['province'] != null && json['province'] is Map 
+          ? Province.fromJson(json['province'] as Map<String, dynamic>)
+          : Province(id: '', name: ''),
       name: json['name'] ?? '',
     );
   }

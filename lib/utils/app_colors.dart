@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // Couleurs principales - Vert
-  static const Color primary = Color(0xFF00A699); // Vert principal
-  static const Color primaryDark = Color(0xFF007A6B);
-  static const Color primaryLight = Color(0xFF4DB6AC);
+  static const Color primary = Color(0xFF4CAF50); // Vert moyen #4CAF50
+  static const Color primaryDark = Color(0xFF388E3C); // Vert plus foncé
+  static const Color primaryLight = Color(0xFF81C784); // Vert plus clair
   
   // Couleurs secondaires
-  static const Color secondary = Color(0xFF4DB6AC); // Vert clair
+  static const Color secondary = Color(0xFF81C784); // Vert clair cohérent
   static const Color accent = Color(0xFFFFB400); // Orange
   
   // Couleurs neutres
@@ -25,7 +25,7 @@ class AppColors {
   static const Color grey900 = Color(0xFF0D0D0D);
   
   // Couleurs de statut
-  static const Color success = Color(0xFF00A699);
+  static const Color success = Color(0xFF4CAF50); // Vert moyen cohérent
   static const Color warning = Color(0xFFFFB400);
   static const Color error = Color(0xFFE31C5F);
   static const Color info = Color(0xFF0084FF);
@@ -46,8 +46,8 @@ class AppColors {
   static const Color shadow = Color(0x1A000000);
   
   // Couleurs spécifiques aux propriétés
-  static const Color priceHighlight = Color(0xFF00A699);
-  static const Color available = Color(0xFF00A699);
+  static const Color priceHighlight = Color(0xFF4CAF50); // Vert moyen cohérent
+  static const Color available = Color(0xFF4CAF50); // Vert moyen cohérent
   static const Color unavailable = Color(0xFF999999);
   static const Color featured = Color(0xFFFFB400);
 }

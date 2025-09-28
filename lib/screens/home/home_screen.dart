@@ -3,13 +3,18 @@ import 'package:provider/provider.dart';
 import '../../providers/property_provider.dart';
 import '../../providers/location_provider.dart';
 import '../../providers/favorite_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/role_permissions.dart';
 import '../../widgets/property_card.dart';
+import '../../widgets/property_card_shimmer.dart';
 import '../../widgets/search_bar_widget.dart';
 import '../../widgets/category_chips.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/futela_logo.dart';
 import '../property/property_detail_screen.dart';
 import '../property/add_property_screen.dart';
+import '../notifications/notifications_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -81,6 +86,30 @@ class _HomeScreenState extends State<HomeScreen> {
                 pinned: true,
                 backgroundColor: AppColors.white,
                 elevation: 0,
+                actions: [
+                  // Icône de notification
+                  Container(
+                    margin: const EdgeInsets.only(right: 16, top: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: IconButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const NotificationsScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(
+                        Icons.notifications_outlined,
+                        color: AppColors.primary,
+                        size: 24,
+                      ),
+                    ),
+                  ),
+                ],
                 flexibleSpace: FlexibleSpaceBar(
                   background: Container(
                     padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
@@ -135,10 +164,18 @@ class _HomeScreenState extends State<HomeScreen> {
               Consumer<PropertyProvider>(
                 builder: (context, propertyProvider, child) {
                   if (propertyProvider.isLoading && propertyProvider.properties.isEmpty) {
-                    return const SliverFillRemaining(
-                      hasScrollBody: false,
-                      child: Center(
-                        child: CircularProgressIndicator(),
+                    return SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            return const Padding(
+                              padding: EdgeInsets.only(bottom: 16),
+                              child: PropertyCardShimmer(),
+                            );
+                          },
+                          childCount: 6, // Afficher 6 cartes shimmer
+                        ),
                       ),
                     );
                   }
@@ -188,11 +225,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
-                              Icons.home_work_outlined,
-                              size: 64,
-                              color: AppColors.textTertiary,
-                            ),
+                            // Logo Futela
+                            const FutelaLogo(size: 80),
                             const SizedBox(height: 16),
                             Text(
                               'Aucune propriété trouvée',
@@ -282,19 +316,26 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => const AddPropertyScreen(),
-            ),
-          );
+      floatingActionButton: Consumer<AuthProvider>(
+        builder: (context, authProvider, child) {
+          if (authProvider.user != null && RolePermissions.canAddProperties(authProvider.user!)) {
+            return FloatingActionButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const AddPropertyScreen(),
+                  ),
+                );
+              },
+              backgroundColor: AppColors.primary,
+              child: const Icon(
+                Icons.add,
+                color: AppColors.white,
+              ),
+            );
+          }
+          return const SizedBox.shrink();
         },
-        backgroundColor: AppColors.primary,
-        child: const Icon(
-          Icons.add,
-          color: AppColors.white,
-        ),
       ),
     );
   }

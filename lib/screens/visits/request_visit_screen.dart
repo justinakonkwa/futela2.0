@@ -23,8 +23,10 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
   final _messageController = TextEditingController();
   final _contactController = TextEditingController();
   
-  List<DateTime> _selectedDates = [];
-  TimeOfDay _selectedTime = const TimeOfDay(hour: 10, minute: 0);
+  DateTime? _startDate;
+  DateTime? _endDate;
+  TimeOfDay _startTime = const TimeOfDay(hour: 10, minute: 0);
+  TimeOfDay _endTime = const TimeOfDay(hour: 11, minute: 0);
 
   @override
   void dispose() {
@@ -68,12 +70,16 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
                       ),
                       const SizedBox(height: 16),
                       
-                      // Dates préférées pour la visite
-                      _buildDatesSelector(),
+                      // Date de début de la visite
+                      _buildStartDateSelector(),
                       const SizedBox(height: 16),
                       
-                      // Heure de la visite
-                      _buildTimeSelector(),
+                      // Date de fin de la visite
+                      _buildEndDateSelector(),
+                      const SizedBox(height: 16),
+                      
+                      // Heures de début et fin
+                      _buildTimeSelectors(),
                       const SizedBox(height: 16),
                       
                       // Message optionnel
@@ -129,178 +135,55 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
     );
   }
 
-  Widget _buildDatesSelector() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Text(
-              'Dates préférées pour la visite',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                '${_selectedDates.length}/3+',
-                style: TextStyle(
-                  fontFamily: 'Gilroy',
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primary,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Sélectionnez au moins 3 dates qui vous conviennent',
-          style: TextStyle(
-            fontFamily: 'Gilroy',
-            fontSize: 12,
-            color: AppColors.textSecondary,
-          ),
-        ),
-        const SizedBox(height: 12),
-        
-        // Dates sélectionnées
-        if (_selectedDates.isNotEmpty)
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: _selectedDates.map((date) {
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.primary.withOpacity(0.3)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      _formatDate(date),
-                      style: TextStyle(
-                        fontFamily: 'Gilroy',
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    GestureDetector(
-                      onTap: () => _removeDate(date),
-                      child: Icon(
-                        Icons.close,
-                        size: 16,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
-          ),
-        
-        const SizedBox(height: 12),
-        
-        // Bouton pour ajouter une date
-        InkWell(
-          onTap: _selectDate,
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: _selectedDates.length >= 3 
-                    ? AppColors.success 
-                    : AppColors.primary,
-                style: BorderStyle.solid,
-              ),
-              borderRadius: BorderRadius.circular(12),
-              color: _selectedDates.length >= 3 
-                  ? AppColors.success.withOpacity(0.1)
-                  : AppColors.primary.withOpacity(0.05),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.add_circle_outline,
-                  color: _selectedDates.length >= 3 
-                      ? AppColors.success 
-                      : AppColors.primary,
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  _selectedDates.length >= 3 
-                      ? 'Ajouter une date supplémentaire'
-                      : 'Ajouter une date (${3 - _selectedDates.length} restantes)',
-                  style: TextStyle(
-                    fontFamily: 'Gilroy',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: _selectedDates.length >= 3 
-                        ? AppColors.success 
-                        : AppColors.primary,
-                  ),
-                ),
-                const Spacer(),
-                Icon(
-                  Icons.calendar_today,
-                  color: _selectedDates.length >= 3 
-                      ? AppColors.success 
-                      : AppColors.primary,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTimeSelector() {
+  Widget _buildStartDateSelector() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Heure de la visite',
+          'Date de début de la visite',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w500,
           ),
         ),
         const SizedBox(height: 8),
         InkWell(
-          onTap: _selectTime,
+          onTap: _selectStartDate,
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey[300]!),
-              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.primary),
+              borderRadius: BorderRadius.circular(12),
+              color: _startDate != null 
+                  ? AppColors.primary.withOpacity(0.1)
+                  : Colors.transparent,
             ),
             child: Row(
               children: [
                 Icon(
-                  Icons.access_time,
+                  Icons.calendar_today,
                   color: AppColors.primary,
+                  size: 20,
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  _selectedTime.format(context),
-                  style: Theme.of(context).textTheme.bodyLarge,
+                Expanded(
+                  child: Text(
+                    _startDate != null 
+                        ? _formatDate(_startDate!)
+                        : 'Sélectionner la date de début',
+                    style: TextStyle(
+                      fontFamily: 'Gilroy',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: _startDate != null 
+                          ? AppColors.primary 
+                          : AppColors.textSecondary,
+                    ),
+                  ),
                 ),
-                const Spacer(),
                 Icon(
                   Icons.arrow_drop_down,
-                  color: Colors.grey[600],
+                  color: AppColors.primary,
+                  size: 20,
                 ),
               ],
             ),
@@ -310,16 +193,178 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
     );
   }
 
-  void _removeDate(DateTime date) {
-    setState(() {
-      _selectedDates.remove(date);
-    });
+  Widget _buildEndDateSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Date de fin de la visite',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: _selectEndDate,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              border: Border.all(color: AppColors.primary),
+              borderRadius: BorderRadius.circular(12),
+              color: _endDate != null 
+                  ? AppColors.primary.withOpacity(0.1)
+                  : Colors.transparent,
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.calendar_today,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    _endDate != null 
+                        ? _formatDate(_endDate!)
+                        : 'Sélectionner la date de fin',
+                    style: TextStyle(
+                      fontFamily: 'Gilroy',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: _endDate != null 
+                          ? AppColors.primary 
+                          : AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_drop_down,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
-  Future<void> _selectDate() async {
+  Widget _buildTimeSelectors() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Heures de la visite',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Heure de début',
+                    style: TextStyle(
+                      fontFamily: 'Gilroy',
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  InkWell(
+                    onTap: _selectStartTime,
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppColors.primary),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.access_time,
+                            color: AppColors.primary,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            _startTime.format(context),
+                            style: TextStyle(
+                              fontFamily: 'Gilroy',
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Heure de fin',
+                    style: TextStyle(
+                      fontFamily: 'Gilroy',
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  InkWell(
+                    onTap: _selectEndTime,
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppColors.primary),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.access_time,
+                            color: AppColors.primary,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            _endTime.format(context),
+                            style: TextStyle(
+                              fontFamily: 'Gilroy',
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Future<void> _selectStartDate() async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now().add(const Duration(days: 1)),
+      initialDate: _startDate ?? DateTime.now().add(const Duration(days: 1)),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
       builder: (context, child) {
@@ -334,18 +379,23 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
       },
     );
     
-    if (picked != null && !_selectedDates.contains(picked)) {
+    if (picked != null) {
       setState(() {
-        _selectedDates.add(picked);
-        _selectedDates.sort(); // Trier les dates par ordre chronologique
+        _startDate = picked;
+        // Si la date de fin est antérieure à la date de début, la réinitialiser
+        if (_endDate != null && _endDate!.isBefore(picked)) {
+          _endDate = null;
+        }
       });
     }
   }
 
-  Future<void> _selectTime() async {
-    final TimeOfDay? picked = await showTimePicker(
+  Future<void> _selectEndDate() async {
+    final DateTime? picked = await showDatePicker(
       context: context,
-      initialTime: _selectedTime,
+      initialDate: _endDate ?? _startDate ?? DateTime.now().add(const Duration(days: 2)),
+      firstDate: _startDate ?? DateTime.now().add(const Duration(days: 1)),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -358,9 +408,62 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
       },
     );
     
-    if (picked != null && picked != _selectedTime) {
+    if (picked != null) {
       setState(() {
-        _selectedTime = picked;
+        _endDate = picked;
+      });
+    }
+  }
+
+  Future<void> _selectStartTime() async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _startTime,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+              primary: AppColors.primary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    
+    if (picked != null) {
+      setState(() {
+        _startTime = picked;
+        // S'assurer que l'heure de fin est après l'heure de début
+        if (_endTime.hour * 60 + _endTime.minute <= picked.hour * 60 + picked.minute) {
+          _endTime = TimeOfDay(
+            hour: (picked.hour + 1) % 24,
+            minute: picked.minute,
+          );
+        }
+      });
+    }
+  }
+
+  Future<void> _selectEndTime() async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _endTime,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: Theme.of(context).colorScheme.copyWith(
+              primary: AppColors.primary,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    
+    if (picked != null) {
+      setState(() {
+        _endTime = picked;
       });
     }
   }
@@ -379,11 +482,22 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
       return;
     }
 
-    // Vérifier qu'au moins 3 dates sont sélectionnées
-    if (_selectedDates.length < 3) {
+    // Vérifier que les dates de début et fin sont sélectionnées
+    if (_startDate == null || _endDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Veuillez sélectionner au moins 3 dates préférées'),
+          content: Text('Veuillez sélectionner les dates de début et de fin'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    // Vérifier que la date de fin est après la date de début
+    if (_endDate!.isBefore(_startDate!)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('La date de fin doit être après la date de début'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -404,17 +518,22 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
     }
 
     try {
-      // Convertir les dates en format ISO avec l'heure sélectionnée
-      final List<String> datesISO = _selectedDates.map((date) {
-        final dateTime = DateTime(
-          date.year,
-          date.month,
-          date.day,
-          _selectedTime.hour,
-          _selectedTime.minute,
-        );
-        return dateTime.toIso8601String();
-      }).toList();
+      // Créer les DateTime avec les heures sélectionnées
+      final startDateTime = DateTime(
+        _startDate!.year,
+        _startDate!.month,
+        _startDate!.day,
+        _startTime.hour,
+        _startTime.minute,
+      );
+
+      final endDateTime = DateTime(
+        _endDate!.year,
+        _endDate!.month,
+        _endDate!.day,
+        _endTime.hour,
+        _endTime.minute,
+      );
 
       // Nettoyer et valider les données avant envoi
       final message = _messageController.text.trim();
@@ -426,7 +545,8 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
       await visitProvider.createVisit(
         visitor: authProvider.user!.id,
         property: widget.propertyId,
-        dates: datesISO, // Envoyer la liste des dates au format ISO
+        startTime: startDateTime,
+        endTime: endDateTime,
         message: cleanMessage,
         contact: contact,
       );

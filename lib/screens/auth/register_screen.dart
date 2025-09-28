@@ -4,6 +4,7 @@ import '../../providers/auth_provider.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/futela_logo.dart';
 import '../main_navigation.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -98,6 +99,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                // Logo Futela
+                Center(
+                  child: Column(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withOpacity(0.15),
+                              blurRadius: 15,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: const FutelaLogo(
+                          size: 80,
+                          backgroundColor: AppColors.white,
+                          borderRadius: BorderRadius.all(Radius.circular(20)),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
+                ),
+                
                 // Titre
                 Text(
                   'Créer un compte',

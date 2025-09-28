@@ -120,6 +120,8 @@ class PropertyProvider with ChangeNotifier {
   }) async {
     if (refresh) {
       _myProperties.clear();
+      _nextCursor = null;
+      _prevCursor = null;
     }
 
     _isLoading = true;
@@ -129,7 +131,7 @@ class PropertyProvider with ChangeNotifier {
     try {
       final response = await ApiService.getMyProperties(
         direction: direction,
-        cursor: cursor,
+        cursor: cursor ?? _nextCursor,
         limit: limit,
         minPrice: minPrice,
         maxPrice: maxPrice,
@@ -138,6 +140,19 @@ class PropertyProvider with ChangeNotifier {
         town: town,
         type: type,
       );
+
+      // Métadonnées résilientes
+      final dynamic metaRaw = response['metaData'];
+      final Map<String, dynamic> metaData = metaRaw is Map<String, dynamic>
+          ? metaRaw
+          : {
+              'nextCursor': (response['nextCursor'] ?? null),
+              'prevCursor': (response['prevCursor'] ?? null),
+              'total': (response['total'] ?? 0),
+            };
+      _nextCursor = metaData['nextCursor'];
+      _prevCursor = metaData['prevCursor'];
+      _total = (metaData['total'] ?? 0) as int;
 
       final dynamic propsRaw =
           response['properties'] ?? response['data'] ?? response['items'] ?? response;
@@ -352,12 +367,50 @@ class PropertyProvider with ChangeNotifier {
 
   // Obtenir une de MES propriétés par ID
   Future<Property?> getMyPropertyById(String id) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    
     try {
-      return await ApiService.getMyProperty(id);
+      final property = await ApiService.getMyProperty(id);
+      
+      // Enrichir les données de localisation si nécessaire
+      await _enrichLocationData(property);
+      
+      // Ajouter la propriété à la liste si elle n'y est pas déjà
+      final existingIndex = _myProperties.indexWhere((p) => p.id == id);
+      if (existingIndex != -1) {
+        _myProperties[existingIndex] = property;
+      } else {
+        _myProperties.add(property);
+      }
+      
+      _isLoading = false;
+      notifyListeners();
+      return property;
     } catch (e) {
       _error = e.toString();
+      _isLoading = false;
       notifyListeners();
       return null;
+    }
+  }
+
+  // Enrichir les données de localisation manquantes
+  Future<void> _enrichLocationData(Property property) async {
+    try {
+      // Si le nom de la ville est manquant, essayer de le récupérer
+      if (property.town.city.name.isEmpty && property.town.city.id.isNotEmpty) {
+        final cityData = await ApiService.getCityById(property.town.city.id);
+        if (cityData['name'] != null) {
+          // Note: On ne peut pas modifier directement la propriété car elle est immutable
+          // Cette méthode est préparée pour une future amélioration
+          print('Ville trouvée: ${cityData['name']}');
+        }
+      }
+    } catch (e) {
+      // Ignorer les erreurs d'enrichissement pour ne pas bloquer l'affichage
+      print('Erreur lors de l\'enrichissement des données de localisation: $e');
     }
   }
 

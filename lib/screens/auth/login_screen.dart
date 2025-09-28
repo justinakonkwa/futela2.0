@@ -4,6 +4,7 @@ import '../../providers/auth_provider.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
+import '../../widgets/futela_logo.dart';
 import 'register_screen.dart';
 import '../main_navigation.dart';
 
@@ -62,26 +63,31 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 60),
+                const SizedBox(height: 40),
                 
                 // Logo et titre
                 Center(
                   child: Column(
                     children: [
+                      // Logo Futela avec animation subtile
                       Container(
-                        width: 80,
-                        height: 80,
                         decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withOpacity(0.2),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
                         ),
-                        child: const Icon(
-                          Icons.home_work,
-                          size: 40,
-                          color: AppColors.white,
+                        child: const FutelaLogo(
+                          size: 100,
+                          backgroundColor: AppColors.white,
+                          borderRadius: BorderRadius.all(Radius.circular(24)),
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 32),
                       Text(
                         'Bienvenue sur Futela',
                         style: Theme.of(context).textTheme.headlineMedium?.copyWith(
@@ -182,7 +188,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 
-                const SizedBox(height: 32),
                 
                 // Séparateur
                 Row(
@@ -201,7 +206,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ],
                 ),
                 
-                const SizedBox(height: 32),
+                const SizedBox(height: 16),
                 
                 // Bouton d'inscription
                 OutlinedButton(

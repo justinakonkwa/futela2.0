@@ -6,6 +6,7 @@ import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/futela_logo.dart';
 import 'register_screen.dart';
+import 'forgot_password_screen.dart';
 import '../main_navigation.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -172,10 +173,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Mot de passe oublié
                 TextButton(
                   onPressed: () {
-                    // TODO: Implémenter la récupération de mot de passe
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Fonctionnalité à venir'),
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const ForgotPasswordScreen(),
                       ),
                     );
                   },

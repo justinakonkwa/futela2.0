@@ -198,6 +198,77 @@ class ApiService {
     }
   }
 
+  static Future<void> requestPasswordReset(String email) async {
+    final url = '$fullBaseUrl/auth/forgot-password';
+    final headers = await _getHeaders();
+    final body = jsonEncode({
+      'email': email,
+    });
+
+    print('🔐 FORGOT PASSWORD REQUEST');
+    print('URL: $url');
+    print('Headers: $headers');
+    print('Body: $body');
+
+    final response = await http.post(
+      Uri.parse(url),
+      headers: headers,
+      body: body,
+    );
+
+    print('🔐 FORGOT PASSWORD RESPONSE');
+    print('Status Code: ${response.statusCode}');
+    print('Headers: ${response.headers}');
+    print('Body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      return;
+    } else if (response.statusCode == 404) {
+      throw Exception('Aucun compte trouvé avec cette adresse email');
+    } else {
+      throw Exception('Erreur de demande de réinitialisation: ${response.statusCode}');
+    }
+  }
+
+  static Future<void> resetPassword(String token, String newPassword) async {
+    final url = '$fullBaseUrl/auth/reset-password';
+    final headers = await _getHeaders();
+    final body = jsonEncode({
+      'token': token,
+      'newPassword': newPassword,
+    });
+
+    print('🔐 RESET PASSWORD REQUEST');
+    print('URL: $url');
+    print('Headers: $headers');
+    print('Body: $body');
+
+    final response = await http.post(
+      Uri.parse(url),
+      headers: headers,
+      body: body,
+    );
+
+    print('🔐 RESET PASSWORD RESPONSE');
+    print('Status Code: ${response.statusCode}');
+    print('Headers: ${response.headers}');
+    print('Body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      return;
+    } else if (response.statusCode == 400) {
+      try {
+        final errorData = jsonDecode(response.body);
+        final message = errorData['message'] ?? 'Token invalide ou expiré';
+        throw Exception('Erreur de validation: $message');
+      } catch (e) {
+        throw Exception('Token invalide ou expiré');
+      }
+    } else {
+      throw Exception('Erreur de réinitialisation du mot de passe: ${response.statusCode}');
+    }
+  }
+
   // Properties endpoints
   static Future<String> createProperty(Map<String, dynamic> propertyData) async {
     final url = '$fullBaseUrl/properties';

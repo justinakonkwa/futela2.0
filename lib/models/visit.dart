@@ -1,8 +1,9 @@
 class Visit {
   final String id;
-  final String visitor;
-  final String property;
-  final DateTime dates;
+  final String visitorId;
+  final String propertyId;
+  final DateTime startTime;
+  final DateTime endTime;
   final String status;
   final String? message;
   final String? contact;
@@ -11,9 +12,10 @@ class Visit {
 
   Visit({
     required this.id,
-    required this.visitor,
-    required this.property,
-    required this.dates,
+    required this.visitorId,
+    required this.propertyId,
+    required this.startTime,
+    required this.endTime,
     required this.status,
     this.message,
     this.contact,
@@ -22,19 +24,23 @@ class Visit {
   });
 
   factory Visit.fromJson(Map<String, dynamic> json) {
+    // L'API retourne visitor et property comme objets { id: "..." }
+    final dynamic visitorObj = json['visitor'];
+    final dynamic propertyObj = json['property'];
     return Visit(
       id: json['id'] ?? '',
-      visitor: json['visitor'] ?? '',
-      property: json['property'] ?? '',
-      dates: DateTime.parse(json['dates']),
+      visitorId: visitorObj is Map<String, dynamic> ? (visitorObj['id'] ?? '') : (json['visitor'] ?? ''),
+      propertyId: propertyObj is Map<String, dynamic> ? (propertyObj['id'] ?? '') : (json['property'] ?? ''),
+      startTime: DateTime.parse(json['startTime']),
+      endTime: DateTime.parse(json['endTime']),
       status: json['status'] ?? '',
       message: json['message'],
       contact: json['contact'],
-      createdTimestamp: json['createdTimestamp'] != null 
-          ? DateTime.parse(json['createdTimestamp']) 
+      createdTimestamp: json['createdTimestamp'] != null
+          ? DateTime.parse(json['createdTimestamp'])
           : null,
-      updatedTimestamp: json['updatedTimestamp'] != null 
-          ? DateTime.parse(json['updatedTimestamp']) 
+      updatedTimestamp: json['updatedTimestamp'] != null
+          ? DateTime.parse(json['updatedTimestamp'])
           : null,
     );
   }
@@ -42,9 +48,10 @@ class Visit {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'visitor': visitor,
-      'property': property,
-      'dates': dates.toIso8601String(),
+      'visitor': { 'id': visitorId },
+      'property': { 'id': propertyId },
+      'startTime': startTime.toIso8601String(),
+      'endTime': endTime.toIso8601String(),
       'status': status,
       'message': message,
       'contact': contact,
@@ -55,9 +62,10 @@ class Visit {
 
   Visit copyWith({
     String? id,
-    String? visitor,
-    String? property,
-    DateTime? dates,
+    String? visitorId,
+    String? propertyId,
+    DateTime? startTime,
+    DateTime? endTime,
     String? status,
     String? message,
     String? contact,
@@ -66,9 +74,10 @@ class Visit {
   }) {
     return Visit(
       id: id ?? this.id,
-      visitor: visitor ?? this.visitor,
-      property: property ?? this.property,
-      dates: dates ?? this.dates,
+      visitorId: visitorId ?? this.visitorId,
+      propertyId: propertyId ?? this.propertyId,
+      startTime: startTime ?? this.startTime,
+      endTime: endTime ?? this.endTime,
       status: status ?? this.status,
       message: message ?? this.message,
       contact: contact ?? this.contact,
@@ -120,7 +129,7 @@ class VisitRequest {
 
 class VisitResponse {
   final Map<String, dynamic> metaData;
-  final List<String> visits;
+  final List<Visit> visits;
 
   VisitResponse({
     required this.metaData,
@@ -128,9 +137,13 @@ class VisitResponse {
   });
 
   factory VisitResponse.fromJson(Map<String, dynamic> json) {
+    final rawVisits = (json['visits'] as List?) ?? const [];
     return VisitResponse(
       metaData: json['metaData'] ?? {},
-      visits: List<String>.from(json['visits'] ?? []),
+      visits: rawVisits
+          .whereType<Map<String, dynamic>>()
+          .map((v) => Visit.fromJson(v))
+          .toList(),
     );
   }
 }

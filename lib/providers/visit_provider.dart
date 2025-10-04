@@ -3,12 +3,12 @@ import '../models/visit.dart';
 import '../services/api_service.dart';
 
 class VisitProvider with ChangeNotifier {
-  List<String> _visits = [];
+  List<Visit> _visits = [];
   Map<String, dynamic> _metaData = {};
   bool _isLoading = false;
   String? _error;
 
-  List<String> get visits => _visits;
+  List<Visit> get visits => _visits;
   Map<String, dynamic> get metaData => _metaData;
   bool get isLoading => _isLoading;
   String? get error => _error;

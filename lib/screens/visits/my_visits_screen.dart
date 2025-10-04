@@ -137,7 +137,7 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
               itemCount: visitProvider.visits.length,
               itemBuilder: (context, index) {
                 final visitId = visitProvider.visits[index];
-                return _buildVisitCard(visitId);
+                return _buildVisitCard(visitId.id);
               },
             ),
           );

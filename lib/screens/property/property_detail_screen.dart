@@ -228,6 +228,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                                 builder: (context) => AddPropertyScreen(
                                   propertyId: widget.propertyId,
                                   isEditMode: true,
+                                  myProperty: widget.myProperty,
                                 ),
                               ),
                             );
@@ -758,7 +759,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                   context, 
                   Icons.square_foot, 
                   '${details.area.toInt()}', 
-                  'm²',
+                  details.areaUnit is String && details.areaUnit.toString().isNotEmpty ? details.areaUnit : 'm²',
                   AppColors.success,
                 ),
               ),

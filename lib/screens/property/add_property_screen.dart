@@ -11,11 +11,13 @@ import '../../widgets/custom_button.dart';
 class AddPropertyScreen extends StatefulWidget {
   final String? propertyId; // Pour l'édition
   final bool isEditMode;
-  
+  final bool myProperty;
+
   const AddPropertyScreen({
     super.key,
     this.propertyId,
     this.isEditMode = false,
+    this.myProperty = false,
   });
 
   @override
@@ -29,24 +31,24 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
   final _addressController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _keywordsController = TextEditingController();
-  
+
   String? _selectedCategory;
   String? _selectedType = 'for-rent';
   String? _selectedProvince;
   String? _selectedCity;
   String? _selectedTown;
-  
+
   // Images
   List<File> _selectedImages = [];
   File? _coverImage;
   final ImagePicker _imagePicker = ImagePicker();
-  
+
   // Détails appartement
   final _bedsController = TextEditingController();
   final _bathsController = TextEditingController();
   final _areaController = TextEditingController();
   final _floorController = TextEditingController();
-  
+
   bool _kitchen = false;
   bool _equippedKitchen = false;
   bool _catsAllowed = false;
@@ -82,11 +84,12 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
   }
 
   void _loadInitialData() {
-    final propertyProvider = Provider.of<PropertyProvider>(context, listen: false);
-    
+    final propertyProvider =
+        Provider.of<PropertyProvider>(context, listen: false);
+
     propertyProvider.loadCategories();
     propertyProvider.loadProvinces();
-    
+
     // Si on est en mode édition, charger les données de la propriété
     if (widget.isEditMode && widget.propertyId != null) {
       _loadPropertyData();
@@ -95,11 +98,14 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
 
   Future<void> _loadPropertyData() async {
     if (widget.propertyId == null) return;
-    
+
     try {
-      final propertyProvider = Provider.of<PropertyProvider>(context, listen: false);
-      final property = await propertyProvider.getPropertyById(widget.propertyId!);
-      
+      final propertyProvider =
+          Provider.of<PropertyProvider>(context, listen: false);
+      final property = widget.myProperty
+          ? await propertyProvider.getMyPropertyById(widget.propertyId!)
+          : await propertyProvider.getPropertyById(widget.propertyId!);
+
       if (property == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -111,28 +117,28 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
         }
         return;
       }
-      
+
       // Remplir les champs avec les données existantes
       _titleController.text = property.title;
       _priceController.text = property.price.toString();
       _addressController.text = property.address;
       _descriptionController.text = property.description;
       _keywordsController.text = property.keywords;
-      
+
       // Sélectionner la catégorie
       _selectedCategory = property.category.id;
-      
+
       // Sélectionner le type
       _selectedType = property.type;
-      
+
       // Sélectionner la localisation
       _selectedProvince = property.town.city.province.id;
       _selectedCity = property.town.city.id;
       _selectedTown = property.town.id;
-      
+
       // Attendre que les listes de base soient chargées
       await Future.delayed(const Duration(milliseconds: 500));
-      
+
       // Charger les villes et communes après avoir sélectionné la province
       if (_selectedProvince != null && _selectedProvince!.isNotEmpty) {
         await propertyProvider.loadCities(province: _selectedProvince!);
@@ -142,7 +148,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
       if (_selectedCity != null && _selectedCity!.isNotEmpty) {
         await propertyProvider.loadTowns(city: _selectedCity!);
       }
-      
+
       // Remplir les détails de l'appartement
       if (property.apartment != null) {
         final apt = property.apartment!;
@@ -150,7 +156,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
         _bathsController.text = apt.baths.toString();
         _areaController.text = apt.area.toString();
         _floorController.text = apt.floor.toString();
-        
+
         _kitchen = apt.kitchen;
         _equippedKitchen = apt.equippedKitchen;
         _catsAllowed = apt.catsAllowed;
@@ -165,7 +171,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
         _barbecue = apt.barbecue;
         _isFurnished = apt.isFurnished;
       }
-      
+
       setState(() {});
     } catch (e) {
       if (mounted) {
@@ -185,9 +191,10 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
       _selectedCity = null; // Reset city when province changes
       _selectedTown = null; // Reset town when province changes
     });
-    
+
     if (provinceId != null) {
-      final propertyProvider = Provider.of<PropertyProvider>(context, listen: false);
+      final propertyProvider =
+          Provider.of<PropertyProvider>(context, listen: false);
       propertyProvider.loadCities(province: provinceId);
     }
   }
@@ -197,9 +204,10 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
       _selectedCity = cityId;
       _selectedTown = null; // Reset town when city changes
     });
-    
+
     if (cityId != null) {
-      final propertyProvider = Provider.of<PropertyProvider>(context, listen: false);
+      final propertyProvider =
+          Provider.of<PropertyProvider>(context, listen: false);
       propertyProvider.loadTowns(city: cityId);
     }
   }
@@ -245,7 +253,8 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur lors de la sélection de l\'image de couverture: $e'),
+            content: Text(
+                'Erreur lors de la sélection de l\'image de couverture: $e'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -268,7 +277,8 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
   Future<void> _saveProperty() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final propertyProvider = Provider.of<PropertyProvider>(context, listen: false);
+    final propertyProvider =
+        Provider.of<PropertyProvider>(context, listen: false);
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final ownerId = authProvider.user?.id;
 
@@ -276,26 +286,26 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Utilisateur non authentifié. Veuillez vous reconnecter.'),
+            content:
+                Text('Utilisateur non authentifié. Veuillez vous reconnecter.'),
             backgroundColor: AppColors.error,
           ),
         );
       }
       return;
     }
-    
+
     // Essayer d'abord avec les IDs simples
-    final propertyData = {
+    final Map<String, dynamic> propertyData = {
       'title': _titleController.text.trim(),
       'price': double.parse(_priceController.text),
       'category': _selectedCategory,
       'address': _addressController.text.trim(),
       'owner': ownerId,
-      'town': _selectedTown,
       'type': _selectedType,
       'description': _descriptionController.text.trim(),
       'keywords': _keywordsController.text.trim(),
-      'apartment': {
+      'attributes': {
         'beds': int.parse(_bedsController.text),
         'baths': int.parse(_bathsController.text),
         'kitchen': _kitchen,
@@ -313,10 +323,13 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
         'barbecue': _barbecue,
         'isFurnished': _isFurnished,
         'area': double.parse(_areaController.text),
-        'areaUnit': 'square meter',
+        'areaUnit': 'm²',
         'floor': int.parse(_floorController.text),
       },
     };
+
+    // Commune requise par l'API
+    propertyData['town'] = _selectedTown;
 
     // Debug: Afficher les données avant envoi
     print('🔍 PROPERTY DATA TO SEND:');
@@ -328,10 +341,10 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
     print('Address: ${propertyData['address']}');
     print('Description: ${propertyData['description']}');
     print('Keywords: ${propertyData['keywords']}');
-    print('Apartment: ${propertyData['apartment']}');
+    print('Attributes: ${propertyData['attributes']}');
 
     String? propertyId;
-    
+
     if (widget.isEditMode && widget.propertyId != null) {
       // Mode édition - mettre à jour la propriété existante
       propertyId = widget.propertyId!;
@@ -340,30 +353,34 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
       // Mode création - créer une nouvelle propriété
       propertyId = await propertyProvider.createProperty(propertyData);
     }
-    
+
     if (propertyId != null && mounted) {
       // Upload des images si elles existent (seulement en mode création)
       if (!widget.isEditMode && _selectedImages.isNotEmpty) {
         try {
-          final imagePaths = _selectedImages.map((image) => image.path).toList();
+          final imagePaths =
+              _selectedImages.map((image) => image.path).toList();
           await propertyProvider.uploadImages(propertyId, imagePaths);
         } catch (e) {
           print('Erreur upload images: $e');
         }
       }
-      
+
       // Upload de l'image de couverture si elle existe (seulement en mode création)
       if (!widget.isEditMode && _coverImage != null) {
         try {
-          await propertyProvider.uploadCoverImage(propertyId, _coverImage!.path);
+          await propertyProvider.uploadCoverImage(
+              propertyId, _coverImage!.path);
         } catch (e) {
           print('Erreur upload image de couverture: $e');
         }
       }
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(widget.isEditMode ? 'Propriété modifiée avec succès' : 'Propriété créée avec succès'),
+          content: Text(widget.isEditMode
+              ? 'Propriété modifiée avec succès'
+              : 'Propriété créée avec succès'),
           backgroundColor: AppColors.success,
         ),
       );
@@ -371,7 +388,10 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(propertyProvider.error ?? (widget.isEditMode ? 'Erreur de modification' : 'Erreur de création')),
+          content: Text(propertyProvider.error ??
+              (widget.isEditMode
+                  ? 'Erreur de modification'
+                  : 'Erreur de création')),
           backgroundColor: AppColors.error,
         ),
       );
@@ -383,7 +403,9 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text(widget.isEditMode ? 'Modifier la propriété' : 'Ajouter une propriété'),
+        title: Text(widget.isEditMode
+            ? 'Modifier la propriété'
+            : 'Ajouter une propriété'),
         backgroundColor: AppColors.white,
         elevation: 0,
         actions: [
@@ -417,9 +439,9 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                         return null;
                       },
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     Row(
                       children: [
                         Expanded(
@@ -471,15 +493,17 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     Consumer<PropertyProvider>(
                       builder: (context, propertyProvider, child) {
                         return DropdownButtonFormField<String>(
-                          value: _selectedCategory != null && 
-                                 propertyProvider.categories.any((c) => c.id == _selectedCategory) 
-                                 ? _selectedCategory : null,
+                          value: _selectedCategory != null &&
+                                  propertyProvider.categories
+                                      .any((c) => c.id == _selectedCategory)
+                              ? _selectedCategory
+                              : null,
                           decoration: const InputDecoration(
                             labelText: 'Catégorie',
                             border: OutlineInputBorder(),
@@ -504,16 +528,18 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                         );
                       },
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // Sélection de la province
                     Consumer<PropertyProvider>(
                       builder: (context, propertyProvider, child) {
                         return DropdownButtonFormField<String>(
-                          value: _selectedProvince != null && 
-                                 propertyProvider.provinces.any((p) => p.id == _selectedProvince) 
-                                 ? _selectedProvince : null,
+                          value: _selectedProvince != null &&
+                                  propertyProvider.provinces
+                                      .any((p) => p.id == _selectedProvince)
+                              ? _selectedProvince
+                              : null,
                           decoration: const InputDecoration(
                             labelText: 'Province',
                             border: OutlineInputBorder(),
@@ -535,16 +561,18 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                         );
                       },
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // Sélection de la ville
                     Consumer<PropertyProvider>(
                       builder: (context, propertyProvider, child) {
                         return DropdownButtonFormField<String>(
-                          value: _selectedCity != null && 
-                                 propertyProvider.cities.any((c) => c.id == _selectedCity) 
-                                 ? _selectedCity : null,
+                          value: _selectedCity != null &&
+                                  propertyProvider.cities
+                                      .any((c) => c.id == _selectedCity)
+                              ? _selectedCity
+                              : null,
                           decoration: const InputDecoration(
                             labelText: 'Ville',
                             border: OutlineInputBorder(),
@@ -566,16 +594,18 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                         );
                       },
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // Sélection de la commune
                     Consumer<PropertyProvider>(
                       builder: (context, propertyProvider, child) {
                         return DropdownButtonFormField<String>(
-                          value: _selectedTown != null && 
-                                 propertyProvider.towns.any((t) => t.id == _selectedTown) 
-                                 ? _selectedTown : null,
+                          value: _selectedTown != null &&
+                                  propertyProvider.towns
+                                      .any((t) => t.id == _selectedTown)
+                              ? _selectedTown
+                              : null,
                           decoration: const InputDecoration(
                             labelText: 'Commune',
                             border: OutlineInputBorder(),
@@ -593,7 +623,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                             });
                           },
                           validator: (value) {
-                            if (value == null) {
+                            if (value == null || value.isEmpty) {
                               return 'Veuillez sélectionner une commune';
                             }
                             return null;
@@ -601,9 +631,9 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                         );
                       },
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     CustomTextField(
                       controller: _addressController,
                       label: 'Adresse détaillée',
@@ -616,9 +646,9 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                         return null;
                       },
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     CustomTextField(
                       controller: _descriptionController,
                       label: 'Description',
@@ -631,9 +661,9 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                         return null;
                       },
                     ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     CustomTextField(
                       controller: _keywordsController,
                       label: 'Mots-clés (optionnel)',
@@ -641,9 +671,9 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Détails de la propriété
                 _buildSection(
                   context,
@@ -688,9 +718,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                         ),
                       ],
                     ),
-                    
                     const SizedBox(height: 16),
-                    
                     Row(
                       children: [
                         Expanded(
@@ -732,9 +760,9 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Équipements
                 _buildSection(
                   context,
@@ -745,7 +773,8 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                         _kitchen = value ?? false;
                       });
                     }),
-                    _buildCheckboxListTile('Cuisine équipée', _equippedKitchen, (value) {
+                    _buildCheckboxListTile('Cuisine équipée', _equippedKitchen,
+                        (value) {
                       setState(() {
                         _equippedKitchen = value ?? false;
                       });
@@ -770,7 +799,8 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                         _laundry = value ?? false;
                       });
                     }),
-                    _buildCheckboxListTile('Climatisation', _airConditioning, (value) {
+                    _buildCheckboxListTile('Climatisation', _airConditioning,
+                        (value) {
                       setState(() {
                         _airConditioning = value ?? false;
                       });
@@ -795,21 +825,23 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                         _isFurnished = value ?? false;
                       });
                     }),
-                    _buildCheckboxListTile('Chats autorisés', _catsAllowed, (value) {
+                    _buildCheckboxListTile('Chats autorisés', _catsAllowed,
+                        (value) {
                       setState(() {
                         _catsAllowed = value ?? false;
                       });
                     }),
-                    _buildCheckboxListTile('Chiens autorisés', _dogsAllowed, (value) {
+                    _buildCheckboxListTile('Chiens autorisés', _dogsAllowed,
+                        (value) {
                       setState(() {
                         _dogsAllowed = value ?? false;
                       });
                     }),
                   ],
                 ),
-                
+
                 const SizedBox(height: 24),
-                
+
                 // Images
                 _buildSection(
                   context,
@@ -822,7 +854,8 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                         width: double.infinity,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppColors.primary, width: 2),
+                          border:
+                              Border.all(color: AppColors.primary, width: 2),
                         ),
                         child: Stack(
                           children: [
@@ -844,7 +877,8 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                                   shape: BoxShape.circle,
                                 ),
                                 child: IconButton(
-                                  icon: const Icon(Icons.close, color: AppColors.white),
+                                  icon: const Icon(Icons.close,
+                                      color: AppColors.white),
                                   onPressed: _removeCoverImage,
                                 ),
                               ),
@@ -853,7 +887,8 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                               bottom: 8,
                               left: 8,
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
                                   color: AppColors.primary,
                                   borderRadius: BorderRadius.circular(4),
@@ -873,7 +908,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                       ),
                       const SizedBox(height: 16),
                     ],
-                    
+
                     // Bouton pour sélectionner l'image de couverture
                     if (_coverImage == null)
                       CustomButton(
@@ -882,17 +917,17 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                         fullWidth: true,
                         icon: const Icon(Icons.add_photo_alternate_outlined),
                       ),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // Images supplémentaires
                     if (_selectedImages.isNotEmpty) ...[
                       Text(
                         'Images supplémentaires (${_selectedImages.length})',
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                        ),
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                            ),
                       ),
                       const SizedBox(height: 8),
                       SizedBox(
@@ -928,7 +963,8 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                                         shape: BoxShape.circle,
                                       ),
                                       child: IconButton(
-                                        icon: const Icon(Icons.close, color: AppColors.white, size: 16),
+                                        icon: const Icon(Icons.close,
+                                            color: AppColors.white, size: 16),
                                         onPressed: () => _removeImage(index),
                                         padding: EdgeInsets.zero,
                                         constraints: const BoxConstraints(
@@ -946,7 +982,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                       ),
                       const SizedBox(height: 16),
                     ],
-                    
+
                     // Bouton pour ajouter des images supplémentaires
                     CustomButton(
                       text: 'Ajouter des images supplémentaires',
@@ -957,21 +993,24 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 32),
-                
+
                 // Bouton de sauvegarde
                 Consumer<PropertyProvider>(
                   builder: (context, propertyProvider, child) {
                     return CustomButton(
-                      text: widget.isEditMode ? 'Modifier la propriété' : 'Publier la propriété',
-                      onPressed: propertyProvider.isLoading ? null : _saveProperty,
+                      text: widget.isEditMode
+                          ? 'Modifier la propriété'
+                          : 'Publier la propriété',
+                      onPressed:
+                          propertyProvider.isLoading ? null : _saveProperty,
                       isLoading: propertyProvider.isLoading,
                       fullWidth: true,
                     );
                   },
                 ),
-                
+
                 const SizedBox(height: 16),
               ],
             ),
@@ -991,11 +1030,11 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: AppColors.shadow,
             blurRadius: 10,
-            offset: const Offset(0, 2),
+            offset: Offset(0, 2),
           ),
         ],
       ),
@@ -1005,9 +1044,9 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
           Text(
             title,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-            ),
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                ),
           ),
           const SizedBox(height: 16),
           ...children,
@@ -1016,7 +1055,8 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
     );
   }
 
-  Widget _buildCheckboxListTile(String title, bool value, Function(bool?) onChanged) {
+  Widget _buildCheckboxListTile(
+      String title, bool value, Function(bool?) onChanged) {
     return CheckboxListTile(
       title: Text(title),
       value: value,

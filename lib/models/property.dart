@@ -44,6 +44,22 @@ class Property {
   });
 
   factory Property.fromJson(Map<String, dynamic> json) {
+    // Try to derive structured details from the new `attributes` field if legacy fields are absent
+    ApartmentDetails? derivedApartment;
+    HouseDetails? derivedHouse;
+    final attributes = json['attributes'];
+
+    if (attributes is Map<String, dynamic>) {
+      final hasApartmentHints = attributes.containsKey('catsAllowed') || attributes.containsKey('dogsAllowed') || attributes.containsKey('balcony') || attributes.containsKey('petsLimit');
+      if (json['apartment'] == null && json['house'] == null) {
+        if (hasApartmentHints) {
+          derivedApartment = ApartmentDetails.fromJson(attributes);
+        } else {
+          derivedHouse = HouseDetails.fromJson(attributes);
+        }
+      }
+    }
+
     return Property(
       id: json['id'] ?? '',
       updatedTimestamp: DateTime.parse(json['updatedTimestamp'] ?? DateTime.now().toIso8601String()),
@@ -77,8 +93,12 @@ class Property {
       description: json['description'] ?? '',
       attributes: json['attributes'],
       keywords: json['keywords'] ?? '',
-      apartment: json['apartment'] != null ? ApartmentDetails.fromJson(json['apartment']) : null,
-      house: json['house'] != null ? HouseDetails.fromJson(json['house']) : null,
+      apartment: json['apartment'] != null
+          ? ApartmentDetails.fromJson(json['apartment'])
+          : derivedApartment,
+      house: json['house'] != null
+          ? HouseDetails.fromJson(json['house'])
+          : derivedHouse,
     );
   }
 

@@ -316,7 +316,7 @@ class PropertyProvider with ChangeNotifier {
       
       final myIndex = _myProperties.indexWhere((p) => p.id == id);
       if (myIndex != -1) {
-        _myProperties[myIndex] = await ApiService.getProperty(id);
+        _myProperties[myIndex] = await ApiService.getMyProperty(id);
       }
 
       _isLoading = false;

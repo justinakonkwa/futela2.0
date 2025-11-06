@@ -300,20 +300,23 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                DropdownButtonFormField<String>(
-                  value: selectedCurrency,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
+                SizedBox(
+                  width: 100,
+                  child: DropdownButtonFormField<String>(
+                    value: selectedCurrency,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 'USD', child: Text('USD')),
+                      DropdownMenuItem(value: 'CDF', child: Text('CDF')),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        selectedCurrency = value;
+                      }
+                    },
                   ),
-                  items: const [
-                    DropdownMenuItem(value: 'USD', child: Text('USD')),
-                    DropdownMenuItem(value: 'CDF', child: Text('CDF')),
-                  ],
-                  onChanged: (value) {
-                    if (value != null) {
-                      selectedCurrency = value;
-                    }
-                  },
                 ),
               ],
             ),
@@ -350,10 +353,21 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
                       return;
                     }
 
+                    // Formater le numéro de téléphone au format 243XXXXXXXXX (sans le signe +)
+                    String phoneNumber = phoneController.text.trim().replaceAll(RegExp(r'[^\d]'), '');
+                    // Supprimer le préfixe 243 s'il existe déjà pour éviter la duplication
+                    if (phoneNumber.startsWith('243')) {
+                      phoneNumber = phoneNumber.substring(3);
+                    }
+                    // Ajouter le préfixe 243
+                    phoneNumber = '243$phoneNumber';
+                    
+                    print('📞 Phone number formatted: $phoneNumber');
+
                     final response = await visitProvider.payVisit(
                       visitId: visitId,
                       type: selectedType,
-                      phone: phoneController.text,
+                      phone: phoneNumber,
                       amount: amount,
                       currency: selectedCurrency,
                     );

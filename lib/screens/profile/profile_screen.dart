@@ -928,11 +928,20 @@ class ProfileScreen extends StatelessWidget {
                       return;
                     }
 
+                    // Formater le numéro de téléphone au format 243XXXXXXXXX (sans le signe +)
+                    String phoneNumber = phoneController.text.trim().replaceAll(RegExp(r'[^\d]'), '');
+                    // Supprimer le préfixe 243 s'il existe déjà pour éviter la duplication
+                    if (phoneNumber.startsWith('243')) {
+                      phoneNumber = phoneNumber.substring(3);
+                    }
+                    // Ajouter le préfixe 243
+                    phoneNumber = '243$phoneNumber';
+
                     final visitProvider = Provider.of<VisitProvider>(context, listen: false);
                     await visitProvider.requestWithdrawal(
                       currency: selectedCurrency,
                       amount: amount,
-                      phone: phoneController.text,
+                      phone: phoneNumber,
                       type: selectedType,
                     );
                     

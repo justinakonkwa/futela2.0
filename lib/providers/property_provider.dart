@@ -356,10 +356,30 @@ class PropertyProvider with ChangeNotifier {
 
   // Obtenir une propriété par ID
   Future<Property?> getPropertyById(String id) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    
     try {
-      return await ApiService.getProperty(id);
+      final property = await ApiService.getProperty(id);
+      
+      // Enrichir les données de localisation si nécessaire
+      await _enrichLocationData(property);
+      
+      // Ajouter la propriété à la liste si elle n'y est pas déjà
+      final existingIndex = _properties.indexWhere((p) => p.id == id);
+      if (existingIndex != -1) {
+        _properties[existingIndex] = property;
+      } else {
+        _properties.add(property);
+      }
+      
+      _isLoading = false;
+      notifyListeners();
+      return property;
     } catch (e) {
       _error = e.toString();
+      _isLoading = false;
       notifyListeners();
       return null;
     }

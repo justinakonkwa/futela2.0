@@ -762,8 +762,16 @@ class ApiService {
     if (response.statusCode == 202) {
       final data = jsonDecode(response.body);
       return PaymentResponse.fromJson(data);
+    } else if (response.statusCode == 400) {
+      try {
+        final errorData = jsonDecode(response.body);
+        final errorMessage = errorData['message'] ?? 'Requête invalide';
+        throw Exception(errorMessage);
+      } catch (e) {
+        throw Exception('Requête invalide: ${response.body}');
+      }
     } else if (response.statusCode == 404) {
-      throw Exception('La propriété que vous voulez payer n\'existe pas');
+      throw Exception('La visite que vous voulez payer n\'existe pas');
     } else if (response.statusCode == 417) {
       throw Exception('Le paiement a été refusé ou a échoué');
     } else {

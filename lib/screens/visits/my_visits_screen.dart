@@ -26,6 +26,7 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Mes Visites'),
         backgroundColor: AppColors.primary,

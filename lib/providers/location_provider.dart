@@ -1,36 +1,165 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import '../models/property.dart';
+import '../models/location/country.dart';
+import '../models/location/province.dart';
+import '../models/location/city.dart';
+import '../models/location/town.dart';
+import '../models/location/district.dart';
+import '../models/property/property.dart';
+import '../services/location_service.dart';
 
 class LocationProvider with ChangeNotifier {
-  Position? _currentPosition;
-  String? _selectedProvince;
-  String? _selectedCity;
-  String? _selectedTown;
+  final LocationService _locationService = LocationService();
+
+  List<Country> _countries = [];
+  List<Province> _provinces = [];
+  List<City> _cities = [];
+  List<Town> _towns = [];
+  List<District> _districts = [];
+
   bool _isLoading = false;
   String? _error;
 
+  // Current location
+  Position? _currentPosition;
+  double? _currentLatitude;
+  double? _currentLongitude;
+
   Position? get currentPosition => _currentPosition;
-  String? get selectedProvince => _selectedProvince;
-  String? get selectedCity => _selectedCity;
-  String? get selectedTown => _selectedTown;
+  double? get currentLatitude => _currentLatitude;
+  double? get currentLongitude => _currentLongitude;
+
+  List<Country> get countries => _countries;
+  List<Province> get provinces => _provinces;
+  List<City> get cities => _cities;
+  List<Town> get towns => _towns;
+  List<District> get districts => _districts;
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  // Obtenir la position actuelle
-  Future<void> getCurrentLocation() async {
+  // Selections
+  Country? _selectedCountry;
+  Province? _selectedProvince;
+  City? _selectedCity;
+  Town? _selectedTown;
+  District? _selectedDistrict;
+
+  Country? get selectedCountry => _selectedCountry;
+  Province? get selectedProvince => _selectedProvince;
+  City? get selectedCity => _selectedCity;
+  Town? get selectedTown => _selectedTown;
+  District? get selectedDistrict => _selectedDistrict;
+
+  Future<void> loadCountries() async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
+      _countries = await _locationService.getCountries();
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> selectCountry(Country country) async {
+    _selectedCountry = country;
+    _provinces = [];
+    _selectedProvince = null;
+    _cities = [];
+    _selectedCity = null;
+    _towns = [];
+    _selectedTown = null;
+    notifyListeners();
+
+    _isLoading = true;
+    try {
+      _provinces = await _locationService.getProvinces(country.id);
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> selectProvince(Province province) async {
+    _selectedProvince = province;
+    _cities = [];
+    _selectedCity = null;
+    _towns = [];
+    _selectedTown = null;
+    notifyListeners();
+
+    _isLoading = true;
+    try {
+      _cities = await _locationService.getCities(province.id);
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> selectCity(City city) async {
+    _selectedCity = city;
+    _towns = [];
+    _selectedTown = null;
+    notifyListeners();
+
+    _isLoading = true;
+    try {
+      _towns = await _locationService.getTowns(city.id);
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> selectTown(Town town) async {
+    _selectedTown = town;
+    _districts = [];
+    _selectedDistrict = null;
+    notifyListeners();
+
+    _isLoading = true;
+    try {
+      _districts = await _locationService.getDistricts(townId: town.id);
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  void selectDistrict(District district) {
+    _selectedDistrict = district;
+    notifyListeners();
+  }
+
+  // Get current GPS location
+  Future<void> getCurrentLocation() async {
+    try {
       // Vérifier les permissions
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        _error = 'Les services de localisation sont désactivés';
+        notifyListeners();
+        return;
+      }
+
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
           _error = 'Permission de localisation refusée';
-          _isLoading = false;
           notifyListeners();
           return;
         }
@@ -38,110 +167,61 @@ class LocationProvider with ChangeNotifier {
 
       if (permission == LocationPermission.deniedForever) {
         _error = 'Permission de localisation définitivement refusée';
-        _isLoading = false;
         notifyListeners();
         return;
       }
 
-      // Obtenir la position
+      // Obtenir la position actuelle
       _currentPosition = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
-
-      _isLoading = false;
+      _currentLatitude = _currentPosition?.latitude;
+      _currentLongitude = _currentPosition?.longitude;
+      _error = null;
       notifyListeners();
     } catch (e) {
-      _error = 'Erreur lors de la récupération de la position: $e';
-      _isLoading = false;
+      _error = 'Erreur lors de la récupération de la localisation: $e';
       notifyListeners();
     }
   }
 
-  // Définir la province sélectionnée
-  void setSelectedProvince(String? provinceId) {
-    _selectedProvince = provinceId;
-    // Réinitialiser la ville et la commune quand on change de province
-    _selectedCity = null;
-    _selectedTown = null;
-    notifyListeners();
-  }
-
-  // Définir la ville sélectionnée
-  void setSelectedCity(String? cityId) {
-    _selectedCity = cityId;
-    // Réinitialiser la commune quand on change de ville
-    _selectedTown = null;
-    notifyListeners();
-  }
-
-  // Définir la commune sélectionnée
-  void setSelectedTown(String? townId) {
-    _selectedTown = townId;
-    notifyListeners();
-  }
-
-  // Calculer la distance entre deux positions
-  double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-    return Geolocator.distanceBetween(lat1, lon1, lat2, lon2);
-  }
-
-  // Calculer la distance entre la position actuelle et une propriété
+  // Calculate distance to a property
   double? calculateDistanceToProperty(Property property) {
-    if (_currentPosition == null || property.location == null) {
+    if (_currentLatitude == null || _currentLongitude == null) {
       return null;
     }
 
-    final propertyLat = property.location!['latitude']?.toDouble();
-    final propertyLon = property.location!['longitude']?.toDouble();
-
-    if (propertyLat == null || propertyLon == null) {
+    if (property.address?.latitude == null || property.address?.longitude == null) {
       return null;
     }
 
-    return calculateDistance(
-      _currentPosition!.latitude,
-      _currentPosition!.longitude,
-      propertyLat,
-      propertyLon,
-    );
+    try {
+      double distanceInMeters = Geolocator.distanceBetween(
+        _currentLatitude!,
+        _currentLongitude!,
+        property.address!.latitude!,
+        property.address!.longitude!,
+      );
+
+      // Convertir en kilomètres
+      return distanceInMeters / 1000.0;
+    } catch (e) {
+      return null;
+    }
   }
 
-  // Formater la distance
-  String formatDistance(double distanceInMeters) {
-    if (distanceInMeters < 1000) {
-      return '${distanceInMeters.toStringAsFixed(0)} m';
+  // Format distance for display
+  String formatDistance(double distanceInKm) {
+    if (distanceInKm < 1) {
+      // Afficher en mètres si moins d'1 km
+      int meters = (distanceInKm * 1000).round();
+      return '$meters m';
+    } else if (distanceInKm < 10) {
+      // Afficher avec 1 décimale si moins de 10 km
+      return '${distanceInKm.toStringAsFixed(1)} km';
     } else {
-      return '${(distanceInMeters / 1000).toStringAsFixed(1)} km';
+      // Afficher sans décimale si plus de 10 km
+      return '${distanceInKm.toStringAsFixed(0)} km';
     }
-  }
-
-  // Obtenir l'adresse formatée
-  String getFormattedAddress() {
-    final parts = <String>[];
-    
-    if (_selectedTown != null) {
-      parts.add(_selectedTown!);
-    }
-    if (_selectedCity != null) {
-      parts.add(_selectedCity!);
-    }
-    if (_selectedProvince != null) {
-      parts.add(_selectedProvince!);
-    }
-    
-    return parts.join(', ');
-  }
-
-  // Réinitialiser la sélection
-  void resetSelection() {
-    _selectedProvince = null;
-    _selectedCity = null;
-    _selectedTown = null;
-    notifyListeners();
-  }
-
-  void clearError() {
-    _error = null;
-    notifyListeners();
   }
 }

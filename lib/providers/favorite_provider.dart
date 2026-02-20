@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/favorite.dart';
 import '../models/property.dart';
-import '../models/favorite_list.dart';
 import '../services/api_service.dart';
 
 class FavoriteProvider with ChangeNotifier {
@@ -78,7 +77,7 @@ class FavoriteProvider with ChangeNotifier {
       await _addToLocalFavorites(propertyId);
       
       // Ensuite, essayer l'API
-      await _tryApiAddToFavorites(propertyId, listId);
+      await _tryApiAddToFavorites(propertyId);
       
     } catch (e) {
       _setError('Erreur lors de l\'ajout aux favoris: $e');
@@ -101,31 +100,12 @@ class FavoriteProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> _tryApiAddToFavorites(String propertyId, String? listId) async {
+  Future<void> _tryApiAddToFavorites(String propertyId, [String? notes]) async {
     try {
-      String effectiveListId;
-      
-      if (listId != null) {
-        effectiveListId = listId;
-      } else {
-        // Récupérer les listes de favoris pour obtenir l'ID de la liste par défaut
-        final favoriteListsResponse = await ApiService.getFavoriteLists();
-        if (favoriteListsResponse.lists.isNotEmpty) {
-          // Utiliser la première liste (généralement "favoris")
-          effectiveListId = favoriteListsResponse.lists.first.id;
-        } else {
-          throw Exception('Aucune liste de favoris trouvée');
-        }
-      }
-      
-      // Ajouter la propriété à la liste de favoris
-      await ApiService.savePropertyToFavoriteList(propertyId, effectiveListId);
-      
+      // Nouvelle API : POST /api/me/favorites avec { propertyId, notes } (plus de listes)
+      await ApiService.savePropertyToFavorites(propertyId, notes);
     } catch (e) {
-      // Log l'erreur mais ne pas faire échouer l'ajout local
       print('Erreur API favoris: $e');
-      // Optionnel: on pourrait choisir de re-lancer l'erreur ici
-      // throw e;
     }
   }
 
@@ -134,16 +114,22 @@ class FavoriteProvider with ChangeNotifier {
     _clearError();
 
     try {
+      // Supprimer côté API (DELETE /api/me/favorites/{propertyId})
+      try {
+        await ApiService.deletePropertyFromFavorites(propertyId);
+      } catch (e) {
+        print('Erreur API suppression favori: $e');
+      }
+
       // Supprimer du stockage local
       final prefs = await SharedPreferences.getInstance();
       final favorites = prefs.getStringList('local_favorites') ?? [];
       favorites.remove(propertyId);
       await prefs.setStringList('local_favorites', favorites);
-      
-      // Supprimer de l'ensemble local
+
       _favoritePropertyIds.remove(propertyId);
       _favorites.removeWhere((listProperty) => listProperty.property.id == propertyId);
-      
+
       notifyListeners();
     } catch (e) {
       _setError('Erreur lors de la suppression des favoris: $e');

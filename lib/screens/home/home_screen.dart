@@ -72,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async => _refreshData(),
@@ -84,9 +84,39 @@ class _HomeScreenState extends State<HomeScreen> {
                 expandedHeight: 140,
                 floating: true,
                 pinned: true,
-                backgroundColor: AppColors.white,
+                backgroundColor: Theme.of(context).appBarTheme.backgroundColor ?? Theme.of(context).colorScheme.surface,
                 elevation: 0,
                 actions: [
+                  // Bouton pour créer une propriété
+                  Consumer<AuthProvider>(
+                    builder: (context, authProvider, child) {
+                      if (authProvider.user != null && RolePermissions.canAddProperties(authProvider.user!)) {
+                        return Container(
+                          margin: const EdgeInsets.only(right: 8, top: 8),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: IconButton(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const AddPropertyScreen(),
+                                ),
+                              );
+                            },
+                            icon: const Icon(
+                              Icons.add,
+                              color: AppColors.primary,
+                              size: 24,
+                            ),
+                            tooltip: 'Créer une propriété',
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
                   // Icône de notification
                   Container(
                     margin: const EdgeInsets.only(right: 16, top: 8),
@@ -120,14 +150,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           'Bonjour ! 👋',
                           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                             fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'Trouvez votre maison de rêve',
                           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: AppColors.textSecondary,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -150,10 +180,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: CategoryChips(
                     selectedCategory: _selectedCategory,
                     onCategorySelected: (categoryId) {
+                      print('🏷️ CATEGORY SELECTED on HomeScreen');
+                      print('Category ID: $categoryId');
+                      print('Previous selected category: $_selectedCategory');
                       setState(() {
                         _selectedCategory = categoryId;
                       });
+                      print('✅ Updated _selectedCategory to: $_selectedCategory');
                       final propertyProvider = Provider.of<PropertyProvider>(context, listen: false);
+                      print('🔄 Loading properties with category filter: $_selectedCategory');
                       propertyProvider.loadProperties(category: _selectedCategory, refresh: true);
                     },
                   ),

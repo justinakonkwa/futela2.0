@@ -57,11 +57,12 @@ class _PropertyCardState extends State<PropertyCard> {
         final List<String> imageUrls = [
           if (widget.property.cover != null && _isValidImageUrl(widget.property.cover!)) 
             widget.property.cover!,
-          ...?widget.property.images?.where((url) => _isValidImageUrl(url)).toList(),
+          ...widget.property.images.where((url) => _isValidImageUrl(url)),
         ];
         
         return Card(
           elevation: 2,
+          color: Theme.of(context).cardColor,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -223,38 +224,43 @@ class _PropertyCardState extends State<PropertyCard> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Prix
+                      // Nom et prix sur une ligne
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
                         children: [
-                          Text(
-                            widget.property.formattedPrice,
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w700,
+                          Expanded(
+                            child: Text(
+                              widget.property.title,
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          if (widget.property.type == 'for-rent') ...[
-                            Text(
-                              '/mois',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: AppColors.textSecondary,
+                          const SizedBox(width: 12),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                widget.property.formattedPrice,
+                                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
-                            ),
-                          ],
+                              if (widget.property.type == 'for-rent')
+                                Text(
+                                  '/mois',
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                            ],
+                          ),
                         ],
-                      ),
-                      
-                      const SizedBox(height: 8),
-                      
-                      // Titre
-                      Text(
-                        widget.property.title,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: AppColors.textPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                       ),
                       
                       const SizedBox(height: 4),
@@ -265,14 +271,14 @@ class _PropertyCardState extends State<PropertyCard> {
                           Icon(
                             Icons.location_on_outlined,
                             size: 16,
-                            color: AppColors.textTertiary,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
                               widget.property.fullAddress,
                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: AppColors.textSecondary,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -283,66 +289,16 @@ class _PropertyCardState extends State<PropertyCard> {
                       
                       const SizedBox(height: 8),
                       
-                      // Détails de la propriété
+                      // Caractéristiques selon la catégorie / type
                       Row(
                         children: [
-                          // Chambres
-                          if (widget.property.apartment != null) ...[
-                            _buildDetailChip(
-                              context,
-                              Icons.bed_outlined,
-                              '${widget.property.apartment!.beds} ch.',
-                            ),
-                            const SizedBox(width: 8),
-                          ] else if (widget.property.house != null) ...[
-                            _buildDetailChip(
-                              context,
-                              Icons.bed_outlined,
-                              '${widget.property.house!.beds} ch.',
-                            ),
-                            const SizedBox(width: 8),
-                          ],
-                          
-                          // Salles de bain
-                          if (widget.property.apartment != null) ...[
-                            _buildDetailChip(
-                              context,
-                              Icons.bathtub_outlined,
-                              '${widget.property.apartment!.baths} SDB',
-                            ),
-                            const SizedBox(width: 8),
-                          ] else if (widget.property.house != null) ...[
-                            _buildDetailChip(
-                              context,
-                              Icons.bathtub_outlined,
-                              '${widget.property.house!.baths} SDB',
-                            ),
-                            const SizedBox(width: 8),
-                          ],
-                          
-                          // Surface
-                          if (widget.property.apartment != null) ...[
-                            _buildDetailChip(
-                              context,
-                              Icons.square_foot,
-                              '${widget.property.apartment!.area.toInt()} m²',
-                            ),
-                          ] else if (widget.property.house != null) ...[
-                            _buildDetailChip(
-                              context,
-                              Icons.square_foot,
-                              '${widget.property.house!.area.toInt()} m²',
-                            ),
-                          ],
-                          
+                          ..._buildDetailChipsForType(context, widget.property),
                           const Spacer(),
-                          
-                          // Distance
                           if (distance != null)
                             Text(
                               locationProvider.formatDistance(distance),
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppColors.textTertiary,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
                               ),
                             ),
                         ],
@@ -358,6 +314,97 @@ class _PropertyCardState extends State<PropertyCard> {
     );
   }
 
+  List<Widget> _buildDetailChipsForType(BuildContext context, Property p) {
+    final chips = <Widget>[];
+    const spacing = SizedBox(width: 8);
+
+    switch (p.type) {
+      case 'apartment':
+        if (p.bedrooms != null && p.bedrooms! > 0) {
+          chips.add(_buildDetailChip(context, Icons.bed_outlined, '${p.bedrooms} ch.'));
+          chips.add(spacing);
+        }
+        if (p.bathrooms != null && p.bathrooms! > 0) {
+          chips.add(_buildDetailChip(context, Icons.bathtub_outlined, '${p.bathrooms} SDB'));
+          chips.add(spacing);
+        }
+        if (p.squareMeters != null) {
+          chips.add(_buildDetailChip(context, Icons.square_foot, '${p.squareMeters!.toInt()} m²'));
+        }
+        break;
+      case 'house':
+        if (p.bedrooms != null && p.bedrooms! > 0) {
+          chips.add(_buildDetailChip(context, Icons.bed_outlined, '${p.bedrooms} ch.'));
+          chips.add(spacing);
+        }
+        if (p.bathrooms != null && p.bathrooms! > 0) {
+          chips.add(_buildDetailChip(context, Icons.bathtub_outlined, '${p.bathrooms} SDB'));
+          chips.add(spacing);
+        }
+        if (p.houseSquareMeters != null) {
+          chips.add(_buildDetailChip(context, Icons.home, '${p.houseSquareMeters!.toInt()} m²'));
+        } else if (p.squareMeters != null) {
+          chips.add(_buildDetailChip(context, Icons.square_foot, '${p.squareMeters!.toInt()} m²'));
+        }
+        if (p.landSquareMeters != null) {
+          chips.add(spacing);
+          chips.add(_buildDetailChip(context, Icons.landscape, '${p.landSquareMeters!.toInt()} m² terr.'));
+        }
+        break;
+      case 'land':
+        if (p.squareMeters != null) {
+          chips.add(_buildDetailChip(context, Icons.square_foot, '${p.squareMeters!.toInt()} m²'));
+          chips.add(spacing);
+        }
+        if (p.landType != null && p.landType!.isNotEmpty) {
+          final label = p.landType == 'residential' ? 'Résid.' : p.landType == 'commercial' ? 'Comm.' : p.landType == 'agricultural' ? 'Agric.' : 'Ind.';
+          chips.add(_buildDetailChip(context, Icons.landscape, label));
+        }
+        break;
+      case 'event_hall':
+        if (p.capacity != null) {
+          chips.add(_buildDetailChip(context, Icons.groups, '${p.capacity} pers.'));
+        }
+        if (p.hasParking) {
+          chips.add(spacing);
+          chips.add(_buildDetailChip(context, Icons.local_parking, 'Parking'));
+        }
+        break;
+      case 'car':
+        if (p.brand != null || p.model != null) {
+          chips.add(_buildDetailChip(
+            context,
+            Icons.directions_car,
+            [p.brand, p.model].where((e) => e != null && e.isNotEmpty).join(' '),
+          ));
+          chips.add(spacing);
+        }
+        if (p.seats != null) {
+          chips.add(_buildDetailChip(context, Icons.event_seat, '${p.seats} pl.'));
+        }
+        if (p.year != null) {
+          chips.add(spacing);
+          chips.add(_buildDetailChip(context, Icons.calendar_today, '${p.year}'));
+        }
+        break;
+      default:
+        // Fallback: chambres, SDB, m² si présents
+        if (p.bedrooms != null && p.bedrooms! > 0) {
+          chips.add(_buildDetailChip(context, Icons.bed_outlined, '${p.bedrooms} ch.'));
+          chips.add(spacing);
+        }
+        if (p.bathrooms != null && p.bathrooms! > 0) {
+          chips.add(_buildDetailChip(context, Icons.bathtub_outlined, '${p.bathrooms} SDB'));
+          chips.add(spacing);
+        }
+        if (p.squareMeters != null) {
+          chips.add(_buildDetailChip(context, Icons.square_foot, '${p.squareMeters!.toInt()} m²'));
+        }
+    }
+
+    return chips;
+  }
+
   Widget _buildDetailChip(BuildContext context, IconData icon, String text) {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -365,14 +412,18 @@ class _PropertyCardState extends State<PropertyCard> {
         Icon(
           icon,
           size: 16,
-          color: AppColors.textTertiary,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
         ),
         const SizedBox(width: 4),
-        Text(
-          text,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: AppColors.textSecondary,
-            fontWeight: FontWeight.w500,
+        Flexible(
+          child: Text(
+            text,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],

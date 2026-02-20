@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/property_provider.dart';
@@ -83,14 +84,19 @@ class _SearchScreenState extends State<SearchScreen> {
 
   void _performSearch({bool refresh = false}) {
     final propertyProvider = Provider.of<PropertyProvider>(context, listen: false);
-    
+    final queryText = _searchController.text.trim();
     propertyProvider.searchProperties(
-      query: _searchController.text.trim().isEmpty ? null : _searchController.text.trim(),
+      query: queryText.isEmpty ? null : queryText,
       minPrice: _minPrice,
       maxPrice: _maxPrice,
       category: _selectedCategory,
       town: _selectedTown,
+      cityId: _selectedCity,
       type: _selectedType,
+      bedrooms: _minBeds,
+      limit: 20,
+      offset: 0,
+      refresh: refresh,
     );
   }
 
@@ -154,22 +160,24 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Rechercher'),
-        backgroundColor: AppColors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor ?? Theme.of(context).colorScheme.surface,
         elevation: 0,
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(60),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+          preferredSize: const Size.fromHeight(72),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
                   child: CustomTextField(
                     controller: _searchController,
+                    label: null,
                     hint: 'Rechercher une propriété...',
-                    prefixIcon: const Icon(Icons.search),
+                    prefixIconData: CupertinoIcons.search,
                     onChanged: (value) {
                       if (value.length >= 3) {
                         _performSearch(refresh: true);
@@ -178,12 +186,26 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                IconButton(
-                  onPressed: _showFilters,
-                  icon: const Icon(Icons.tune),
-                  style: IconButton.styleFrom(
-                    backgroundColor: AppColors.grey100,
-                    foregroundColor: AppColors.textPrimary,
+                Material(
+                  color: AppColors.grey50,
+                  borderRadius: BorderRadius.circular(14),
+                  child: InkWell(
+                    onTap: _showFilters,
+                    borderRadius: BorderRadius.circular(14),
+                    child: Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppColors.grey200),
+                      ),
+                      alignment: Alignment.center,
+                      child: Icon(
+                        CupertinoIcons.slider_horizontal_3,
+                        size: 22,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -193,25 +215,30 @@ class _SearchScreenState extends State<SearchScreen> {
       ),
       body: Column(
         children: [
-          // Filtres rapides
+          // Filtres rapides (catégories + types)
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 16),
+            padding: const EdgeInsets.symmetric(vertical: 12),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Catégories
+                Padding(
+                  padding: const EdgeInsets.only(left: 16, bottom: 8),
+                  child: Text(
+                    'Catégorie',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
                 CategoryChips(
                   selectedCategory: _selectedCategory,
                   onCategorySelected: (categoryId) {
-                    setState(() {
-                      _selectedCategory = categoryId;
-                    });
+                    setState(() => _selectedCategory = categoryId);
                     _performSearch(refresh: true);
                   },
                 ),
-                
-                const SizedBox(height: 12),
-                
-                // Filtres rapides par type de logement
+                const SizedBox(height: 14),
                 _buildQuickFilters(),
               ],
             ),
@@ -236,65 +263,77 @@ class _SearchScreenState extends State<SearchScreen> {
 
                 if (propertyProvider.error != null && propertyProvider.properties.isEmpty) {
                   return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          size: 64,
-                          color: AppColors.error,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Erreur de recherche',
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            color: AppColors.textPrimary,
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 64,
+                            color: AppColors.error,
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          propertyProvider.error!,
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppColors.textSecondary,
+                          const SizedBox(height: 16),
+                          Text(
+                            'Erreur de recherche',
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                              color: AppColors.textPrimary,
+                            ),
+                            textAlign: TextAlign.center,
                           ),
-                        ),
-                        const SizedBox(height: 24),
-                        CustomButton(
-                          text: 'Réessayer',
-                          onPressed: () => _performSearch(refresh: true),
-                        ),
-                      ],
+                          const SizedBox(height: 8),
+                          Text(
+                            propertyProvider.error!,
+                            textAlign: TextAlign.center,
+                            maxLines: 5,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          CustomButton(
+                            text: 'Réessayer',
+                            onPressed: () => _performSearch(refresh: true),
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 }
 
                 if (propertyProvider.properties.isEmpty) {
                   return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.search_off,
-                          size: 64,
-                          color: AppColors.textTertiary,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Aucun résultat trouvé',
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            color: AppColors.textPrimary,
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.search_off,
+                            size: 64,
+                            color: AppColors.textTertiary,
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Essayez de modifier vos critères de recherche',
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppColors.textSecondary,
+                          const SizedBox(height: 16),
+                          Text(
+                            'Aucun résultat trouvé',
+                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                              color: AppColors.textPrimary,
+                            ),
+                            textAlign: TextAlign.center,
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 8),
+                          Text(
+                            'Essayez de modifier vos critères de recherche',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 }
@@ -522,9 +561,9 @@ class _AdvancedFiltersBottomSheetState extends State<_AdvancedFiltersBottomSheet
   Widget build(BuildContext context) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.8,
-      decoration: const BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.only(
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(20),
           topRight: Radius.circular(20),
         ),

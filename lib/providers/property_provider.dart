@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
-import '../models/property.dart';
-import '../services/api_service.dart';
+import '../models/property/property.dart';
+import '../models/property/category.dart';
+import '../models/location/province.dart';
+import '../models/location/city.dart';
+import '../models/location/town.dart';
+import '../services/property_service.dart';
+import '../services/location_service.dart';
 
 class PropertyProvider with ChangeNotifier {
+  final PropertyService _propertyService = PropertyService();
+  final LocationService _locationService = LocationService();
+
   List<Property> _properties = [];
   List<Property> _myProperties = [];
-  List<PropertyCategory> _categories = [];
+  List<Category> _categories = [];
   List<Province> _provinces = [];
   List<City> _cities = [];
   List<Town> _towns = [];
-  
+
   bool _isLoading = false;
   String? _error;
   String? _nextCursor;
@@ -19,7 +27,7 @@ class PropertyProvider with ChangeNotifier {
   // Getters
   List<Property> get properties => _properties;
   List<Property> get myProperties => _myProperties;
-  List<PropertyCategory> get categories => _categories;
+  List<Category> get categories => _categories;
   List<Province> get provinces => _provinces;
   List<City> get cities => _cities;
   List<Town> get towns => _towns;
@@ -29,23 +37,99 @@ class PropertyProvider with ChangeNotifier {
   String? get prevCursor => _prevCursor;
   int get total => _total;
 
-  // Charger les propriétés avec filtres
+  // Convertir un categoryId en type correspondant
+  String? _categoryIdToType(String? categoryId) {
+    if (categoryId == null) return null;
+    
+    // Trouver la catégorie correspondante
+    final category = _categories.firstWhere(
+      (c) => c.id == categoryId,
+      orElse: () => Category(
+        id: '',
+        name: '',
+        slug: '',
+        icon: '',
+      ),
+    );
+    
+    if (category.id.isEmpty) return null;
+    
+    // Mapper le nom ou slug de la catégorie au type
+    final categoryNameLower = category.name.toLowerCase();
+    final categorySlugLower = category.slug.toLowerCase();
+    
+    // Mapping des catégories vers les types
+    if (categoryNameLower.contains('apartment') || 
+        categoryNameLower.contains('appartement') ||
+        categorySlugLower.contains('apartment') ||
+        categorySlugLower.contains('appartement')) {
+      return 'apartment';
+    } else if (categoryNameLower.contains('house') || 
+               categoryNameLower.contains('maison') ||
+               categoryNameLower.contains('villa') ||
+               categorySlugLower.contains('house') ||
+               categorySlugLower.contains('maison') ||
+               categorySlugLower.contains('villa')) {
+      return 'house';
+    } else if (categoryNameLower.contains('land') || 
+               categoryNameLower.contains('terrain') ||
+               categorySlugLower.contains('land') ||
+               categorySlugLower.contains('terrain')) {
+      return 'land';
+    } else if (categoryNameLower.contains('event') || 
+               categoryNameLower.contains('salle') ||
+               categorySlugLower.contains('event') ||
+               categorySlugLower.contains('salle')) {
+      return 'event_hall';
+    } else if (categoryNameLower.contains('car') || 
+               categoryNameLower.contains('vehicule') ||
+               categoryNameLower.contains('voiture') ||
+               categorySlugLower.contains('car') ||
+               categorySlugLower.contains('vehicule') ||
+               categorySlugLower.contains('voiture')) {
+      return 'car';
+    }
+    
+    return null;
+  }
+
+  // Charger les propriétés avec filtres (GET /api/properties/search)
   Future<void> loadProperties({
     String? direction,
     String? cursor,
     int? limit,
+    int? offset,
     double? minPrice,
     double? maxPrice,
     String? category,
     String? owner,
     String? town,
+    String? cityId,
     String? type,
+    String? query,
+    int? bedrooms,
+    bool? available,
     bool refresh = false,
   }) async {
+    print('📋 PropertyProvider.loadProperties called');
+    print('Category filter (categoryId): $category');
+    print('Type filter: $type');
+    print('Town filter: $town');
+    print('Query: $query');
+    print('Refresh: $refresh');
+    
+    // Convertir categoryId en type si nécessaire
+    String? finalType = type;
+    if (category != null && category.isNotEmpty && type == null) {
+      finalType = _categoryIdToType(category);
+      print('🔄 Converted categoryId "$category" to type: $finalType');
+    }
+    
     if (refresh) {
       _properties.clear();
       _nextCursor = null;
       _prevCursor = null;
+      print('🔄 Cleared properties list for refresh');
     }
 
     _isLoading = true;
@@ -53,55 +137,90 @@ class PropertyProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await ApiService.getProperties(
-        direction: direction,
-        cursor: cursor ?? _nextCursor,
-        limit: limit,
+      print('🔍 Calling PropertyService.searchProperties');
+      print('  - type: $finalType');
+      print('  - categoryId: $category');
+      print('  - townId: $town');
+      print('  - query: ${query ?? ""}');
+      final response = await _propertyService.searchProperties(
+        query: query,
         minPrice: minPrice,
         maxPrice: maxPrice,
-        category: category,
-        owner: owner,
-        town: town,
-        type: type,
+        townId: town,
+        cityId: cityId,
+        type: finalType,
+        categoryId: category,
+        bedrooms: bedrooms,
+        available: available,
+        limit: limit ?? 20,
+        offset: offset ?? 0,
       );
-
-      // Métadonnées résilientes
-      final dynamic metaRaw = response['metaData'];
-      final Map<String, dynamic> metaData = metaRaw is Map<String, dynamic>
-          ? metaRaw
-          : {
-              'nextCursor': (response['nextCursor'] ?? null),
-              'prevCursor': (response['prevCursor'] ?? null),
-              'total': (response['total'] ?? 0),
-            };
-      _nextCursor = metaData['nextCursor'];
-      _prevCursor = metaData['prevCursor'];
-      _total = (metaData['total'] ?? 0) as int;
-
-      // Données propriétés résilientes
-      final dynamic propsRaw =
-          response['properties'] ?? response['data'] ?? response['items'] ?? response;
-      final List<dynamic> propertiesData = propsRaw is List
-          ? propsRaw
-          : (propsRaw is Map<String, dynamic> && propsRaw['results'] is List
-              ? (propsRaw['results'] as List)
-              : <dynamic>[]);
-      final newProperties =
-          propertiesData.map((json) => Property.fromJson(json as Map<String, dynamic>)).toList();
+      
+      print('✅ PropertyService.searchProperties returned ${response.length} properties');
 
       if (refresh) {
-        _properties = newProperties;
+        _properties = response;
       } else {
-        _properties.addAll(newProperties);
+        _properties.addAll(response);
       }
+
+      // Mettre à jour le total avec la taille de la liste
+      _total = _properties.length;
 
       _isLoading = false;
       notifyListeners();
     } catch (e) {
-      _error = e.toString();
+      _error = _userFriendlyError(e);
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  /// Message d'erreur affichable (sans stack trace ni préfixe technique).
+  String _userFriendlyError(Object e) {
+    final s = e.toString();
+    if (s.startsWith('Exception: ')) {
+      return s.substring(11);
+    }
+    if (s.contains('SocketException') || s.contains('Connection') || s.contains('timeout')) {
+      return 'Impossible de joindre le serveur. Vérifiez votre connexion et réessayez.';
+    }
+    if (s.contains('500') || s.contains('502') || s.contains('503')) {
+      return 'Le serveur est temporairement indisponible. Veuillez réessayer dans quelques instants.';
+    }
+    return 'Une erreur est survenue. Veuillez réessayer.';
+  }
+
+  /// Recherche de propriétés (GET /api/properties/search)
+  /// Filtres doc API : type, cityId, townId, minPrice, maxPrice, bedrooms, available, query, limit, offset
+  Future<void> searchProperties({
+    String? query,
+    double? minPrice,
+    double? maxPrice,
+    String? category,
+    String? town,
+    String? cityId,
+    String? type,
+    int? bedrooms,
+    bool? available,
+    int? limit,
+    int? offset,
+    bool refresh = false,
+  }) async {
+    await loadProperties(
+      query: query,
+      minPrice: minPrice,
+      maxPrice: maxPrice,
+      category: category,
+      town: town,
+      cityId: cityId,
+      type: type,
+      bedrooms: bedrooms,
+      available: available,
+      limit: limit,
+      offset: offset,
+      refresh: refresh,
+    );
   }
 
   // Charger mes propriétés
@@ -120,8 +239,6 @@ class PropertyProvider with ChangeNotifier {
   }) async {
     if (refresh) {
       _myProperties.clear();
-      _nextCursor = null;
-      _prevCursor = null;
     }
 
     _isLoading = true;
@@ -129,79 +246,20 @@ class PropertyProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await ApiService.getMyProperties(
-        direction: direction,
-        cursor: cursor ?? _nextCursor,
-        limit: limit,
-        minPrice: minPrice,
-        maxPrice: maxPrice,
-        category: category,
-        owner: owner,
-        town: town,
-        type: type,
-      );
-
-      // Métadonnées résilientes
-      final dynamic metaRaw = response['metaData'];
-      final Map<String, dynamic> metaData = metaRaw is Map<String, dynamic>
-          ? metaRaw
-          : {
-              'nextCursor': (response['nextCursor'] ?? null),
-              'prevCursor': (response['prevCursor'] ?? null),
-              'total': (response['total'] ?? 0),
-            };
-      _nextCursor = metaData['nextCursor'];
-      _prevCursor = metaData['prevCursor'];
-      _total = (metaData['total'] ?? 0) as int;
-
-      final dynamic propsRaw =
-          response['properties'] ?? response['data'] ?? response['items'] ?? response;
-      final List<dynamic> propertiesData = propsRaw is List
-          ? propsRaw
-          : (propsRaw is Map<String, dynamic> && propsRaw['results'] is List
-              ? (propsRaw['results'] as List)
-              : <dynamic>[]);
-      final newProperties =
-          propertiesData.map((json) => Property.fromJson(json as Map<String, dynamic>)).toList();
+      final response = await _propertyService
+          .getMyProperties(); // Currently no args in service
 
       if (refresh) {
-        _myProperties = newProperties;
+        _myProperties = response;
       } else {
-        _myProperties.addAll(newProperties);
+        _myProperties.addAll(response);
       }
 
       _isLoading = false;
       notifyListeners();
     } catch (e) {
-      // Log the error for debugging
       print('❌ Error loading my properties: $e');
-      
-      // If it's a 500 error and we haven't retried too many times, retry
-      if (e.toString().contains('500') && retryCount < 2) {
-        print('🔄 Retrying loadMyProperties (attempt ${retryCount + 1})');
-        await Future.delayed(Duration(seconds: 2 * (retryCount + 1))); // Exponential backoff
-        return loadMyProperties(
-          direction: direction,
-          cursor: cursor,
-          limit: limit,
-          minPrice: minPrice,
-          maxPrice: maxPrice,
-          category: category,
-          owner: owner,
-          town: town,
-          type: type,
-          refresh: refresh,
-          retryCount: retryCount + 1,
-        );
-      }
-      
-      // Set error message and stop loading
-      if (e.toString().contains('500')) {
-        _error = 'Erreur serveur temporaire. Veuillez réessayer plus tard.';
-      } else {
-        _error = e.toString();
-      }
-      
+      _error = e.toString();
       _isLoading = false;
       notifyListeners();
     }
@@ -211,14 +269,13 @@ class PropertyProvider with ChangeNotifier {
   Future<void> loadCategories() async {
     if (_categories.isNotEmpty) return;
 
-    // Ne pas notifier au début pour éviter setState durant le build
     _isLoading = true;
     _error = null;
+    // notifyListeners(); // Avoid immediate notify to prevent build errors
 
     try {
-      _categories = await ApiService.getCategories();
+      _categories = await _propertyService.getCategories();
       _isLoading = false;
-      // Notifier uniquement après avoir reçu les données
       notifyListeners();
     } catch (e) {
       _error = e.toString();
@@ -228,53 +285,94 @@ class PropertyProvider with ChangeNotifier {
   }
 
   // Charger les provinces
-  Future<void> loadProvinces() async {
-    if (_provinces.isNotEmpty) return;
+  Future<void> loadProvinces({bool forceRefresh = false}) async {
+    if (!forceRefresh && _provinces.isNotEmpty) {
+      print('📋 Provinces already loaded, skipping');
+      return;
+    }
 
+    print('🏛️ Loading provinces...');
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      _provinces = await ApiService.getProvinces();
+      // Charger d'abord les pays
+      print('🌍 Loading countries first...');
+      final countries = await _locationService.getCountries();
+      print('🌍 Loaded ${countries.length} countries');
+      
+      if (countries.isEmpty) {
+        print('⚠️ No countries found, cannot load provinces');
+        _error = 'Aucun pays trouvé';
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
+
+      // Charger les provinces du premier pays (ou de tous les pays si nécessaire)
+      print('🏛️ Loading provinces for country: ${countries.first.id}');
+      _provinces = await _locationService.getProvinces(countries.first.id);
+      print('✅ Loaded ${_provinces.length} provinces');
+      
       _isLoading = false;
+      _error = null;
       notifyListeners();
-    } catch (e) {
-      _error = e.toString();
+    } catch (e, stackTrace) {
+      print('❌ Error loading provinces: $e');
+      print('Stack trace: $stackTrace');
+      _error = 'Erreur lors du chargement des provinces: $e';
       _isLoading = false;
       notifyListeners();
     }
   }
 
   // Charger les villes
-  Future<void> loadCities({String? province, String? search}) async {
+  Future<void> loadCities({required String province, String? search}) async {
+    print('🏙️ Loading cities for province: $province');
     _isLoading = true;
     _error = null;
+    _cities = []; // Vider la liste avant de charger
     notifyListeners();
 
     try {
-      _cities = await ApiService.getCities(province: province, search: search);
+      _cities = await _locationService.getCities(province);
+      print('✅ Loaded ${_cities.length} cities');
       _isLoading = false;
+      _error = null;
       notifyListeners();
-    } catch (e) {
-      _error = e.toString();
+    } catch (e, stackTrace) {
+      print('❌ Error loading cities: $e');
+      print('Stack trace: $stackTrace');
+      _error = 'Erreur lors du chargement des villes: $e';
       _isLoading = false;
       notifyListeners();
     }
   }
 
+  /// Récupère une ville par ID (pour afficher la province en mode édition).
+  Future<City?> getCityById(String cityId) async {
+    return _locationService.getCity(cityId);
+  }
+
   // Charger les communes
-  Future<void> loadTowns({String? city, String? search}) async {
+  Future<void> loadTowns({required String city, String? search}) async {
+    print('🏘️ Loading towns for city: $city');
     _isLoading = true;
     _error = null;
+    _towns = []; // Vider la liste avant de charger
     notifyListeners();
 
     try {
-      _towns = await ApiService.getTowns(city: city, search: search);
+      _towns = await _locationService.getTowns(city);
+      print('✅ Loaded ${_towns.length} towns');
       _isLoading = false;
+      _error = null;
       notifyListeners();
-    } catch (e) {
-      _error = e.toString();
+    } catch (e, stackTrace) {
+      print('❌ Error loading towns: $e');
+      print('Stack trace: $stackTrace');
+      _error = 'Erreur lors du chargement des communes: $e';
       _isLoading = false;
       notifyListeners();
     }
@@ -287,10 +385,12 @@ class PropertyProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final propertyId = await ApiService.createProperty(propertyData);
+      final property = await _propertyService.createProperty(propertyData);
+      // Ajouter la propriété à la liste locale
+      _myProperties.add(property);
       _isLoading = false;
       notifyListeners();
-      return propertyId;
+      return property.id;
     } catch (e) {
       _error = e.toString();
       _isLoading = false;
@@ -300,23 +400,24 @@ class PropertyProvider with ChangeNotifier {
   }
 
   // Mettre à jour une propriété
-  Future<bool> updateProperty(String id, Map<String, dynamic> propertyData) async {
+  Future<bool> updateProperty(
+      String id, Map<String, dynamic> propertyData) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      await ApiService.updateProperty(id, propertyData);
-      
+      final property = await _propertyService.updateProperty(id, propertyData);
+
       // Mettre à jour la propriété dans la liste locale
       final index = _properties.indexWhere((p) => p.id == id);
       if (index != -1) {
-        _properties[index] = await ApiService.getProperty(id);
+        _properties[index] = property;
       }
-      
+
       final myIndex = _myProperties.indexWhere((p) => p.id == id);
       if (myIndex != -1) {
-        _myProperties[myIndex] = await ApiService.getMyProperty(id);
+        _myProperties[myIndex] = property;
       }
 
       _isLoading = false;
@@ -330,6 +431,11 @@ class PropertyProvider with ChangeNotifier {
     }
   }
 
+  /// Supprime une photo d'une propriété (mode édition).
+  Future<void> deletePhoto(String propertyId, String photoId) async {
+    await _propertyService.deletePhoto(propertyId, photoId);
+  }
+
   // Supprimer une propriété
   Future<bool> deleteProperty(String id) async {
     _isLoading = true;
@@ -337,8 +443,8 @@ class PropertyProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      await ApiService.deleteProperty(id);
-      
+      await _propertyService.deleteProperty(id);
+
       // Supprimer la propriété des listes locales
       _properties.removeWhere((p) => p.id == id);
       _myProperties.removeWhere((p) => p.id == id);
@@ -359,13 +465,10 @@ class PropertyProvider with ChangeNotifier {
     _isLoading = true;
     _error = null;
     notifyListeners();
-    
+
     try {
-      final property = await ApiService.getProperty(id);
-      
-      // Enrichir les données de localisation si nécessaire
-      await _enrichLocationData(property);
-      
+      final property = await _propertyService.getProperty(id);
+
       // Ajouter la propriété à la liste si elle n'y est pas déjà
       final existingIndex = _properties.indexWhere((p) => p.id == id);
       if (existingIndex != -1) {
@@ -373,7 +476,7 @@ class PropertyProvider with ChangeNotifier {
       } else {
         _properties.add(property);
       }
-      
+
       _isLoading = false;
       notifyListeners();
       return property;
@@ -385,72 +488,46 @@ class PropertyProvider with ChangeNotifier {
     }
   }
 
-  // Obtenir une de MES propriétés par ID
+  // Obtenir une de MES propriétés par ID (alias pour getPropertyById pour l'instant)
   Future<Property?> getMyPropertyById(String id) async {
+    return getPropertyById(id);
+  }
+
+  /// Upload des photos en multipart (API: photos[], caption, isPrimary).
+  /// [imagePaths] : chemins des fichiers.
+  /// [primaryIndex] : index de la photo principale (affichée en couverture).
+  /// [caption] : légende optionnelle.
+  Future<void> uploadImages(
+    String propertyId,
+    List<String> imagePaths, {
+    int primaryIndex = 0,
+    String? caption,
+  }) async {
+    if (imagePaths.isEmpty) return;
+
     _isLoading = true;
     _error = null;
     notifyListeners();
-    
+
     try {
-      final property = await ApiService.getMyProperty(id);
-      
-      // Enrichir les données de localisation si nécessaire
-      await _enrichLocationData(property);
-      
-      // Ajouter la propriété à la liste si elle n'y est pas déjà
-      final existingIndex = _myProperties.indexWhere((p) => p.id == id);
-      if (existingIndex != -1) {
-        _myProperties[existingIndex] = property;
-      } else {
-        _myProperties.add(property);
-      }
-      
-      _isLoading = false;
-      notifyListeners();
-      return property;
+      await _propertyService.uploadPhotosMultipart(
+        propertyId,
+        imagePaths,
+        caption: caption,
+        primaryIndex: primaryIndex,
+      );
+      await getPropertyById(propertyId);
     } catch (e) {
       _error = e.toString();
+      rethrow;
+    } finally {
       _isLoading = false;
       notifyListeners();
-      return null;
     }
   }
 
-  // Enrichir les données de localisation manquantes
-  Future<void> _enrichLocationData(Property property) async {
-    try {
-      // Si le nom de la ville est manquant, essayer de le récupérer
-      if (property.town.city.name.isEmpty && property.town.city.id.isNotEmpty) {
-        final cityData = await ApiService.getCityById(property.town.city.id);
-        if (cityData['name'] != null) {
-          // Note: On ne peut pas modifier directement la propriété car elle est immutable
-          // Cette méthode est préparée pour une future amélioration
-          print('Ville trouvée: ${cityData['name']}');
-        }
-      }
-    } catch (e) {
-      // Ignorer les erreurs d'enrichissement pour ne pas bloquer l'affichage
-      print('Erreur lors de l\'enrichissement des données de localisation: $e');
-    }
-  }
-
-  // Rechercher des propriétés
-  Future<void> searchProperties({
-    String? query,
-    double? minPrice,
-    double? maxPrice,
-    String? category,
-    String? town,
-    String? type,
-  }) async {
-    await loadProperties(
-      minPrice: minPrice,
-      maxPrice: maxPrice,
-      category: category,
-      town: town,
-      type: type,
-      refresh: true,
-    );
+  Future<void> uploadCoverImage(String propertyId, String imagePath) async {
+    return uploadImages(propertyId, [imagePath], primaryIndex: 0);
   }
 
   void clearError() {
@@ -464,39 +541,5 @@ class PropertyProvider with ChangeNotifier {
     _prevCursor = null;
     _total = 0;
     notifyListeners();
-  }
-
-  // Upload d'images
-  Future<void> uploadImages(String propertyId, List<String> imagePaths) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
-    try {
-      await ApiService.uploadImages(propertyId, imagePaths);
-      _isLoading = false;
-      notifyListeners();
-    } catch (e) {
-      _error = e.toString();
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  // Upload d'image de couverture
-  Future<void> uploadCoverImage(String propertyId, String imagePath) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
-    try {
-      await ApiService.uploadCoverImage(propertyId, imagePath);
-      _isLoading = false;
-      notifyListeners();
-    } catch (e) {
-      _error = e.toString();
-      _isLoading = false;
-      notifyListeners();
-    }
   }
 }

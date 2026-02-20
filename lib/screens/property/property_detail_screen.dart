@@ -44,7 +44,10 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
   void initState() {
     super.initState();
     _pageController = PageController();
-    _loadProperty();
+    // Différer le chargement après le build pour éviter setState() pendant build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadProperty();
+    });
   }
 
   void _loadProperty() {
@@ -65,7 +68,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Consumer<PropertyProvider>(
         builder: (context, propertyProvider, child) {
           final property = widget.myProperty 
@@ -123,15 +126,15 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
               SliverAppBar(
                 expandedHeight: 300,
                 pinned: true,
-                backgroundColor: AppColors.white,
+                backgroundColor: Theme.of(context).appBarTheme.backgroundColor ?? Theme.of(context).colorScheme.surface,
                 leading: Container(
                   margin: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.white.withOpacity(0.9),
+                    color: Theme.of(context).cardColor.withOpacity(0.9),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: IconButton(
-                    icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+                    icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ),
@@ -139,7 +142,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                   if (!widget.myProperty) Container(
                     margin: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppColors.white.withOpacity(0.9),
+                      color: Theme.of(context).cardColor.withOpacity(0.9),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Consumer<FavoriteProvider>(
@@ -157,7 +160,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                                 )
                               : Icon(
                                   isFavorite ? Icons.favorite : Icons.favorite_border,
-                                  color: isFavorite ? AppColors.error : AppColors.textPrimary,
+                                  color: isFavorite ? AppColors.error : Theme.of(context).colorScheme.onSurface,
                                 ),
                           onPressed: favoriteProvider.isLoading
                               ? null
@@ -196,11 +199,11 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                   if (!widget.myProperty) Container(
                     margin: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppColors.white.withOpacity(0.9),
+                      color: Theme.of(context).cardColor.withOpacity(0.9),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.share, color: AppColors.textPrimary),
+                      icon: Icon(Icons.share, color: Theme.of(context).colorScheme.onSurface),
                       onPressed: () {
                         _showShareDialog(context, property);
                       },
@@ -216,11 +219,11 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                       return Container(
                         margin: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: AppColors.white.withOpacity(0.9),
+                          color: Theme.of(context).cardColor.withOpacity(0.9),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: IconButton(
-                          icon: const Icon(Icons.edit, color: AppColors.textPrimary),
+                          icon: Icon(Icons.edit, color: Theme.of(context).colorScheme.onSurface),
                           tooltip: 'Modifier',
                           onPressed: () {
                             Navigator.of(context).push(
@@ -251,7 +254,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                       return Container(
                         margin: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: AppColors.white.withOpacity(0.9),
+                          color: Theme.of(context).cardColor.withOpacity(0.9),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: IconButton(
@@ -379,91 +382,98 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                             ),
                           ),
                           
-                          // Miniatures en bas
+                          // Bandeau défilant : miniatures en cartes (sélectionnée vs non sélectionnée)
                           if (_imageUrls.length > 1)
                             Positioned(
                               left: 0,
                               right: 0,
                               bottom: 0,
                               child: Container(
-                                height: 70,
+                                height: 88,
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
                                     begin: Alignment.topCenter,
                                     end: Alignment.bottomCenter,
                                     colors: [
                                       Colors.transparent,
-                                      Colors.black.withOpacity(0.7),
+                                      Colors.black.withOpacity(0.75),
                                     ],
                                   ),
                                 ),
-                                child: Center(
-                                  child: Container(
-                                    constraints: const BoxConstraints(maxWidth: 300),
-                                    child: ListView.builder(
-                                      scrollDirection: Axis.horizontal,
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                      itemCount: _imageUrls.length,
-                                      itemBuilder: (context, index) {
-                                        final isSelected = index == _currentPage;
-                                        return GestureDetector(
-                                          onTap: () {
-                                            _pageController.animateToPage(
-                                              index,
-                                              duration: const Duration(milliseconds: 300),
-                                              curve: Curves.easeInOut,
-                                            );
-                                          },
-                                          child: Container(
-                                            width: 60,
-                                            height: 60,
-                                            margin: const EdgeInsets.only(right: 8),
-                                            decoration: BoxDecoration(
-                                              borderRadius: BorderRadius.circular(8),
-                                              border: Border.all(
-                                                color: isSelected ? Colors.white : Colors.transparent,
-                                                width: 2,
-                                              ),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: Colors.black.withOpacity(0.3),
-                                                  blurRadius: 4,
-                                                  offset: const Offset(0, 2),
-                                                ),
-                                              ],
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  itemCount: _imageUrls.length,
+                                  itemBuilder: (context, index) {
+                                    final isSelected = index == _currentPage;
+                                    return GestureDetector(
+                                      onTap: () {
+                                        setState(() => _currentPage = index);
+                                        _pageController.animateToPage(
+                                          index,
+                                          duration: const Duration(milliseconds: 300),
+                                          curve: Curves.easeInOut,
+                                        );
+                                      },
+                                      child: AnimatedContainer(
+                                        duration: const Duration(milliseconds: 200),
+                                        width: 64,
+                                        height: 64,
+                                        margin: const EdgeInsets.only(right: 10),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(
+                                            color: isSelected ? Colors.white : Colors.white24,
+                                            width: isSelected ? 3 : 1,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.4),
+                                              blurRadius: isSelected ? 8 : 4,
+                                              offset: const Offset(0, 2),
                                             ),
-                                            child: ClipRRect(
-                                              borderRadius: BorderRadius.circular(6),
-                                              child: CachedNetworkImage(
+                                          ],
+                                        ),
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(10),
+                                          child: Stack(
+                                            fit: StackFit.expand,
+                                            children: [
+                                              CachedNetworkImage(
                                                 imageUrl: _imageUrls[index],
                                                 fit: BoxFit.cover,
                                                 placeholder: (context, _) => Container(
-                                                  color: AppColors.grey100,
+                                                  color: AppColors.grey200,
                                                   child: const Center(
                                                     child: SizedBox(
-                                                      width: 20,
-                                                      height: 20,
+                                                      width: 22,
+                                                      height: 22,
                                                       child: CircularProgressIndicator(
                                                         strokeWidth: 2,
+                                                        color: Colors.white70,
                                                       ),
                                                     ),
                                                   ),
                                                 ),
                                                 errorWidget: (context, _, __) => Container(
-                                                  color: AppColors.grey100,
+                                                  color: AppColors.grey200,
                                                   child: const Icon(
                                                     Icons.image,
-                                                    size: 24,
-                                                    color: AppColors.textTertiary,
+                                                    size: 28,
+                                                    color: Colors.white54,
                                                   ),
                                                 ),
                                               ),
-                                            ),
+                                              if (!isSelected)
+                                                Container(
+                                                  color: Colors.black.withOpacity(0.25),
+                                                ),
+                                            ],
                                           ),
-                                        );
-                                      },
-                                    ),
-                                  ),
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
                             ),
@@ -477,9 +487,9 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
               // Contenu principal
               SliverToBoxAdapter(
                 child: Container(
-                  decoration: const BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.only(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(20),
                       topRight: Radius.circular(20),
                     ),
@@ -492,7 +502,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                         margin: const EdgeInsets.all(20),
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: AppColors.white,
+                          color: Theme.of(context).cardColor,
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
@@ -511,20 +521,43 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        property.formattedPrice,
-                                        style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                                          color: AppColors.primary,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                      if (property.type == 'for-rent')
-                                        Text(
-                                          '/mois',
-                                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                            color: AppColors.textSecondary,
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            property.pricePerDay != null
+                                                ? '\$${property.pricePerDay!.toStringAsFixed(0)}'
+                                                : property.pricePerMonth != null
+                                                    ? '\$${property.pricePerMonth!.toStringAsFixed(0)}'
+                                                    : '\$0',
+                                            style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                                              color: AppColors.primary,
+                                              fontWeight: FontWeight.w700,
+                                            ),
                                           ),
-                                        ),
+                                          if (property.pricePerDay != null)
+                                            Text(
+                                              '/jour',
+                                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                                color: AppColors.textSecondary,
+                                              ),
+                                            )
+                                          else if (property.pricePerMonth != null)
+                                            Text(
+                                              '/mois',
+                                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                                color: AppColors.textSecondary,
+                                              ),
+                                            ),
+                                          if (property.pricePerDay != null && property.pricePerMonth != null)
+                                            Text(
+                                              '(\$${property.pricePerMonth!.toStringAsFixed(0)}/mois)',
+                                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                                color: AppColors.textTertiary,
+                                              ),
+                                            ),
+                                        ],
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -555,7 +588,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                             Text(
                               property.title,
                               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                color: AppColors.textPrimary,
+                                color: Theme.of(context).colorScheme.onSurface,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -615,16 +648,14 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                       ),
 
                       // Détails de la propriété
-                      if (property.apartment != null || property.house != null)
-                        _buildPropertyDetails(context, property),
+                      _buildPropertyDetails(context, property),
 
                       // Description
                       if (property.description.isNotEmpty)
                         _buildDescription(context, property),
 
                       // Équipements
-                      if (property.apartment != null || property.house != null)
-                        _buildAmenities(context, property),
+                      _buildAmenities(context, property),
 
                       // Informations sur le propriétaire
                       _buildOwnerInfo(context, property),
@@ -641,7 +672,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: Theme.of(context).colorScheme.surface,
           boxShadow: [
             BoxShadow(
               color: AppColors.shadow,
@@ -651,31 +682,36 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
           ],
         ),
         child: SafeArea(
-          child: Row(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(
-                child: CustomButton(
-                  text: 'Contacter',
-                  isOutlined: true,
-                  onPressed: () {
-                    // TODO: Implémenter le contact
-                  },
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: CustomButton(
-                  text: 'Demander une visite',
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => RequestVisitScreen(
-                          propertyId: widget.propertyId,
-                        ),
-                      ),
-                    );
-                  },
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: CustomButton(
+                      text: 'Contacter',
+                      isOutlined: true,
+                      onPressed: () {
+                        // TODO: Implémenter le contact
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: CustomButton(
+                      text: 'Demander visite',
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => RequestVisitScreen(
+                              propertyId: widget.propertyId,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -684,14 +720,12 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
     );
   }
 
-  Widget _buildPropertyDetails(BuildContext context, property) {
-    final details = property.apartment ?? property.house;
-    
+  Widget _buildPropertyDetails(BuildContext context, Property property) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border.withOpacity(0.5)),
         boxShadow: [
@@ -724,73 +758,315 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                 'Caractéristiques',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 20),
           
-          // Grille des caractéristiques principales
-          Row(
-            children: [
-              Expanded(
-                child: _buildDetailCard(
-                  context, 
-                  Icons.bed_outlined, 
-                  '${details.beds}', 
-                  'Chambre${details.beds > 1 ? 's' : ''}',
-                  AppColors.primary,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildDetailCard(
-                  context, 
-                  Icons.bathtub_outlined, 
-                  '${details.baths}', 
-                  'SDB',
-                  AppColors.secondary,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildDetailCard(
-                  context, 
-                  Icons.square_foot, 
-                  '${details.area.toInt()}', 
-                  details.areaUnit is String && details.areaUnit.toString().isNotEmpty ? details.areaUnit : 'm²',
-                  AppColors.success,
-                ),
-              ),
-            ],
-          ),
-          
-          if (property.apartment != null) ...[
-            const SizedBox(height: 16),
+          // Caractéristiques selon le type : Appartement
+          if (property.type == 'apartment') ...[
             Row(
               children: [
-                Expanded(
-                  child: _buildDetailCard(
-                    context, 
-                    Icons.stairs, 
-                    '${property.apartment.floor}', 
-                    'Étage',
-                    AppColors.warning,
-                  ),
-                ),
-                if (property.apartment.isFurnished) ...[
-                  const SizedBox(width: 12),
+                if (property.bedrooms != null)
                   Expanded(
                     child: _buildDetailCard(
-                      context, 
-                      Icons.chair, 
-                      '', 
-                      'Meublé',
-                      AppColors.info,
+                      context, Icons.bed_outlined, '${property.bedrooms}',
+                      'Chambre${property.bedrooms! > 1 ? 's' : ''}', AppColors.primary,
+                    ),
+                  ),
+                if (property.bedrooms != null && property.bathrooms != null) const SizedBox(width: 12),
+                if (property.bathrooms != null)
+                  Expanded(
+                    child: _buildDetailCard(
+                      context, Icons.bathtub_outlined, '${property.bathrooms}', 'SDB', AppColors.secondary,
+                    ),
+                  ),
+                if (property.squareMeters != null) ...[
+                  if (property.bedrooms != null || property.bathrooms != null) const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildDetailCard(
+                      context, Icons.square_foot, '${property.squareMeters!.toInt()}', 'm²', AppColors.success,
                     ),
                   ),
                 ],
+              ],
+            ),
+            if (property.floor != null || (property.isFurnished == true)) ...[
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  if (property.floor != null)
+                    Expanded(
+                      child: _buildDetailCard(
+                        context, Icons.stairs, '${property.floor}', 'Étage', AppColors.warning,
+                      ),
+                    ),
+                  if (property.floor != null && property.hasElevator) const SizedBox(width: 12),
+                  if (property.hasElevator)
+                    Expanded(
+                      child: _buildDetailCard(context, Icons.elevator, '', 'Ascenseur', AppColors.info),
+                    ),
+                  if (property.hasBalcony) ...[
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildDetailCard(context, Icons.balcony, '', 'Balcon', AppColors.info),
+                    ),
+                  ],
+                  if (property.isFurnished == true) ...[
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildDetailCard(context, Icons.chair, '', 'Meublé', AppColors.info),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ],
+          
+          // Caractéristiques selon le type : Maison (différent de l'appartement)
+          if (property.type == 'house') ...[
+            Row(
+              children: [
+                if (property.bedrooms != null)
+                  Expanded(
+                    child: _buildDetailCard(
+                      context, Icons.bed_outlined, '${property.bedrooms}',
+                      'Chambre${property.bedrooms! > 1 ? 's' : ''}', AppColors.primary,
+                    ),
+                  ),
+                if (property.bedrooms != null && property.bathrooms != null) const SizedBox(width: 12),
+                if (property.bathrooms != null)
+                  Expanded(
+                    child: _buildDetailCard(
+                      context, Icons.bathtub_outlined, '${property.bathrooms}', 'SDB', AppColors.secondary,
+                    ),
+                  ),
+                if (property.floors != null) ...[
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildDetailCard(
+                      context, Icons.stairs, '${property.floors}',
+                      'Étage${property.floors! > 1 ? 's' : ''}', AppColors.warning,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                if (property.houseSquareMeters != null)
+                  Expanded(
+                    child: _buildDetailCard(
+                      context, Icons.home, '${property.houseSquareMeters!.toInt()}', 'm² habitable', AppColors.info,
+                    ),
+                  ),
+                if (property.houseSquareMeters != null && property.landSquareMeters != null) const SizedBox(width: 12),
+                if (property.landSquareMeters != null)
+                  Expanded(
+                    child: _buildDetailCard(
+                      context, Icons.landscape, '${property.landSquareMeters!.toInt()}', 'm² terrain', AppColors.success,
+                    ),
+                  ),
+                if (property.isFurnished == true) ...[
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildDetailCard(context, Icons.chair, '', 'Meublé', AppColors.info),
+                  ),
+                ],
+              ],
+            ),
+          ],
+          
+          // Caractéristiques selon le type : Terrain / Parcelle
+          if (property.type == 'land') ...[
+            Row(
+              children: [
+                if (property.squareMeters != null)
+                  Expanded(
+                    child: _buildDetailCard(
+                      context, Icons.square_foot, '${property.squareMeters!.toInt()}', 'm²', AppColors.success,
+                    ),
+                  ),
+                if (property.landType != null && property.landType!.isNotEmpty) ...[
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildDetailCard(
+                      context, Icons.landscape,
+                      property.landType == 'residential' ? 'Résidentiel' : property.landType == 'commercial' ? 'Commercial' : property.landType == 'agricultural' ? 'Agricole' : 'Industriel',
+                      'Type', AppColors.info,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ],
+          
+          // Caractéristiques selon le type : Véhicule
+          if (property.type == 'car') ...[
+            Row(
+              children: [
+                if (property.brand != null)
+                  Expanded(
+                    child: _buildDetailCard(context, Icons.directions_car, property.brand!, 'Marque', AppColors.primary),
+                  ),
+                if (property.brand != null && property.model != null) const SizedBox(width: 12),
+                if (property.model != null)
+                  Expanded(
+                    child: _buildDetailCard(
+                      context,
+                      Icons.car_repair,
+                      property.model!.trim().isEmpty ? '—' : property.model!,
+                      'Modèle',
+                      AppColors.secondary,
+                    ),
+                  ),
+                if (property.year != null) ...[
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildDetailCard(context, Icons.calendar_today, '${property.year}', 'Année', AppColors.warning),
+                  ),
+                ],
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                if (property.seats != null)
+                  Expanded(
+                    child: _buildDetailCard(context, Icons.event_seat, '${property.seats}', 'Places', AppColors.info),
+                  ),
+                if (property.seats != null && property.fuelType != null) const SizedBox(width: 12),
+                if (property.fuelType != null)
+                  Expanded(
+                    child: _buildDetailCard(
+                      context,
+                      Icons.local_gas_station,
+                      property.fuelType == 'diesel'
+                          ? 'Diesel'
+                          : property.fuelType == 'gasoline'
+                              ? 'Essence'
+                              : property.fuelType == 'electric'
+                                  ? 'Électrique'
+                                  : property.fuelType == 'plugin_hybrid'
+                                      ? 'Hybride rechargeable'
+                                      : 'Hybride',
+                      'Carburant',
+                      AppColors.success,
+                    ),
+                  ),
+                if (property.transmission != null) ...[
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildDetailCard(
+                      context, Icons.settings,
+                      property.transmission == 'automatic' ? 'Auto' : 'Manuelle',
+                      'Transmission', AppColors.textTertiary,
+                    ),
+                  ),
+                ],
+                if (property.mileage != null) ...[
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildDetailCard(context, Icons.speed, '${_formatNumber(property.mileage)} km', 'Kilométrage', AppColors.textTertiary),
+                  ),
+                ],
+              ],
+            ),
+            if (property.color != null || property.withDriver == true) ...[
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  if (property.color != null)
+                    Expanded(
+                      child: _buildDetailCard(context, Icons.palette, property.color!, 'Couleur', AppColors.info),
+                    ),
+                  if (property.withDriver == true) ...[
+                    if (property.color != null) const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildDetailCard(context, Icons.person, '', 'Avec chauffeur', AppColors.primary),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ],
+          
+          // Caractéristiques selon le type : Salle de fête / Événement (aligné sur le modèle API)
+          if (property.type == 'event_hall') ...[
+            Row(
+              children: [
+                if (property.capacity != null)
+                  Expanded(
+                    child: _buildDetailCard(
+                      context, Icons.groups, '${property.capacity}', 'Capacité (personnes)', AppColors.primary,
+                    ),
+                  ),
+                if (property.capacity != null && property.hasParking) const SizedBox(width: 12),
+                if (property.hasParking)
+                  Expanded(
+                    child: _buildDetailCard(context, Icons.local_parking, '', 'Parking', AppColors.success),
+                  ),
+              ],
+            ),
+            if (property.eventTypes != null && property.eventTypes!.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  ...property.eventTypes!.map((e) {
+                    final label = _eventTypeLabel(e);
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                      ),
+                      child: Text(
+                        label,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ],
+          ],
+          
+          // Statistiques (vues et avis)
+          if (property.viewCount > 0 || property.reviewCount > 0) ...[
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                if (property.viewCount > 0)
+                  Expanded(
+                    child: _buildDetailCard(
+                      context, 
+                      Icons.visibility_outlined, 
+                      '${property.viewCount}', 
+                      'Vue${property.viewCount > 1 ? 's' : ''}',
+                      AppColors.textTertiary,
+                    ),
+                  ),
+                if (property.viewCount > 0 && property.reviewCount > 0)
+                  const SizedBox(width: 12),
+                if (property.reviewCount > 0)
+                  Expanded(
+                    child: _buildDetailCard(
+                      context, 
+                      Icons.star_outline, 
+                      '${property.reviewCount}', 
+                      'Avis',
+                      AppColors.warning,
+                    ),
+                  ),
               ],
             ),
           ],
@@ -799,37 +1075,69 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
     );
   }
 
+  static String _eventTypeLabel(String value) {
+    final v = value.toLowerCase();
+    if (v == 'wedding' || v == 'mariage') return 'Mariage';
+    if (v == 'seminar' || v == 'seminaire') return 'Séminaire';
+    if (v == 'birthday' || v == 'anniversaire') return 'Anniversaire';
+    if (v == 'conference' || v == 'conference') return 'Conférence';
+    if (v == 'cocktail') return 'Cocktail';
+    if (v == 'gala') return 'Gala';
+    if (v == 'reception') return 'Réception';
+    if (v == 'party' || v == 'fete') return 'Fête';
+    if (value.isEmpty) return value;
+    return value[0].toUpperCase() + value.substring(1).toLowerCase();
+  }
+
+  /// Formate un nombre (ex: kilométrage) avec espaces comme séparateur de milliers.
+  static String _formatNumber(int? value) {
+    if (value == null) return '—';
+    final s = value.toString();
+    final buf = StringBuffer();
+    for (int i = 0; i < s.length; i++) {
+      if (i > 0 && (s.length - i) % 3 == 0) buf.write(' ');
+      buf.write(s[i]);
+    }
+    return buf.toString();
+  }
+
   Widget _buildDetailCard(BuildContext context, IconData icon, String value, String label, Color color) {
+    final displayValue = value.trim().isEmpty ? '—' : value;
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.withOpacity(0.2)),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            size: 24,
-            color: color,
-          ),
-          const SizedBox(height: 8),
-          if (value.isNotEmpty)
-            Text(
-              value,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: color,
-                fontWeight: FontWeight.w700,
+          Icon(icon, size: 22, color: color),
+          const SizedBox(height: 6),
+          if (displayValue != '—')
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                displayValue,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: color,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
+          const SizedBox(height: 2),
           Text(
             label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: AppColors.textSecondary,
               fontWeight: FontWeight.w500,
             ),
-            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -841,7 +1149,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border.withOpacity(0.5)),
         boxShadow: [
@@ -874,7 +1182,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                 'Description',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ],
@@ -883,7 +1191,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
           Text(
             property.description,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: AppColors.textSecondary,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
               height: 1.6,
             ),
           ),
@@ -892,39 +1200,49 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
     );
   }
 
-  Widget _buildAmenities(BuildContext context, property) {
-    final details = property.apartment ?? property.house;
-    final amenities = <String, bool>{
-      'Cuisine': details.kitchen,
-      'Cuisine équipée': details.equippedKitchen,
-      'Piscine': details.pool,
-      'Parking': details.parking,
-      'Lave-linge': details.laundry,
-      'Climatisation': details.airConditioning,
-      'Cheminée': details.chimney,
-      'Chauffage': details.heating,
-      'Barbecue': details.barbecue,
-    };
+  Widget _buildAmenities(BuildContext context, Property property) {
+    // Toutes les caractéristiques du type, disponibles ou non (nom -> disponible)
+    final amenities = <String, bool>{};
 
-    if (property.apartment != null) {
-      amenities.addAll({
-        'Balcon': property.apartment.balcony,
-        'Animaux autorisés': property.apartment.catsAllowed || property.apartment.dogsAllowed,
-      });
+    switch (property.type) {
+      case 'apartment':
+        amenities['Parking'] = property.hasParking;
+        amenities['Ascenseur'] = property.hasElevator;
+        amenities['Balcon'] = property.hasBalcony;
+        break;
+      case 'house':
+        amenities['Parking'] = property.hasParking;
+        amenities['Jardin'] = property.hasGarden ?? false;
+        amenities['Piscine'] = property.hasPool ?? false;
+        amenities['Garage'] = property.hasGarage ?? false;
+        break;
+      case 'event_hall':
+        amenities['Parking'] = property.hasParking;
+        amenities['Système sonore'] = property.hasSoundSystem ?? false;
+        amenities['Vidéoprojecteur'] = property.hasVideoProjector ?? false;
+        amenities['Cuisine'] = property.hasKitchen ?? false;
+        amenities['Espace extérieur'] = property.hasOutdoorSpace ?? false;
+        break;
+      case 'land':
+        amenities['Accès eau'] = property.hasWaterAccess ?? false;
+        amenities['Électricité'] = property.hasElectricityAccess ?? false;
+        amenities['Clôturé'] = property.isFenced ?? false;
+        amenities['Permis de construire'] = property.hasBuildingPermit ?? false;
+        break;
+      case 'car':
+        amenities['Avec chauffeur'] = property.withDriver ?? false;
+        break;
+      default:
+        amenities['Parking'] = property.hasParking;
     }
 
-    final availableAmenities = amenities.entries
-        .where((entry) => entry.value)
-        .map((entry) => entry.key)
-        .toList();
-
-    if (availableAmenities.isEmpty) return const SizedBox.shrink();
+    if (amenities.isEmpty) return const SizedBox.shrink();
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border.withOpacity(0.5)),
         boxShadow: [
@@ -943,51 +1261,58 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.success.withOpacity(0.1),
+                  color: AppColors.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
-                  Icons.check_circle_outline,
+                  Icons.tune,
                   size: 20,
-                  color: AppColors.success,
+                  color: AppColors.primary,
                 ),
               ),
               const SizedBox(width: 12),
               Text(
-                'Équipements inclus',
+                'Équipements & commodités',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: availableAmenities.map((amenity) {
+            spacing: 10,
+            runSpacing: 10,
+            children: amenities.entries.map((entry) {
+              final available = entry.value;
               return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
-                  color: AppColors.success.withOpacity(0.1),
+                  color: available
+                      ? AppColors.success.withOpacity(0.12)
+                      : Theme.of(context).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.success.withOpacity(0.3)),
+                  border: Border.all(
+                    color: available
+                        ? AppColors.success.withOpacity(0.35)
+                        : Theme.of(context).dividerColor.withOpacity(0.5),
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      Icons.check_circle,
+                      available ? Icons.check_circle : Icons.cancel_outlined,
                       size: 18,
-                      color: AppColors.success,
+                      color: available ? AppColors.success : Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      amenity,
+                      entry.key,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.success,
-                        fontWeight: FontWeight.w600,
+                        color: available ? AppColors.success : Theme.of(context).colorScheme.onSurfaceVariant,
+                        fontWeight: available ? FontWeight.w600 : FontWeight.w500,
                       ),
                     ),
                   ],
@@ -1005,9 +1330,9 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border.withOpacity(0.5)),
+        border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.5)),
         boxShadow: [
           BoxShadow(
             color: AppColors.shadow.withOpacity(0.05),
@@ -1026,20 +1351,15 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
             child: CircleAvatar(
               radius: 30,
               backgroundColor: AppColors.primary.withOpacity(0.1),
-              backgroundImage: property.owner.profilePictureFilePath != null
-                  ? NetworkImage(property.owner.profilePictureFilePath!)
-                  : null,
-              child: property.owner.profilePictureFilePath == null
-                  ? Text(
-                      property.owner.firstName.isNotEmpty
-                          ? property.owner.firstName[0].toUpperCase()
-                          : 'U',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    )
-                  : null,
+              child: Text(
+                property.ownerName.isNotEmpty
+                    ? property.ownerName[0].toUpperCase()
+                    : 'U',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
           ),
           const SizedBox(width: 16),
@@ -1052,46 +1372,20 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                     Text(
                       'Propriétaire',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textTertiary,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    if (property.owner.isIdVerified) ...[
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppColors.success,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.verified,
-                              size: 12,
-                              color: AppColors.white,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Vérifié',
-                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                color: AppColors.white,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                    // Note: La vérification du propriétaire n'est pas disponible dans le modèle Property actuel
+                    // Si nécessaire, ajouter un champ isOwnerVerified dans Property
                   ],
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  property.owner.fullName,
+                  property.ownerName,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ],

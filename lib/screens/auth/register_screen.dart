@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -82,12 +83,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: const Icon(CupertinoIcons.back, color: AppColors.textPrimary),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -99,56 +100,51 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Logo Futela
                 Center(
                   child: Column(
                     children: [
                       Container(
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(28),
                           boxShadow: [
                             BoxShadow(
                               color: AppColors.primary.withOpacity(0.15),
-                              blurRadius: 15,
-                              offset: const Offset(0, 6),
+                              blurRadius: 24,
+                              offset: const Offset(0, 10),
                             ),
                           ],
                         ),
                         child: const FutelaLogo(
-                          size: 80,
+                          size: 72,
                           backgroundColor: AppColors.white,
-                          borderRadius: BorderRadius.all(Radius.circular(20)),
+                          borderRadius: BorderRadius.all(Radius.circular(28)),
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 20),
+                      Text(
+                        'Créer un compte',
+                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Rejoignez Futela',
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
                     ],
                   ),
                 ),
-                
-                // Titre
-                Text(
-                  'Créer un compte',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Rejoignez Futela et trouvez votre maison de rêve',
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                
-                const SizedBox(height: 32),
-                
-                // Prénom
+                const SizedBox(height: 24),
                 CustomTextField(
                   controller: _firstNameController,
                   label: 'Prénom',
-                  hint: 'Entrez votre prénom',
-                  prefixIcon:const Icon(Icons.person_outline),
+                  hint: 'Prénom',
+                  prefixIconData: CupertinoIcons.person_fill,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Veuillez entrer votre prénom';
@@ -156,15 +152,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return null;
                   },
                 ),
-                
-                const SizedBox(height: 16),
-                
-                // Nom
+                const SizedBox(height: 12),
                 CustomTextField(
                   controller: _lastNameController,
                   label: 'Nom',
-                  hint: 'Entrez votre nom',
-                  prefixIcon: const Icon(Icons.person_outline),
+                  hint: 'Nom',
+                  prefixIconData: CupertinoIcons.person_fill,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Veuillez entrer votre nom';
@@ -172,26 +165,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return null;
                   },
                 ),
-                
-                const SizedBox(height: 16),
-                
-                // Nom du milieu (optionnel)
-                CustomTextField(
-                  controller: _middleNameController,
-                  label: 'Nom du milieu (optionnel)',
-                  hint: 'Entrez votre nom du milieu',
-                  prefixIcon: const Icon(Icons.person_outline),
-                ),
-                
-                const SizedBox(height: 16),
-                
-                // Email
+                const SizedBox(height: 12),
                 CustomTextField(
                   controller: _emailController,
                   label: 'Email',
-                  hint: 'Entrez votre adresse email',
+                  hint: 'votre@email.com',
                   keyboardType: TextInputType.emailAddress,
-                  prefixIcon: const Icon(Icons.email_outlined),
+                  prefixIconData: CupertinoIcons.mail_solid,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Veuillez entrer votre email';
@@ -202,145 +182,128 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return null;
                   },
                 ),
-                
-                const SizedBox(height: 16),
-                
-                // Téléphone
+                const SizedBox(height: 12),
                 CustomTextField(
                   controller: _phoneController,
-                  label: 'Numéro de téléphone',
-                  hint: 'Entrez votre numéro de téléphone',
+                  label: 'Téléphone',
+                  hint: '+243...',
                   keyboardType: TextInputType.phone,
-                  prefixIcon: const Icon(Icons.phone_outlined),
+                  prefixIconData: CupertinoIcons.phone_fill,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Veuillez entrer votre numéro de téléphone';
+                      return 'Veuillez entrer votre numéro';
                     }
                     if (value.length < 8) {
-                      return 'Le numéro de téléphone doit contenir au moins 8 chiffres';
+                      return 'Au moins 8 chiffres';
                     }
                     return null;
                   },
                 ),
-                
-                const SizedBox(height: 16),
-                
-                // Mot de passe
+                const SizedBox(height: 12),
                 CustomTextField(
                   controller: _passwordController,
                   label: 'Mot de passe',
-                  hint: 'Entrez votre mot de passe',
+                  hint: '••••••••',
                   obscureText: _obscurePassword,
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                  prefixIconData: CupertinoIcons.lock_fill,
+                  suffixIcon: CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    minSize: 0,
+                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                    child: Icon(
+                      _obscurePassword ? CupertinoIcons.eye_slash_fill : CupertinoIcons.eye_fill,
+                      size: 22,
                       color: AppColors.textTertiary,
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _obscurePassword = !_obscurePassword;
-                      });
-                    },
                   ),
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Veuillez entrer votre mot de passe';
-                    }
-                    if (value.length < 4) {
-                      return 'Le mot de passe doit contenir au moins 4 caractères';
-                    }
+                    if (value == null || value.isEmpty) return 'Veuillez entrer votre mot de passe';
+                    if (value.length < 4) return 'Au moins 4 caractères';
                     return null;
                   },
                 ),
-                
-                const SizedBox(height: 16),
-                
-                // Confirmer le mot de passe
+                const SizedBox(height: 12),
                 CustomTextField(
                   controller: _confirmPasswordController,
                   label: 'Confirmer le mot de passe',
-                  hint: 'Confirmez votre mot de passe',
+                  hint: '••••••••',
                   obscureText: _obscureConfirmPassword,
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
+                  prefixIconData: CupertinoIcons.lock_fill,
+                  suffixIcon: CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    minSize: 0,
+                    onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                    child: Icon(
+                      _obscureConfirmPassword ? CupertinoIcons.eye_slash_fill : CupertinoIcons.eye_fill,
+                      size: 22,
                       color: AppColors.textTertiary,
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _obscureConfirmPassword = !_obscureConfirmPassword;
-                      });
-                    },
                   ),
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Veuillez confirmer votre mot de passe';
-                    }
-                    if (value != _passwordController.text) {
-                      return 'Les mots de passe ne correspondent pas';
-                    }
+                    if (value == null || value.isEmpty) return 'Veuillez confirmer';
+                    if (value != _passwordController.text) return 'Les mots de passe ne correspondent pas';
                     return null;
                   },
                 ),
-                
-                const SizedBox(height: 24),
-                
-                // Accepter les conditions
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Checkbox(
-                      value: _acceptTerms,
-                      onChanged: (value) {
-                        setState(() {
-                          _acceptTerms = value ?? false;
-                        });
-                      },
-                      activeColor: AppColors.primary,
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 12),
-                        child: Text(
-                          'J\'accepte les conditions d\'utilisation et la politique de confidentialité',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppColors.textSecondary,
+                const SizedBox(height: 16),
+                InkWell(
+                  onTap: () => setState(() => _acceptTerms = !_acceptTerms),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          _acceptTerms ? CupertinoIcons.checkmark_square_fill : CupertinoIcons.square,
+                          size: 24,
+                          color: _acceptTerms ? AppColors.primary : AppColors.grey400,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text(
+                              'J\'accepte les conditions d\'utilisation et la politique de confidentialité',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-                
-                const SizedBox(height: 24),
-                
-                // Bouton d'inscription
+                const SizedBox(height: 20),
                 Consumer<AuthProvider>(
                   builder: (context, authProvider, child) {
                     return CustomButton(
                       text: 'Créer mon compte',
                       onPressed: authProvider.isLoading ? null : _handleRegister,
                       isLoading: authProvider.isLoading,
+                      height: 52,
+                      fullWidth: true,
                     );
                   },
                 ),
-                
-                const SizedBox(height: 24),
-                
-                // Lien vers la connexion
+                const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Vous avez déjà un compte ? ',
+                      'Déjà un compte ? ',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,
                       ),
                     ),
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
                       child: Text(
                         'Se connecter',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(

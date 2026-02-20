@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/theme_provider.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/role_permissions.dart';
 import '../../widgets/custom_button.dart';
@@ -27,10 +28,10 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Profil'),
-        backgroundColor: AppColors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor ?? Theme.of(context).colorScheme.surface,
         elevation: 0,
         actions: [
           IconButton(
@@ -571,6 +572,20 @@ class ProfileScreen extends StatelessWidget {
                 
                 _buildMenuSection(
                   context,
+                  title: 'Apparence',
+                  items: [
+                    _MenuItem(
+                      icon: Icons.dark_mode_outlined,
+                      title: 'Thème (clair / sombre / système)',
+                      onTap: () => _showThemeSheet(context),
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 16),
+                
+                _buildMenuSection(
+                  context,
                   title: 'Informations',
                   items: [
                     _MenuItem(
@@ -690,7 +705,7 @@ class ProfileScreen extends StatelessWidget {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: AppColors.border.withOpacity(0.5),
@@ -710,15 +725,16 @@ class ProfileScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  AppColors.primary.withOpacity(0.05),
-                  AppColors.secondary.withOpacity(0.02),
-                ],
-              ),
+              color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.7),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(20),
                 topRight: Radius.circular(20),
+              ),
+              border: Border(
+                bottom: BorderSide(
+                  color: Theme.of(context).dividerColor,
+                  width: 1,
+                ),
               ),
             ),
             child: Row(
@@ -736,13 +752,17 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontFamily: 'Gilroy',
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
+                Expanded(
+                  child: Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontFamily: 'Gilroy',
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                 ),
               ],
@@ -762,6 +782,8 @@ class ProfileScreen extends StatelessWidget {
         return Icons.home_work_outlined;
       case 'Visites et Paiements':
         return Icons.payment_outlined;
+      case 'Apparence':
+        return Icons.palette_outlined;
       case 'Informations':
         return Icons.info_outline;
       case 'Support':
@@ -769,6 +791,57 @@ class ProfileScreen extends StatelessWidget {
       default:
         return Icons.menu_outlined;
     }
+  }
+
+  void _showThemeSheet(BuildContext context) {
+    final themeProvider = context.read<ThemeProvider>();
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'Choisir le thème',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 20),
+              _themeOption(context, themeProvider, ThemeMode.light, Icons.light_mode, 'Clair'),
+              _themeOption(context, themeProvider, ThemeMode.dark, Icons.dark_mode, 'Sombre'),
+              _themeOption(context, themeProvider, ThemeMode.system, Icons.brightness_auto, 'Système'),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _themeOption(BuildContext context, ThemeProvider themeProvider, ThemeMode mode, IconData icon, String label) {
+    final isSelected = themeProvider.themeMode == mode;
+    return ListTile(
+      leading: Icon(icon, color: isSelected ? AppColors.primary : Theme.of(context).iconTheme.color),
+      title: Text(
+        label,
+        style: TextStyle(
+          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+          color: isSelected ? AppColors.primary : null,
+        ),
+      ),
+      trailing: isSelected ? const Icon(Icons.check_circle, color: AppColors.primary) : null,
+      onTap: () async {
+        await themeProvider.setThemeMode(mode);
+        if (context.mounted) Navigator.of(context).pop();
+      },
+    );
   }
 
   Widget _buildMenuItem(BuildContext context, _MenuItem item) {
@@ -779,7 +852,7 @@ class ProfileScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
@@ -794,6 +867,8 @@ class ProfileScreen extends StatelessWidget {
         ),
         title: Text(
           item.title,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
           style: const TextStyle(
             fontFamily: 'Gilroy',
             fontSize: 16,
@@ -1165,10 +1240,10 @@ class _MyPropertiesScreenState extends State<_MyPropertiesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Mes annonces'),
-        backgroundColor: AppColors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor ?? Theme.of(context).colorScheme.surface,
         elevation: 0,
         actions: [
           Consumer<AuthProvider>(

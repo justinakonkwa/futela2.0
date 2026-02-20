@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../utils/app_colors.dart';
@@ -10,6 +11,7 @@ class CustomTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final bool obscureText;
   final Widget? prefixIcon;
+  final IconData? prefixIconData;
   final Widget? suffixIcon;
   final String? Function(String?)? validator;
   final void Function(String)? onChanged;
@@ -30,6 +32,7 @@ class CustomTextField extends StatelessWidget {
     this.keyboardType,
     this.obscureText = false,
     this.prefixIcon,
+    this.prefixIconData,
     this.suffixIcon,
     this.validator,
     this.onChanged,
@@ -42,20 +45,29 @@ class CustomTextField extends StatelessWidget {
     this.enabled = true,
   });
 
+  static const double _radius = 14;
+  static const double _iconSize = 22;
+
   @override
   Widget build(BuildContext context) {
+    final iconColor = Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.8);
+    final effectivePrefix = prefixIcon ?? (prefixIconData != null
+        ? Icon(prefixIconData, size: _iconSize, color: iconColor)
+        : null);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (label != null) ...[
           Text(
             label!,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: AppColors.textPrimary,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              color: AppColors.textSecondary,
               fontWeight: FontWeight.w600,
+              letterSpacing: 0.2,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
         ],
         TextFormField(
           controller: controller,
@@ -71,55 +83,62 @@ class CustomTextField extends StatelessWidget {
           textCapitalization: textCapitalization,
           enabled: enabled,
           style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-            color: AppColors.textPrimary,
+            color: Theme.of(context).colorScheme.onSurface,
+            fontWeight: FontWeight.w500,
           ),
           decoration: InputDecoration(
             hintText: hint,
             errorText: errorText,
-            prefixIcon: prefixIcon != null
+            prefixIcon: effectivePrefix != null
                 ? Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: prefixIcon,
+                    padding: const EdgeInsets.only(left: 16, right: 12),
+                    child: effectivePrefix,
                   )
                 : null,
-            suffixIcon: suffixIcon,
-            prefixIconColor: AppColors.textTertiary,
-            suffixIconColor: AppColors.textTertiary,
+            prefixIconConstraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+            suffixIcon: suffixIcon != null
+                ? Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: suffixIcon,
+                  )
+                : null,
+            suffixIconConstraints: const BoxConstraints(minWidth: 44, minHeight: 44),
             filled: true,
-            fillColor: enabled ? AppColors.grey50 : AppColors.grey100,
+            fillColor: enabled
+                ? AppColors.grey50
+                : Theme.of(context).colorScheme.surfaceContainerHighest,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderRadius: BorderRadius.circular(_radius),
+              borderSide: BorderSide.none,
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
+              borderRadius: BorderRadius.circular(_radius),
+              borderSide: BorderSide(color: AppColors.grey200, width: 1),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(_radius),
               borderSide: const BorderSide(color: AppColors.primary, width: 2),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.error),
+              borderRadius: BorderRadius.circular(_radius),
+              borderSide: const BorderSide(color: AppColors.error, width: 1),
             ),
             focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(_radius),
               borderSide: const BorderSide(color: AppColors.error, width: 2),
             ),
             disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.grey200),
+              borderRadius: BorderRadius.circular(_radius),
+              borderSide: BorderSide(color: AppColors.grey200),
             ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 16,
-            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
             hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
               color: AppColors.textTertiary,
+              fontWeight: FontWeight.w400,
             ),
             errorStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: AppColors.error,
+              fontWeight: FontWeight.w500,
             ),
             counterStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: AppColors.textTertiary,

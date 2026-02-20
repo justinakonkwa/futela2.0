@@ -127,6 +127,34 @@ class VisitRequest {
   }
 }
 
+/// Payload pour la demande de visite (API actuelle).
+/// POST /api/visits avec: propertyId, scheduledAt (ISO 8601), paymentAmount, paymentCurrency, paymentPhone.
+class RequestVisitPayload {
+  final String propertyId;
+  final String scheduledAt;
+  final num paymentAmount;
+  final String paymentCurrency;
+  final String paymentPhone;
+
+  RequestVisitPayload({
+    required this.propertyId,
+    required this.scheduledAt,
+    required this.paymentAmount,
+    required this.paymentCurrency,
+    required this.paymentPhone,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'propertyId': propertyId,
+      'scheduledAt': scheduledAt,
+      'paymentAmount': paymentAmount,
+      'paymentCurrency': paymentCurrency,
+      'paymentPhone': paymentPhone,
+    };
+  }
+}
+
 class VisitResponse {
   final Map<String, dynamic> metaData;
   final List<Visit> visits;

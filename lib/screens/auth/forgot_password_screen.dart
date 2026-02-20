@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_colors.dart';
@@ -66,12 +67,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: const Icon(CupertinoIcons.back, color: AppColors.textPrimary),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -84,42 +85,40 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 20),
-                
-                // Logo et titre
                 Center(
                   child: Column(
                     children: [
-                      // Logo Futela avec animation subtile
                       Container(
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(24),
+                          borderRadius: BorderRadius.circular(28),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primary.withOpacity(0.2),
-                              blurRadius: 20,
-                              offset: const Offset(0, 8),
+                              color: AppColors.primary.withOpacity(0.15),
+                              blurRadius: 24,
+                              offset: const Offset(0, 10),
                             ),
                           ],
                         ),
                         child: const FutelaLogo(
-                          size: 100,
+                          size: 80,
                           backgroundColor: AppColors.white,
-                          borderRadius: BorderRadius.all(Radius.circular(24)),
+                          borderRadius: BorderRadius.all(Radius.circular(28)),
                         ),
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 20),
                       Text(
                         _emailSent ? 'Vérifiez votre email' : 'Mot de passe oublié',
                         style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                           color: AppColors.textPrimary,
+                          letterSpacing: -0.5,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        _emailSent 
-                          ? 'Nous avons envoyé un lien de réinitialisation à votre adresse email'
-                          : 'Entrez votre adresse email pour recevoir un lien de réinitialisation',
+                        _emailSent
+                            ? 'Nous avons envoyé un lien de réinitialisation à votre adresse email'
+                            : 'Entrez votre email pour recevoir le lien',
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           color: AppColors.textSecondary,
@@ -128,53 +127,48 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ],
                   ),
                 ),
-                
-                const SizedBox(height: 48),
-                
+                const SizedBox(height: 28),
                 if (!_emailSent) ...[
-                  // Champ email
                   CustomTextField(
                     controller: _emailController,
                     label: 'Adresse email',
-                    hint: 'Entrez votre adresse email',
+                    hint: 'votre@email.com',
                     keyboardType: TextInputType.emailAddress,
-                    prefixIcon: const Icon(Icons.email_outlined),
+                    prefixIconData: CupertinoIcons.mail_solid,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Veuillez entrer votre adresse email';
+                        return 'Veuillez entrer votre email';
                       }
                       if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                        return 'Veuillez entrer une adresse email valide';
+                        return 'Email invalide';
                       }
                       return null;
                     },
                   ),
-                  
-                  const SizedBox(height: 24),
-                  
-                  // Bouton d'envoi
+                  const SizedBox(height: 20),
                   CustomButton(
-                    text: 'Envoyer le lien de réinitialisation',
+                    text: 'Envoyer le lien',
                     onPressed: _isLoading ? null : _handleForgotPassword,
                     isLoading: _isLoading,
+                    height: 52,
+                    fullWidth: true,
                   ),
                 ] else ...[
-                  // Message de confirmation
                   Container(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(28),
                     decoration: BoxDecoration(
-                      color: AppColors.success.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(16),
+                      color: AppColors.success.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: AppColors.success.withOpacity(0.3),
+                        color: AppColors.success.withOpacity(0.25),
                         width: 1,
                       ),
                     ),
                     child: Column(
                       children: [
                         Icon(
-                          Icons.mark_email_read_outlined,
-                          size: 64,
+                          CupertinoIcons.checkmark_circle_fill,
+                          size: 56,
                           color: AppColors.success,
                         ),
                         const SizedBox(height: 16),
@@ -187,7 +181,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Vérifiez votre boîte de réception et suivez les instructions pour réinitialiser votre mot de passe.',
+                          'Vérifiez votre boîte de réception et suivez les instructions.',
                           textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                             color: AppColors.textSecondary,
@@ -196,47 +190,45 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       ],
                     ),
                   ),
-                  
-                  const SizedBox(height: 24),
-                  
-                  // Bouton pour renvoyer l'email
-                  OutlinedButton(
-                    onPressed: () {
-                      setState(() {
-                        _emailSent = false;
-                        _emailController.clear();
-                      });
-                    },
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      side: const BorderSide(color: AppColors.primary),
-                    ),
-                    child: Text(
-                      'Renvoyer l\'email',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w600,
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    height: 52,
+                    child: OutlinedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _emailSent = false;
+                          _emailController.clear();
+                        });
+                      },
+                      icon: const Icon(CupertinoIcons.arrow_clockwise, size: 20, color: AppColors.primary),
+                      label: const Text('Renvoyer l\'email'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.primary,
+                        side: const BorderSide(color: AppColors.primary),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
                       ),
                     ),
                   ),
                 ],
-                
-                const SizedBox(height: 24),
-                
-                // Lien vers la connexion
+                const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Flexible(
-                      child: Text(
-                        'Vous vous souvenez de votre mot de passe ? ',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
+                    Text(
+                      'Vous vous souvenez ? ',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.textSecondary,
                       ),
                     ),
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
                       child: Text(
                         'Se connecter',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -247,41 +239,42 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ),
                   ],
                 ),
-                
-                const SizedBox(height: 24),
-                
-                // Informations supplémentaires
+                const SizedBox(height: 16),
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: AppColors.border,
-                      width: 1,
-                    ),
+                    color: AppColors.grey50,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppColors.grey200),
                   ),
-                  child: Column(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(
-                        Icons.info_outline,
+                        CupertinoIcons.info_circle_fill,
                         color: AppColors.textSecondary,
-                        size: 24,
+                        size: 22,
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Conseil',
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Si vous ne recevez pas l\'email, vérifiez votre dossier spam ou contactez notre support.',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textSecondary,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Conseil',
+                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Si vous ne recevez pas l\'email, vérifiez les spams ou contactez le support.',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],

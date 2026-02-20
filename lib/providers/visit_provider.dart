@@ -37,39 +37,31 @@ class VisitProvider with ChangeNotifier {
     }
   }
 
+  /// Demande une visite (API: propertyId, scheduledAt ISO, paymentAmount, paymentCurrency, paymentPhone).
   Future<String> createVisit({
-    required String visitor,
-    required String property,
-    required DateTime startTime,
-    required DateTime endTime,
-    String? message,
-    String? contact,
+    required String propertyId,
+    required String scheduledAt,
+    required num paymentAmount,
+    required String paymentCurrency,
+    required String paymentPhone,
   }) async {
     _setLoading(true);
     _clearError();
 
     try {
-      final visitRequest = VisitRequest(
-        visitor: visitor,
-        property: property,
-        startTime: startTime,
-        endTime: endTime,
-        message: message,
-        contact: contact,
+      final payload = RequestVisitPayload(
+        propertyId: propertyId,
+        scheduledAt: scheduledAt,
+        paymentAmount: paymentAmount,
+        paymentCurrency: paymentCurrency,
+        paymentPhone: paymentPhone,
       );
-
-      // Appel direct à l'API
-      final visitId = await ApiService.createVisit(visitRequest);
-      
-      // Attendre un peu pour laisser l'API synchroniser
-      await Future.delayed(const Duration(seconds: 2));
-      
-      // Recharger la liste des visites après création
+      final visitId = await ApiService.createVisit(payload);
+      await Future.delayed(const Duration(milliseconds: 500));
       await loadMyVisits();
-      
       return visitId;
     } catch (e) {
-      _setError('Erreur lors de la création de la visite: $e');
+      _setError(e.toString().replaceFirst(RegExp(r'^Exception:\s*'), '').trim());
       rethrow;
     } finally {
       _setLoading(false);

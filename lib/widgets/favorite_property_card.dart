@@ -25,7 +25,7 @@ class FavoritePropertyCard extends StatelessWidget {
       child: Container
         (
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
@@ -55,20 +55,20 @@ class FavoritePropertyCard extends StatelessWidget {
                           child: const Center(child: CircularProgressIndicator()),
                         ),
                         errorWidget: (context, _, __) => Container(
-                          color: AppColors.grey100,
-                          child: const Icon(
+                          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                          child: Icon(
                             Icons.home_work,
                             size: 36,
-                            color: AppColors.textTertiary,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
                       )
                     : Container(
-                        color: AppColors.grey100,
-                        child: const Icon(
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        child: Icon(
                           Icons.home_work,
                           size: 36,
-                          color: AppColors.textTertiary,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
               ),
@@ -89,7 +89,7 @@ class FavoritePropertyCard extends StatelessWidget {
                           child: Text(
                             property.title,
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: AppColors.textPrimary,
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontWeight: FontWeight.w600,
                             ),
                             maxLines: 2,
@@ -113,17 +113,17 @@ class FavoritePropertyCard extends StatelessWidget {
                     // Adresse
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.location_on_outlined,
                           size: 14,
-                          color: AppColors.textTertiary,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
                             property.fullAddress,
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.textSecondary,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -131,9 +131,9 @@ class FavoritePropertyCard extends StatelessWidget {
                         ),
                       ],
                     ),
-
+                    
                     const SizedBox(height: 8),
-
+                    
                     // Prix + type
                     Row(
                       children: [
@@ -148,7 +148,7 @@ class FavoritePropertyCard extends StatelessWidget {
                           Text(
                             '/mois',
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.textSecondary,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ],

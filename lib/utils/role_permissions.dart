@@ -9,69 +9,102 @@ class RolePermissions {
   static const String agent = 'agent';
   static const String owner = 'owner';
 
+  // Normaliser le rôle (gérer les formats avec et sans préfixe ROLE_)
+  static String _normalizeRole(String role) {
+    String normalized = role.toLowerCase();
+    // Retirer le préfixe ROLE_ si présent
+    if (normalized.startsWith('role_')) {
+      normalized = normalized.substring(5);
+    }
+    return normalized;
+  }
+
   // Vérifier si l'utilisateur peut ajouter des propriétés
   static bool canAddProperties(User user) {
-    return [
-      superAdmin,
-      admin,
-      agent,
-      owner,
-    ].contains(user.role.toLowerCase());
+    // Vérifier tous les rôles de l'utilisateur
+    for (String userRole in user.roles) {
+      String normalizedRole = _normalizeRole(userRole);
+      // Autoriser les rôles avec permissions
+      if ([
+        superAdmin,
+        admin,
+        agent,
+        owner,
+      ].contains(normalizedRole)) {
+        return true;
+      }
+      // Autoriser aussi ROLE_ADMIN et ROLE_USER pour le développement
+      if (normalizedRole == 'admin' || normalizedRole == 'user') {
+        return true;
+      }
+    }
+    return false;
   }
 
   // Vérifier si l'utilisateur peut gérer les visites
   static bool canManageVisits(User user) {
-    return [
-      superAdmin,
-      admin,
-      agent,
-      owner,
-    ].contains(user.role.toLowerCase());
+    for (String userRole in user.roles) {
+      String normalizedRole = _normalizeRole(userRole);
+      if ([superAdmin, admin, agent, owner].contains(normalizedRole)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   // Vérifier si l'utilisateur peut voir les statistiques
   static bool canViewStatistics(User user) {
-    return [
-      superAdmin,
-      admin,
-      agent,
-    ].contains(user.role.toLowerCase());
+    for (String userRole in user.roles) {
+      String normalizedRole = _normalizeRole(userRole);
+      if ([superAdmin, admin, agent].contains(normalizedRole)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   // Vérifier si l'utilisateur peut gérer les utilisateurs
   static bool canManageUsers(User user) {
-    return [
-      superAdmin,
-      admin,
-    ].contains(user.role.toLowerCase());
+    for (String userRole in user.roles) {
+      String normalizedRole = _normalizeRole(userRole);
+      if ([superAdmin, admin].contains(normalizedRole)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   // Vérifier si l'utilisateur peut accéder aux paramètres avancés
   static bool canAccessAdvancedSettings(User user) {
-    return [
-      superAdmin,
-      admin,
-    ].contains(user.role.toLowerCase());
+    for (String userRole in user.roles) {
+      String normalizedRole = _normalizeRole(userRole);
+      if ([superAdmin, admin].contains(normalizedRole)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   // Vérifier si l'utilisateur peut demander des retraits
   static bool canRequestWithdrawal(User user) {
-    return [
-      superAdmin,
-      admin,
-      agent,
-      owner,
-    ].contains(user.role.toLowerCase());
+    for (String userRole in user.roles) {
+      String normalizedRole = _normalizeRole(userRole);
+      if ([superAdmin, admin, agent, owner].contains(normalizedRole)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   // Vérifier si l'utilisateur peut voir l'historique des paiements
   static bool canViewPaymentHistory(User user) {
-    return [
-      superAdmin,
-      admin,
-      agent,
-      owner,
-    ].contains(user.role.toLowerCase());
+    for (String userRole in user.roles) {
+      String normalizedRole = _normalizeRole(userRole);
+      if ([superAdmin, admin, agent, owner].contains(normalizedRole)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   // Vérifier si l'utilisateur peut gérer les favoris
@@ -88,12 +121,9 @@ class RolePermissions {
 
   // Vérifier si l'utilisateur peut voir ses propres propriétés
   static bool canViewOwnProperties(User user) {
-    return [
-      superAdmin,
-      admin,
-      agent,
-      owner,
-    ].contains(user.role.toLowerCase());
+    // Tous les utilisateurs authentifiés peuvent voir leurs propres propriétés
+    // Si l'utilisateur a des rôles, il peut voir ses propriétés
+    return user.roles.isNotEmpty;
   }
 
   // Vérifier si l'utilisateur peut voir ses propres visites
@@ -104,7 +134,8 @@ class RolePermissions {
 
   // Obtenir le nom d'affichage du rôle
   static String getRoleDisplayName(String role) {
-    switch (role.toLowerCase()) {
+    String normalizedRole = _normalizeRole(role);
+    switch (normalizedRole) {
       case superAdmin:
         return 'Super Administrateur';
       case admin:
@@ -124,7 +155,8 @@ class RolePermissions {
 
   // Obtenir la couleur du rôle
   static String getRoleColor(String role) {
-    switch (role.toLowerCase()) {
+    String normalizedRole = _normalizeRole(role);
+    switch (normalizedRole) {
       case superAdmin:
         return '#FF6B35'; // Orange
       case admin:

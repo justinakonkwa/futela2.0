@@ -247,4 +247,103 @@ class AppTheme {
       ),
     );
   }
+
+  static ThemeData get darkTheme {
+    const Color darkBg = Color(0xFF121212);
+    const Color darkSurface = Color(0xFF1E1E1E);
+    const Color darkCard = Color(0xFF2C2C2C);
+    const Color darkText = Color(0xFFE8E8E8);
+    const Color darkTextSecondary = Color(0xFFB0B0B0);
+    const Color darkBorder = Color(0xFF3D3D3D);
+
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: AppColors.primary,
+        brightness: Brightness.dark,
+        surface: darkSurface,
+      ),
+      scaffoldBackgroundColor: darkBg,
+      textTheme: TextTheme(
+        displayLarge: const TextStyle(fontFamily: 'Gilroy', fontSize: 32, fontWeight: FontWeight.w700, color: darkText),
+        displayMedium: const TextStyle(fontFamily: 'Gilroy', fontSize: 28, fontWeight: FontWeight.w600, color: darkText),
+        displaySmall: const TextStyle(fontFamily: 'Gilroy', fontSize: 24, fontWeight: FontWeight.w600, color: darkText),
+        headlineLarge: const TextStyle(fontFamily: 'Gilroy', fontSize: 22, fontWeight: FontWeight.w600, color: darkText),
+        headlineMedium: const TextStyle(fontFamily: 'Gilroy', fontSize: 20, fontWeight: FontWeight.w600, color: darkText),
+        headlineSmall: const TextStyle(fontFamily: 'Gilroy', fontSize: 18, fontWeight: FontWeight.w600, color: darkText),
+        titleLarge: const TextStyle(fontFamily: 'Gilroy', fontSize: 16, fontWeight: FontWeight.w600, color: darkText),
+        titleMedium: const TextStyle(fontFamily: 'Gilroy', fontSize: 14, fontWeight: FontWeight.w500, color: darkText),
+        titleSmall: const TextStyle(fontFamily: 'Gilroy', fontSize: 12, fontWeight: FontWeight.w500, color: darkText),
+        bodyLarge: const TextStyle(fontFamily: 'Gilroy', fontSize: 16, fontWeight: FontWeight.w400, color: darkText),
+        bodyMedium: const TextStyle(fontFamily: 'Gilroy', fontSize: 14, fontWeight: FontWeight.w400, color: darkText),
+        bodySmall: const TextStyle(fontFamily: 'Gilroy', fontSize: 12, fontWeight: FontWeight.w400, color: darkTextSecondary),
+        labelLarge: const TextStyle(fontFamily: 'Gilroy', fontSize: 14, fontWeight: FontWeight.w500, color: darkText),
+        labelMedium: const TextStyle(fontFamily: 'Gilroy', fontSize: 12, fontWeight: FontWeight.w500, color: darkTextSecondary),
+        labelSmall: const TextStyle(fontFamily: 'Gilroy', fontSize: 10, fontWeight: FontWeight.w500, color: darkTextSecondary),
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: darkSurface,
+        foregroundColor: darkText,
+        elevation: 0,
+        centerTitle: true,
+        titleTextStyle: const TextStyle(fontFamily: 'Gilroy', fontSize: 18, fontWeight: FontWeight.w600, color: darkText),
+        iconTheme: const IconThemeData(color: darkText, size: 24),
+      ),
+      cardTheme: CardThemeData(
+        color: darkCard,
+        elevation: 2,
+        shadowColor: Colors.black45,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          textStyle: const TextStyle(fontFamily: 'Gilroy', fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: darkText,
+          side: const BorderSide(color: darkBorder),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          textStyle: const TextStyle(fontFamily: 'Gilroy', fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          textStyle: const TextStyle(fontFamily: 'Gilroy', fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: darkCard,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: darkBorder)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: darkBorder)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.primary, width: 2)),
+        errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: AppColors.error)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        hintStyle: const TextStyle(fontFamily: 'Gilroy', color: darkTextSecondary, fontSize: 14),
+        labelStyle: const TextStyle(fontFamily: 'Gilroy', color: darkTextSecondary, fontSize: 14),
+      ),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: darkSurface,
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: darkTextSecondary,
+        type: BottomNavigationBarType.fixed,
+        elevation: 8,
+      ),
+      dividerTheme: const DividerThemeData(color: darkBorder, thickness: 1, space: 1),
+      iconTheme: const IconThemeData(color: darkText, size: 24),
+      primaryIconTheme: const IconThemeData(color: AppColors.primary, size: 24),
+    );
+  }
 }
+

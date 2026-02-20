@@ -41,10 +41,10 @@ class _AddressDisplayState extends State<AddressDisplay> {
     // Ensuite, essayer d'enrichir avec l'AddressService en arrière-plan
     try {
       final fullAddress = await AddressService.buildFullAddress(
-        address: widget.property.address,
-        townName: widget.property.town.name,
-        cityId: widget.property.town.city.id,
-        provinceId: widget.property.town.city.province.id,
+        address: widget.property.address?.formattedAddress ?? '',
+        townName: widget.property.town?.name ?? '',
+        cityId: widget.property.town?.city?.id ?? '',
+        provinceId: widget.property.town?.city?.province?.id ?? '',
       );
 
       // Si l'adresse enrichie est différente et plus complète, la mettre à jour

@@ -1,6 +1,8 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../providers/favorite_provider.dart';
 import '../utils/app_colors.dart';
 import 'home/home_screen.dart';
 import 'search/search_screen.dart';
@@ -32,23 +34,23 @@ class _MainNavigationState extends State<MainNavigation> {
 
   final List<NavigationItem> _navigationItems = [
     NavigationItem(
-      icon: Icons.home_outlined,
-      activeIcon: Icons.home,
+      icon: CupertinoIcons.house,
+      activeIcon: CupertinoIcons.house_fill,
       label: 'Accueil',
     ),
     NavigationItem(
-      icon: Icons.search_outlined,
-      activeIcon: Icons.search,
+      icon: CupertinoIcons.search,
+      activeIcon: CupertinoIcons.search,
       label: 'Rechercher',
     ),
     NavigationItem(
-      icon: Icons.favorite_outline,
-      activeIcon: Icons.favorite,
+      icon: CupertinoIcons.heart,
+      activeIcon: CupertinoIcons.heart_fill,
       label: 'Favoris',
     ),
     NavigationItem(
-      icon: Icons.person_outline,
-      activeIcon: Icons.person,
+      icon: CupertinoIcons.person,
+      activeIcon: CupertinoIcons.person_fill,
       label: 'Profil',
     ),
   ];
@@ -61,7 +63,10 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
-    print('🔍 MainNavigation build: currentIndex=$_currentIndex');
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surfaceColor = Theme.of(context).colorScheme.surface;
+    final borderColor = isDark ? AppColors.grey700 : AppColors.grey200;
+
     return Consumer<AuthProvider>(
       builder: (context, authProvider, child) {
         if (!authProvider.isAuthenticated) {
@@ -85,18 +90,15 @@ class _MainNavigationState extends State<MainNavigation> {
           ),
           bottomNavigationBar: Container(
             decoration: BoxDecoration(
-              color: AppColors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.shadow,
-                  blurRadius: 10,
-                  offset: const Offset(0, -2),
-                ),
-              ],
+              color: surfaceColor,
+              border: Border(
+                top: BorderSide(color: borderColor, width: 0.5),
+              ),
             ),
             child: SafeArea(
+              top: false,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: _navigationItems.asMap().entries.map((entry) {
@@ -104,47 +106,50 @@ class _MainNavigationState extends State<MainNavigation> {
                     final item = entry.value;
                     final isSelected = _currentIndex == index;
 
-                    return GestureDetector(
-                      onTap: () {
-                        print('🔍 Navigation tapped: index=$index, label=${item.label}');
-                        setState(() {
-                          _currentIndex = index;
-                        });
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isSelected 
-                              ? AppColors.primary.withOpacity(0.1)
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              isSelected ? item.activeIcon : item.icon,
-                              color: isSelected 
-                                  ? AppColors.primary 
-                                  : AppColors.textTertiary,
-                              size: 24,
+                    return Expanded(
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            setState(() {
+                              _currentIndex = index;
+                            });
+                            if (index == 2) {
+                              context.read<FavoriteProvider>().loadFavorites();
+                            }
+                          },
+                          borderRadius: BorderRadius.circular(14),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  isSelected ? item.activeIcon : item.icon,
+                                  size: 26,
+                                  color: isSelected
+                                      ? AppColors.primary
+                                      : AppColors.textTertiary,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  item.label,
+                                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                    color: isSelected
+                                        ? AppColors.primary
+                                        : AppColors.textTertiary,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w600
+                                        : FontWeight.w500,
+                                    fontSize: 11,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              item.label,
-                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                color: isSelected 
-                                    ? AppColors.primary 
-                                    : AppColors.textTertiary,
-                                fontWeight: isSelected 
-                                    ? FontWeight.w600 
-                                    : FontWeight.w400,
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
                       ),
                     );

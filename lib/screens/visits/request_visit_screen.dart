@@ -22,26 +22,36 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
   final _formKey = GlobalKey<FormState>();
   final _messageController = TextEditingController();
   final _contactController = TextEditingController();
-  
+  final _paymentAmountController = TextEditingController(text: '5');
+
   DateTime? _startDate;
   DateTime? _endDate;
-  TimeOfDay _startTime = const TimeOfDay(hour: 10, minute: 0);
-  TimeOfDay _endTime = const TimeOfDay(hour: 11, minute: 0);
+  TimeOfDay _startTime = const TimeOfDay(hour: 14, minute: 0);
+  TimeOfDay _endTime = const TimeOfDay(hour: 15, minute: 0);
+  String _paymentCurrency = 'USD';
 
   @override
   void dispose() {
     _messageController.dispose();
     _contactController.dispose();
+    _paymentAmountController.dispose();
     super.dispose();
+  }
+
+  /// Construit la date/heure au format ISO 8601 pour l'API (ex. 2026-02-20T14:00:00+00:00).
+  String _toScheduledAtIso(DateTime date, TimeOfDay time) {
+    final dt = DateTime.utc(date.year, date.month, date.day, time.hour, time.minute);
+    return dt.toIso8601String().replaceAll(RegExp(r'\.\d+Z'), '+00:00');
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Demander une visite'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor ?? Theme.of(context).colorScheme.surface,
+        foregroundColor: Theme.of(context).appBarTheme.foregroundColor,
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -53,6 +63,7 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
             children: [
               Card(
                 elevation: 2,
+                color: Theme.of(context).cardColor,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -65,7 +76,7 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
                         'Informations de la visite',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -91,21 +102,63 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
                         validator: null,
                       ),
                       const SizedBox(height: 16),
-                      
-                      // Contact
+                      // Paiement de la visite
+                      Text(
+                        'Paiement',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: CustomTextField(
+                              controller: _paymentAmountController,
+                              label: 'Montant',
+                              hint: '5',
+                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) return 'Montant requis';
+                                if (double.tryParse(value.replaceAll(',', '.')) == null) return 'Montant invalide';
+                                return null;
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              value: _paymentCurrency,
+                              decoration: const InputDecoration(
+                                labelText: 'Devise',
+                                border: OutlineInputBorder(),
+                              ),
+                              items: const [
+                                DropdownMenuItem(value: 'USD', child: Text('USD')),
+                                DropdownMenuItem(value: 'CDF', child: Text('CDF')),
+                                DropdownMenuItem(value: 'EUR', child: Text('EUR')),
+                              ],
+                              onChanged: (v) => setState(() => _paymentCurrency = v ?? 'USD'),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      // Téléphone pour le paiement
                       CustomTextField(
                         controller: _contactController,
-                        label: 'Contact',
-                        hint: 'Votre numéro de téléphone ou email',
+                        label: 'Téléphone (paiement)',
+                        hint: '+243975024769',
                         keyboardType: TextInputType.phone,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Veuillez entrer votre contact';
+                            return 'Veuillez entrer votre numéro';
                           }
-                          // Validation basique du format de contact
                           final cleanValue = value.trim();
                           if (cleanValue.length < 8) {
-                            return 'Le contact doit contenir au moins 8 caractères';
+                            return 'Numéro invalide (min. 8 caractères)';
                           }
                           return null;
                         },
@@ -143,6 +196,7 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
           'Date de début de la visite',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w500,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 8),
@@ -153,9 +207,9 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
             decoration: BoxDecoration(
               border: Border.all(color: AppColors.primary),
               borderRadius: BorderRadius.circular(12),
-              color: _startDate != null 
+              color: _startDate != null
                   ? AppColors.primary.withOpacity(0.1)
-                  : Colors.transparent,
+                  : Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
             ),
             child: Row(
               children: [
@@ -167,16 +221,16 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    _startDate != null 
+                    _startDate != null
                         ? _formatDate(_startDate!)
                         : 'Sélectionner la date de début',
                     style: TextStyle(
                       fontFamily: 'Gilroy',
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: _startDate != null 
-                          ? AppColors.primary 
-                          : AppColors.textSecondary,
+                      color: _startDate != null
+                          ? AppColors.primary
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ),
@@ -201,6 +255,7 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
           'Date de fin de la visite',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w500,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 8),
@@ -211,9 +266,9 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
             decoration: BoxDecoration(
               border: Border.all(color: AppColors.primary),
               borderRadius: BorderRadius.circular(12),
-              color: _endDate != null 
+              color: _endDate != null
                   ? AppColors.primary.withOpacity(0.1)
-                  : Colors.transparent,
+                  : Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
             ),
             child: Row(
               children: [
@@ -225,16 +280,16 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    _endDate != null 
+                    _endDate != null
                         ? _formatDate(_endDate!)
                         : 'Sélectionner la date de fin',
                     style: TextStyle(
                       fontFamily: 'Gilroy',
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: _endDate != null 
-                          ? AppColors.primary 
-                          : AppColors.textSecondary,
+                      color: _endDate != null
+                          ? AppColors.primary
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ),
@@ -259,6 +314,7 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
           'Heures de la visite',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w500,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 8),
@@ -273,7 +329,7 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
                     style: TextStyle(
                       fontFamily: 'Gilroy',
                       fontSize: 12,
-                      color: AppColors.textSecondary,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -284,6 +340,7 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
                       decoration: BoxDecoration(
                         border: Border.all(color: AppColors.primary),
                         borderRadius: BorderRadius.circular(8),
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
                       ),
                       child: Row(
                         children: [
@@ -319,7 +376,7 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
                     style: TextStyle(
                       fontFamily: 'Gilroy',
                       fontSize: 12,
-                      color: AppColors.textSecondary,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -330,6 +387,7 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
                       decoration: BoxDecoration(
                         border: Border.all(color: AppColors.primary),
                         borderRadius: BorderRadius.circular(8),
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
                       ),
                       child: Row(
                         children: [
@@ -472,11 +530,6 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
     return '${date.day}/${date.month}/${date.year}';
   }
 
-  String _cleanMessage(String message) {
-    // Nettoyer le message en gardant seulement les caractères alphanumériques, espaces et ponctuation de base
-    return message.replaceAll(RegExp(r'[^\w\s.,!?-]'), '').trim();
-  }
-
   Future<void> _submitVisitRequest() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -518,37 +571,27 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
     }
 
     try {
-      // Créer les DateTime avec les heures sélectionnées
-      final startDateTime = DateTime(
-        _startDate!.year,
-        _startDate!.month,
-        _startDate!.day,
-        _startTime.hour,
-        _startTime.minute,
-      );
+      final scheduledAt = _toScheduledAtIso(_startDate!, _startTime);
+      final paymentAmount = double.tryParse(
+        _paymentAmountController.text.trim().replaceAll(',', '.'),
+      ) ?? 5.0;
+      final paymentPhone = _contactController.text.trim();
+      if (paymentPhone.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Veuillez entrer votre numéro de téléphone pour le paiement'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
 
-      final endDateTime = DateTime(
-        _endDate!.year,
-        _endDate!.month,
-        _endDate!.day,
-        _endTime.hour,
-        _endTime.minute,
-      );
-
-      // Nettoyer et valider les données avant envoi
-      final message = _messageController.text.trim();
-      final contact = _contactController.text.trim();
-      
-      // Nettoyer le message - enlever les caractères spéciaux qui pourraient poser problème
-      final cleanMessage = message.isEmpty ? null : _cleanMessage(message);
-      
       await visitProvider.createVisit(
-        visitor: authProvider.user!.id,
-        property: widget.propertyId,
-        startTime: startDateTime,
-        endTime: endDateTime,
-        message: cleanMessage,
-        contact: contact,
+        propertyId: widget.propertyId,
+        scheduledAt: scheduledAt,
+        paymentAmount: paymentAmount,
+        paymentCurrency: _paymentCurrency,
+        paymentPhone: paymentPhone,
       );
 
       if (mounted) {

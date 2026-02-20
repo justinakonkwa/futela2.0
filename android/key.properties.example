@@ -1,0 +1,15 @@
+# Exemple de fichier key.properties
+# Copiez ce fichier vers key.properties et remplissez les valeurs réelles
+# NE COMMITEZ JAMAIS key.properties dans le contrôle de version !
+
+storePassword=<votre-mot-de-passe-keystore>
+keyPassword=<votre-mot-de-passe-cle>
+keyAlias=upload
+storeFile=<chemin-vers-votre-keystore.jks>
+
+# Exemple pour macOS/Linux:
+# storeFile=/Users/votre-nom/upload-keystore.jks
+
+# Exemple pour Windows:
+# storeFile=C:\\Users\\votre-nom\\upload-keystore.jks
+

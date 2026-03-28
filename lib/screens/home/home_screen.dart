@@ -46,7 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final locationProvider = Provider.of<LocationProvider>(context, listen: false);
       final favoriteProvider = Provider.of<FavoriteProvider>(context, listen: false);
 
-      propertyProvider.loadProperties(refresh: true);
+      propertyProvider.loadHomeProperties(refresh: true);
       propertyProvider.loadCategories();
       propertyProvider.loadProvinces();
       locationProvider.getCurrentLocation();
@@ -58,15 +58,16 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_scrollController.position.pixels >= 
         _scrollController.position.maxScrollExtent - 200) {
       final propertyProvider = Provider.of<PropertyProvider>(context, listen: false);
-      if (!propertyProvider.isLoading && propertyProvider.nextCursor != null) {
-        propertyProvider.loadProperties(category: _selectedCategory);
+      if (!propertyProvider.isLoading && propertyProvider.hasMoreHomeFeed) {
+        propertyProvider.loadHomeProperties(categoryId: _selectedCategory);
       }
     }
   }
 
   void _refreshData() {
     final propertyProvider = Provider.of<PropertyProvider>(context, listen: false);
-    propertyProvider.loadProperties(category: _selectedCategory, refresh: true);
+    propertyProvider.loadHomeProperties(
+        categoryId: _selectedCategory, refresh: true);
   }
 
   @override
@@ -189,7 +190,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       print('✅ Updated _selectedCategory to: $_selectedCategory');
                       final propertyProvider = Provider.of<PropertyProvider>(context, listen: false);
                       print('🔄 Loading properties with category filter: $_selectedCategory');
-                      propertyProvider.loadProperties(category: _selectedCategory, refresh: true);
+                      propertyProvider.loadHomeProperties(
+                        categoryId: _selectedCategory,
+                        refresh: true,
+                      );
                     },
                   ),
                 ),

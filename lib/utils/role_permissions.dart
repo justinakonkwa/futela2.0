@@ -33,10 +33,6 @@ class RolePermissions {
       ].contains(normalizedRole)) {
         return true;
       }
-      // Autoriser aussi ROLE_ADMIN et ROLE_USER pour le développement
-      if (normalizedRole == 'admin' || normalizedRole == 'user') {
-        return true;
-      }
     }
     return false;
   }
@@ -97,14 +93,9 @@ class RolePermissions {
   }
 
   // Vérifier si l'utilisateur peut voir l'historique des paiements
+  /// Même périmètre que les visites : données `GET /me/visits` (utilisateur connecté).
   static bool canViewPaymentHistory(User user) {
-    for (String userRole in user.roles) {
-      String normalizedRole = _normalizeRole(userRole);
-      if ([superAdmin, admin, agent, owner].contains(normalizedRole)) {
-        return true;
-      }
-    }
-    return false;
+    return canViewOwnVisits(user);
   }
 
   // Vérifier si l'utilisateur peut gérer les favoris

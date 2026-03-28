@@ -53,7 +53,7 @@ L'empreinte SHA1 doit être : `43:FE:10:30:1D:E2:AF:82:E1:DD:31:E9:1D:23:CD:EB:4
 - ❌ Perdre l'historique de l'application
 
 **Si vous choisissez cette option :**
-1. Créez une nouvelle application dans Google Play Console avec un **nouveau package name** (ex: `com.naara.futela2`)
+1. Créez une nouvelle application dans Google Play Console avec un **nouveau package name** (ex: `com.futelaapp.mobile2`)
 2. Mettez à jour le `applicationId` dans `android/app/build.gradle.kts`
 3. Utilisez le nouveau keystore (`futela-upload-keystore.jks`)
 4. Publiez la nouvelle application

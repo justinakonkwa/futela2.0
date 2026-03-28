@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Doit rester identique à kGoogleWebClientId (lib/config/google_oauth_config.dart) -->
+    <string name="default_web_client_id">474613582555-etdekl4un7r2r11u08h1jv2jelg3br0q.apps.googleusercontent.com</string>
+</resources>

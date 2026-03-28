@@ -9,6 +9,10 @@ class User {
   final bool isPhoneVerified;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final DateTime? lastLoginAt;
+  final bool isAvailable;
+  final String? companyId;
+  final String? companyName;
 
   User({
     required this.id,
@@ -21,20 +25,49 @@ class User {
     required this.isPhoneVerified,
     required this.createdAt,
     required this.updatedAt,
+    this.lastLoginAt,
+    this.isAvailable = false,
+    this.companyId,
+    this.companyName,
   });
 
+  /// Parses ISO8601 date string, tolerating spaces in time part (e.g. "08: 00: 00").
+  static DateTime _parseDate(dynamic value) {
+    if (value == null) return DateTime.now();
+    final s = value is String ? value.replaceAll(' ', '') : value.toString();
+    return DateTime.parse(s);
+  }
+
+  static DateTime? _parseDateOptional(dynamic value) {
+    if (value == null) return null;
+    try {
+      final s = value is String ? value.replaceAll(' ', '') : value.toString();
+      return DateTime.parse(s);
+    } catch (_) {
+      return null;
+    }
+  }
+
   factory User.fromJson(Map<String, dynamic> json) {
+    final phoneRaw = json['phone'] ?? json['phoneNumber'];
+    final phone = phoneRaw != null ? phoneRaw.toString().trim() : null;
+    final phoneStr = (phone != null && phone.isNotEmpty) ? phone : null;
+    final isVerified = json['isVerified'] == true;
     return User(
-      id: json['id'],
-      email: json['email'],
-      phoneNumber: json['phoneNumber'],
-      firstName: json['firstName'],
-      lastName: json['lastName'],
+      id: json['id'] as String? ?? '',
+      email: json['email'] as String? ?? '',
+      phoneNumber: phoneStr,
+      firstName: json['firstName'] as String? ?? '',
+      lastName: json['lastName'] as String? ?? '',
       roles: List<String>.from(json['roles'] ?? []),
-      isEmailVerified: json['isEmailVerified'] ?? false,
-      isPhoneVerified: json['isPhoneVerified'] ?? false,
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
+      isEmailVerified: json['isEmailVerified'] == true || (json['isEmailVerified'] == null && isVerified),
+      isPhoneVerified: json['isPhoneVerified'] == true || (json['isPhoneVerified'] == null && isVerified),
+      createdAt: _parseDate(json['createdAt']),
+      updatedAt: _parseDate(json['updatedAt']),
+      lastLoginAt: _parseDateOptional(json['lastLoginAt']),
+      isAvailable: json['isAvailable'] == true,
+      companyId: json['companyId'] as String?,
+      companyName: json['companyName'] as String?,
     );
   }
 
@@ -55,7 +88,8 @@ class User {
 
   // Compatibility getters
   String get fullName {
-    return '$firstName $lastName'.trim();
+    final fromNames = '$firstName $lastName'.trim();
+    return fromNames.isNotEmpty ? fromNames : 'Utilisateur';
   }
 
   String get phone => phoneNumber ?? '';

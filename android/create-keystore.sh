@@ -78,7 +78,7 @@ echo "📝 Création du keystore..."
     -alias upload \
     -storepass "$STORE_PASSWORD" \
     -keypass "$KEY_PASSWORD" \
-    -dname "CN=Futela, OU=Development, O=Naara, L=City, ST=State, C=CD"
+    -dname "CN=Futela, OU=Development, O=FutelaApp, L=City, ST=State, C=CD"
 
 if [ $? -eq 0 ]; then
     echo ""

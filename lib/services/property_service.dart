@@ -4,6 +4,35 @@ import '../models/property/category.dart';
 import '../models/property/property_photo.dart';
 import 'api_client.dart';
 
+/// Extrait la liste de catégories d’une enveloppe JSON (member, Hydra, etc.).
+List<dynamic> _categoriesListFromEnvelope(Map<String, dynamic> map) {
+  for (final key in ['member', 'hydra:member', 'items', 'data']) {
+    final v = map[key];
+    if (v is List) {
+      print('📋 Categories found in "$key": ${v.length}');
+      return List<dynamic>.from(v);
+    }
+  }
+  return [];
+}
+
+/// Résultat paginé pour GET /api/properties (format `member` + totalPages ou liste brute).
+class PagedPropertiesResult {
+  final List<Property> items;
+  final int page;
+  final int totalPages;
+  final int totalItems;
+
+  PagedPropertiesResult({
+    required this.items,
+    required this.page,
+    required this.totalPages,
+    required this.totalItems,
+  });
+
+  bool get hasNextPage => page < totalPages;
+}
+
 class PropertyService {
   final Dio _dio;
 
@@ -24,15 +53,19 @@ class PropertyService {
     if (response.statusCode == 200) {
       List<dynamic> categoriesList;
       
-      // Gérer les deux formats possibles :
+      // Formats possibles (API v1 Hydra / API v2 paginée) :
       // 1. Liste directe: [...]
-      // 2. Objet Hydra: { "hydra:member": [...] }
+      // 2. { "member": [...] }  (souvent après migration)
+      // 3. { "hydra:member": [...] }
       if (response.data is List) {
         print('📋 Response is a direct List');
         categoriesList = response.data as List<dynamic>;
       } else if (response.data is Map) {
-        print('📋 Response is a Map with keys: ${(response.data as Map).keys.toList()}');
-        categoriesList = (response.data as Map<String, dynamic>)['hydra:member'] ?? [];
+        final map = Map<String, dynamic>.from(
+          response.data as Map,
+        );
+        print('📋 Response is a Map with keys: ${map.keys.toList()}');
+        categoriesList = _categoriesListFromEnvelope(map);
       } else {
         print('❌ Unexpected response type: ${response.data.runtimeType}');
         throw Exception('Format de réponse inattendu pour les catégories');
@@ -45,10 +78,10 @@ class PropertyService {
       
       final categories = categoriesList.map((json) {
         try {
-          if (json is! Map<String, dynamic>) {
+          if (json is! Map) {
             throw Exception('Category JSON is not a Map: ${json.runtimeType}');
           }
-          return Category.fromJson(json);
+          return Category.fromJson(Map<String, dynamic>.from(json));
         } catch (e, stackTrace) {
           print('❌ Error parsing category: $e');
           print('Category JSON: $json');
@@ -69,7 +102,7 @@ class PropertyService {
   // --- Properties ---
 
   /// Recherche de propriétés avec filtres (GET /api/properties/search)
-  /// Doc API : type, cityId, townId, minPrice, maxPrice, bedrooms, available, query, limit, offset
+  /// Doc API : type, cityId, townId, minPrice, maxPrice, bedrooms, available, query, limit, offset, hasParking, hasPool, furnished
   Future<List<Property>> searchProperties({
     int limit = 20,
     int offset = 0,
@@ -82,6 +115,9 @@ class PropertyService {
     int? bedrooms,
     bool? available,
     String? query,
+    bool? hasParking,
+    bool? hasPool,
+    bool? furnished,
   }) async {
     final Map<String, dynamic> params = {
       'limit': limit,
@@ -96,6 +132,9 @@ class PropertyService {
     if (bedrooms != null) params['bedrooms'] = bedrooms;
     if (available != null) params['available'] = available;
     if (query != null && query.isNotEmpty) params['query'] = query;
+    if (hasParking == true) params['hasParking'] = true;
+    if (hasPool == true) params['hasPool'] = true;
+    if (furnished == true) params['furnished'] = true;
 
     print('🏠 GET PROPERTIES SEARCH (PropertyService)');
     print('URL: /api/properties/search');
@@ -161,8 +200,129 @@ class PropertyService {
       final statusCode = e.response?.statusCode;
       print('❌ DioException searching properties: $e');
       print('Status: $statusCode, Response: ${e.response?.data}');
+      if (e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout ||
+          e.type == DioExceptionType.connectionTimeout) {
+        throw Exception('La requête a pris trop de temps. Réessayez.');
+      }
       throw Exception(_searchErrorMessage(statusCode));
     }
+  }
+
+  /// Liste toutes les propriétés (page d’accueil) — GET /api/properties
+  /// Pagination v2 : page, itemsPerPage ; réponse possible : `member`, `properties`, liste, Hydra.
+  Future<PagedPropertiesResult> listProperties({
+    int page = 1,
+    int itemsPerPage = 30,
+    String? categoryId,
+  }) async {
+    final Map<String, dynamic> params = {
+      'page': page,
+      'itemsPerPage': itemsPerPage,
+    };
+    if (categoryId != null && categoryId.isNotEmpty) {
+      params['categoryId'] = categoryId;
+    }
+
+    print('🏠 GET PROPERTIES LIST (PropertyService)');
+    print('URL: /api/properties');
+    print('Query Parameters: $params');
+
+    try {
+      final response =
+          await _dio.get('/api/properties', queryParameters: params);
+
+      print('🏠 GET PROPERTIES LIST RESPONSE');
+      print('Status Code: ${response.statusCode}');
+      print('Response Data Type: ${response.data.runtimeType}');
+
+      if (response.statusCode != 200) {
+        print('❌ Failed list properties: ${response.statusCode}');
+        throw Exception(_searchErrorMessage(response.statusCode));
+      }
+
+      final result = _parsePagedPropertiesResponse(
+        response.data,
+        requestedPage: page,
+        itemsPerPage: itemsPerPage,
+      );
+
+      print('Properties Count: ${result.items.length}');
+      print(
+          'Pagination: page=${result.page}, totalPages=${result.totalPages}, totalItems=${result.totalItems}');
+      if (result.items.isNotEmpty) {
+        print('First Property Sample: ${result.items.first.id}');
+      }
+      print('✅ Successfully parsed ${result.items.length} properties (list)');
+      return result;
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      print('❌ DioException list properties: $e');
+      if (e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout ||
+          e.type == DioExceptionType.connectionTimeout) {
+        throw Exception('La requête a pris trop de temps. Réessayez.');
+      }
+      throw Exception(_searchErrorMessage(statusCode));
+    }
+  }
+
+  PagedPropertiesResult _parsePagedPropertiesResponse(
+    dynamic data, {
+    required int requestedPage,
+    required int itemsPerPage,
+  }) {
+    List<dynamic> rawList = [];
+    int totalItems = 0;
+    int totalPages = 1;
+    int currentPage = requestedPage;
+
+    if (data is List) {
+      rawList = data;
+      totalItems = rawList.length;
+      currentPage = requestedPage;
+      totalPages = rawList.length < itemsPerPage ? requestedPage : requestedPage + 1;
+    } else if (data is Map<String, dynamic>) {
+      final m = data;
+      if (m['member'] is List) {
+        rawList = m['member'] as List<dynamic>;
+      } else if (m['properties'] is List) {
+        rawList = m['properties'] as List<dynamic>;
+      } else if (m['hydra:member'] is List) {
+        rawList = m['hydra:member'] as List<dynamic>;
+      }
+
+      totalItems = (m['totalItems'] as num?)?.toInt() ??
+          (m['hydra:totalItems'] as num?)?.toInt() ??
+          rawList.length;
+      totalPages = (m['totalPages'] as num?)?.toInt() ?? 1;
+      currentPage = (m['page'] as num?)?.toInt() ?? requestedPage;
+
+      if (totalPages <= 1 &&
+          totalItems > rawList.length &&
+          rawList.length == itemsPerPage) {
+        totalPages = (totalItems / itemsPerPage).ceil();
+      }
+      if (totalPages <= 1 && rawList.length == itemsPerPage) {
+        totalPages = currentPage + 1;
+      }
+    } else {
+      throw Exception('Format de réponse inattendu pour /api/properties');
+    }
+
+    final items = rawList.map((json) {
+      if (json is! Map<String, dynamic>) {
+        throw Exception('Property JSON is not a Map: ${json.runtimeType}');
+      }
+      return Property.fromJson(json);
+    }).toList();
+
+    return PagedPropertiesResult(
+      items: items,
+      page: currentPage,
+      totalPages: totalPages < 1 ? 1 : totalPages,
+      totalItems: totalItems,
+    );
   }
 
   /// Message utilisateur selon le code HTTP (recherche propriétés).

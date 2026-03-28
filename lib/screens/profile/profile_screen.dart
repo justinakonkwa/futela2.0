@@ -14,12 +14,15 @@ import '../../providers/visit_provider.dart';
 import '../../widgets/property_card.dart';
 import '../../widgets/property_card_shimmer.dart';
 import '../visits/my_visits_screen.dart';
-import '../fees/fees_screen.dart';
+import '../visits/payment_history_screen.dart';
+// import '../fees/fees_screen.dart';
 import '../favorites/favorites_screen.dart';
 import '../property/property_detail_screen.dart';
 import '../support/help_center_screen.dart';
 import '../support/contact_us_screen.dart';
 import '../support/about_screen.dart';
+// import '../messaging/conversations_list_screen.dart';
+// import '../../providers/messaging_provider.dart';
 import '../../widgets/futela_logo.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -56,343 +59,168 @@ class ProfileScreen extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                // Profil header
+                // Profil header — carte compacte
                 Container(
-                  padding: const EdgeInsets.all(28),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        AppColors.primary.withOpacity(0.08),
-                        AppColors.secondary.withOpacity(0.12),
-                        AppColors.primary.withOpacity(0.05),
-                      ],
-                      stops: const [0.0, 0.5, 1.0],
-                    ),
-                    borderRadius: BorderRadius.circular(24),
+                    color: AppColors.primary.withOpacity(0.06),
+                    borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: AppColors.primary.withOpacity(0.15),
-                      width: 1.5,
+                      color: AppColors.primary.withOpacity(0.12),
+                      width: 1,
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withOpacity(0.08),
-                        blurRadius: 25,
-                        offset: const Offset(0, 8),
-                        spreadRadius: 0,
-                      ),
-                      BoxShadow(
-                        color: AppColors.shadow.withOpacity(0.05),
-                        blurRadius: 15,
-                        offset: const Offset(0, 2),
-                        spreadRadius: 0,
-                      ),
-                    ],
                   ),
                   child: Column(
                     children: [
-                      // Photo de profil avec bordure
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: AppColors.white,
-                            width: 4,
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // Avatar compact
+                          Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: AppColors.white,
+                                width: 2,
+                              ),
+                            ),
+                            child: CircleAvatar(
+                              radius: 32,
+                              backgroundColor: AppColors.primary.withOpacity(0.12),
+                              backgroundImage: user.profilePictureFilePath != null
+                                  ? NetworkImage(user.profilePictureFilePath!)
+                                  : null,
+                              child: user.profilePictureFilePath == null
+                                  ? Text(
+                                      user.firstName.isNotEmpty
+                                          ? user.firstName[0].toUpperCase()
+                                          : 'U',
+                                      style: const TextStyle(
+                                        fontFamily: 'Gilroy',
+                                        fontSize: 22,
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    )
+                                  : null,
+                            ),
                           ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primary.withOpacity(0.25),
-                              blurRadius: 15,
-                              offset: const Offset(0, 4),
-                              spreadRadius: 0,
-                            ),
-                            BoxShadow(
-                              color: AppColors.shadow.withOpacity(0.1),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                              spreadRadius: 0,
-                            ),
-                          ],
-                        ),
-                        child: CircleAvatar(
-                          radius: 55,
-                          backgroundColor: AppColors.primary.withOpacity(0.1),
-                          backgroundImage: user.profilePictureFilePath != null
-                              ? NetworkImage(user.profilePictureFilePath!)
-                              : null,
-                          child: user.profilePictureFilePath == null
-                              ? Text(
-                                  user.firstName.isNotEmpty
-                                      ? user.firstName[0].toUpperCase()
-                                      : 'U',
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  user.fullName,
                                   style: const TextStyle(
                                     fontFamily: 'Gilroy',
-                                    fontSize: 36,
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.w800,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.textPrimary,
                                   ),
-                                )
-                              : null,
-                        ),
-                      ),
-                      
-                      const SizedBox(height: 24),
-                      
-                      // Nom complet
-                      Text(
-                        user.fullName,
-                        style: const TextStyle(
-                          fontFamily: 'Gilroy',
-                          fontSize: 26,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.textPrimary,
-                          letterSpacing: 0.5,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      
-                      const SizedBox(height: 12),
-                      
-                      // Email et Téléphone en row
-                      Row(
-                        children: [
-                          // Email
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                              decoration: BoxDecoration(
-                                color: AppColors.white.withOpacity(0.7),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: AppColors.primary.withOpacity(0.1),
-                                  width: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.shadow.withOpacity(0.05),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(6),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primary.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Icon(
-                                      Icons.email_outlined,
-                                      size: 18,
-                                      color: AppColors.primary,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      user.email,
-                                      style: const TextStyle(
-                                        fontFamily: 'Gilroy',
-                                        fontSize: 14,
-                                        color: AppColors.textPrimary,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          
-                          const SizedBox(width: 12),
-                          
-                          // Téléphone
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                              decoration: BoxDecoration(
-                                color: AppColors.white.withOpacity(0.7),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: AppColors.primary.withOpacity(0.1),
-                                  width: 1,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.shadow.withOpacity(0.05),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(6),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primary.withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Icon(
-                                      Icons.phone_outlined,
-                                      size: 18,
-                                      color: AppColors.primary,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      user.phone,
-                                      style: const TextStyle(
-                                        fontFamily: 'Gilroy',
-                                        fontSize: 14,
-                                        color: AppColors.textPrimary,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      
-                      const SizedBox(height: 20),
-                      
-                      // Badges en row
-                      Row(
-                        children: [
-                          // Badge de rôle
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Color(int.parse(RolePermissions.getRoleColor(user.role).replaceFirst('#', '0xFF'))),
-                                    Color(int.parse(RolePermissions.getRoleColor(user.role).replaceFirst('#', '0xFF'))).withOpacity(0.8),
-                                  ],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                                borderRadius: BorderRadius.circular(16),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Color(int.parse(RolePermissions.getRoleColor(user.role).replaceFirst('#', '0xFF'))).withOpacity(0.3),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 4),
-                                    spreadRadius: 0,
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(4),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: const Icon(
-                                      Icons.person,
-                                      size: 16,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      RolePermissions.getRoleDisplayName(user.role),
-                                      style: const TextStyle(
-                                        fontFamily: 'Gilroy',
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 14,
-                                        letterSpacing: 0.3,
-                                      ),
-                                      textAlign: TextAlign.center,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          
-                          if (user.isIdVerified) ...[
-                            const SizedBox(width: 12),
-                            
-                            // Badge de vérification
-                            Expanded(
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
-                                ),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      AppColors.success,
-                                      AppColors.success.withOpacity(0.8),
-                                    ],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
-                                  borderRadius: BorderRadius.circular(16),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: AppColors.success.withOpacity(0.3),
-                                      blurRadius: 12,
-                                      offset: const Offset(0, 4),
-                                      spreadRadius: 0,
-                                    ),
-                                  ],
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
+                                const SizedBox(height: 4),
+                                Row(
                                   children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(4),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withOpacity(0.2),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: const Icon(
-                                        Icons.verified,
-                                        size: 16,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    const Expanded(
+                                    Icon(Icons.email_outlined, size: 14, color: AppColors.textSecondary),
+                                    const SizedBox(width: 6),
+                                    Expanded(
                                       child: Text(
-                                        'Profil vérifié',
-                                        style: TextStyle(
+                                        user.email,
+                                        style: const TextStyle(
                                           fontFamily: 'Gilroy',
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: 14,
-                                          letterSpacing: 0.3,
+                                          fontSize: 13,
+                                          color: AppColors.textSecondary,
+                                          fontWeight: FontWeight.w500,
                                         ),
-                                        textAlign: TextAlign.center,
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                   ],
                                 ),
+                                if (user.phone.isNotEmpty) ...[
+                                  const SizedBox(height: 2),
+                                  Row(
+                                    children: [
+                                      Icon(Icons.phone_outlined, size: 14, color: AppColors.textSecondary),
+                                      const SizedBox(width: 6),
+                                      Expanded(
+                                        child: Text(
+                                          user.phone,
+                                          style: const TextStyle(
+                                            fontFamily: 'Gilroy',
+                                            fontSize: 13,
+                                            color: AppColors.textSecondary,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => const EditProfileScreen(),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.person_outline, size: 18),
+                              label: const Text('Voir profil'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.primary,
+                                side: BorderSide(color: AppColors.primary.withOpacity(0.6)),
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                               ),
                             ),
-                          ],
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: Color(int.parse(RolePermissions.getRoleColor(user.role).replaceFirst('#', '0xFF'))).withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Color(int.parse(RolePermissions.getRoleColor(user.role).replaceFirst('#', '0xFF'))).withOpacity(0.4),
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.person,
+                                  size: 14,
+                                  color: Color(int.parse(RolePermissions.getRoleColor(user.role).replaceFirst('#', '0xFF'))),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  RolePermissions.getRoleDisplayName(user.role),
+                                  style: TextStyle(
+                                    fontFamily: 'Gilroy',
+                                    color: Color(int.parse(RolePermissions.getRoleColor(user.role).replaceFirst('#', '0xFF'))),
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     ],
@@ -483,13 +311,13 @@ class ProfileScreen extends StatelessWidget {
                         );
                       },
                     ),
-                    _MenuItem(
-                      icon: Icons.verified_user_outlined,
-                      title: 'Vérification d\'identité',
-                      onTap: () {
-                        // TODO: Implémenter la vérification d'identité
-                      },
-                    ),
+                    // _MenuItem(
+                    //   icon: Icons.verified_user_outlined,
+                    //   title: 'Vérification d\'identité',
+                    //   onTap: () {
+                    //     // TODO: Implémenter la vérification d'identité
+                    //   },
+                    // ),
                   ],
                 ),
                 
@@ -499,7 +327,7 @@ class ProfileScreen extends StatelessWidget {
                   context,
                   title: 'Mes propriétés',
                   items: [
-                    if (RolePermissions.canViewOwnProperties(user))
+                    if (RolePermissions.canAddProperties(user))
                       _MenuItem(
                         icon: Icons.home_work_outlined,
                         title: 'Mes annonces',
@@ -528,6 +356,34 @@ class ProfileScreen extends StatelessWidget {
                 
                 const SizedBox(height: 16),
                 
+                // Consumer<MessagingProvider>(
+                //   builder: (context, messagingProvider, _) {
+                //     return _buildMenuSection(
+                //       context,
+                //       title: 'Communication',
+                //       items: [
+                //         _MenuItem(
+                //           icon: Icons.chat_bubble_outline,
+                //           title: 'Messagerie',
+                //           badgeCount: messagingProvider.unreadMessagesCount > 0
+                //               ? messagingProvider.unreadMessagesCount
+                //               : null,
+                //           onTap: () {
+                //             messagingProvider.loadUnreadMessagesCount();
+                //             Navigator.of(context).push(
+                //               MaterialPageRoute(
+                //                 builder: (context) => const ConversationsListScreen(),
+                //               ),
+                //             );
+                //           },
+                //         ),
+                //       ],
+                //     );
+                //   },
+                // ),
+                
+                const SizedBox(height: 16),
+                
                 _buildMenuSection(
                   context,
                   title: 'Visites et Paiements',
@@ -549,22 +405,22 @@ class ProfileScreen extends StatelessWidget {
                         icon: Icons.payment_outlined,
                         title: 'Historique des paiements',
                         onTap: () {
-                          // TODO: Créer l'écran d'historique des paiements
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Fonctionnalité à venir'),
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const PaymentHistoryScreen(),
                             ),
                           );
                         },
                       ),
-                    if (RolePermissions.canRequestWithdrawal(user))
-                      _MenuItem(
-                        icon: Icons.account_balance_wallet_outlined,
-                        title: 'Demander un retrait',
-                        onTap: () {
-                          _showWithdrawalDialog(context);
-                        },
-                      ),
+                    // if (RolePermissions.canRequestWithdrawal(user))
+                    //   _MenuItem(
+                    //     icon: Icons.account_balance_wallet_outlined,
+                    //     title: 'Demander un retrait',
+                    //     onTap: () {
+                    //       _showWithdrawalDialog(context);
+                    //     },
+                    //   ),
                   ],
                 ),
                 
@@ -588,17 +444,17 @@ class ProfileScreen extends StatelessWidget {
                   context,
                   title: 'Informations',
                   items: [
-                    _MenuItem(
-                      icon: Icons.receipt_outlined,
-                      title: 'Frais et commissions',
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const FeesScreen(),
-                          ),
-                        );
-                      },
-                    ),
+                    // _MenuItem(
+                    //   icon: Icons.receipt_outlined,
+                    //   title: 'Frais et commissions',
+                    //   onTap: () {
+                    //     Navigator.of(context).push(
+                    //       MaterialPageRoute(
+                    //         builder: (context) => const FeesScreen(),
+                    //       ),
+                    //     );
+                    //   },
+                    // ),
                     _MenuItem(
                       icon: Icons.help_outline,
                       title: 'Comment demander une visite',
@@ -876,23 +732,47 @@ class ProfileScreen extends StatelessWidget {
             color: AppColors.textPrimary,
           ),
         ),
-        trailing: Container(
-          padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            color: AppColors.grey100,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: const Icon(
-            Icons.arrow_forward_ios,
-            size: 14,
-            color: AppColors.textTertiary,
-          ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (item.badgeCount != null && item.badgeCount! > 0) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  item.badgeCount! > 99 ? '99+' : '${item.badgeCount}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.white,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: AppColors.grey100,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Icon(
+                Icons.arrow_forward_ios,
+                size: 14,
+                color: AppColors.textTertiary,
+              ),
+            ),
+          ],
         ),
         onTap: item.onTap,
       ),
     );
   }
 
+  // ignore: unused_element
   void _showWithdrawalDialog(BuildContext context) {
     final phoneController = TextEditingController();
     final amountController = TextEditingController();
@@ -1186,11 +1066,13 @@ class ProfileScreen extends StatelessWidget {
 class _MenuItem {
   final IconData icon;
   final String title;
+  final int? badgeCount;
   final VoidCallback onTap;
 
   _MenuItem({
     required this.icon,
     required this.title,
+    this.badgeCount, // gardé pour réactiver Messagerie
     required this.onTap,
   });
 }
@@ -1239,32 +1121,47 @@ class _MyPropertiesScreenState extends State<_MyPropertiesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: const Text('Mes annonces'),
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor ?? Theme.of(context).colorScheme.surface,
-        elevation: 0,
-        actions: [
-          Consumer<AuthProvider>(
-            builder: (context, authProvider, child) {
-              if (authProvider.user != null && RolePermissions.canAddProperties(authProvider.user!)) {
-                return IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (context) => const AddPropertyScreen()),
-                    );
-                  },
-                );
-              }
-              return const SizedBox.shrink();
-            },
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, child) {
+        if (authProvider.user == null || !RolePermissions.canAddProperties(authProvider.user!)) {
+          return Scaffold(
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+            appBar: AppBar(
+              title: const Text('Mes annonces'),
+              backgroundColor: Theme.of(context).appBarTheme.backgroundColor ?? Theme.of(context).colorScheme.surface,
+              elevation: 0,
+            ),
+            body: const Center(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: Text(
+                  'Vous n\'avez pas accès à cette section.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16),
+                ),
+              ),
+            ),
+          );
+        }
+        return Scaffold(
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          appBar: AppBar(
+            title: const Text('Mes annonces'),
+            backgroundColor: Theme.of(context).appBarTheme.backgroundColor ?? Theme.of(context).colorScheme.surface,
+            elevation: 0,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.add),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => const AddPropertyScreen()),
+                  );
+                },
+              ),
+            ],
           ),
-        ],
-      ),
-      body: Consumer<PropertyProvider>(
-        builder: (context, provider, child) {
+          body: Consumer<PropertyProvider>(
+            builder: (context, provider, child) {
           // Debug: Print current state
           print('🔍 MyPropertiesScreen State: isLoading=${provider.isLoading}, error=${provider.error}, propertiesCount=${provider.myProperties.length}');
           
@@ -1364,6 +1261,8 @@ class _MyPropertiesScreenState extends State<_MyPropertiesScreen> {
           );
         },
       ),
+    );
+      },
     );
   }
 }

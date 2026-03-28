@@ -16,8 +16,14 @@ class Category {
   });
 
   factory Category.fromJson(Map<String, dynamic> json) {
+    var id = json['id']?.toString() ?? '';
+    if (id.isEmpty && json['@id'] != null) {
+      final iri = json['@id'].toString();
+      final parts = iri.split('/');
+      if (parts.isNotEmpty) id = parts.last;
+    }
     return Category(
-      id: json['id']?.toString() ?? '',
+      id: id,
       name: json['name']?.toString() ?? '',
       slug: json['slug']?.toString() ?? '',
       icon: json['icon']?.toString() ?? '',

@@ -38,6 +38,8 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
 
   String? _selectedCategory;
   String? _selectedType; // dérivé de la catégorie : apartment, house, land, event_hall, car
+  /// API : `for_rent` ou `for_sale` (enum unique côté backend).
+  String _listingType = 'for_rent';
   String? _selectedProvince;
   String? _selectedCity;
   String? _selectedTown;
@@ -177,6 +179,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
 
       // Remplir les champs avec les données existantes
       _titleController.text = property.title;
+      _listingType = property.listingTypeApiValue;
       if (property.pricePerDay != null) {
         _pricePerDayController.text = property.pricePerDay.toString();
       }
@@ -491,6 +494,7 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
     // Construire les données selon le type
     final Map<String, dynamic> propertyData = {
       'type': _selectedType,
+      'listingType': _listingType,
       'title': _titleController.text.trim(),
       'description': _descriptionController.text.trim(),
       'pricePerDay': double.tryParse(_pricePerDayController.text) ?? 0.0,
@@ -702,6 +706,35 @@ class _AddPropertyScreenState extends State<AddPropertyScreen> {
                           return 'Veuillez entrer un titre';
                         }
                         return null;
+                      },
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    Text(
+                      'Type d\'annonce',
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textSecondary,
+                          ),
+                    ),
+                    const SizedBox(height: 8),
+                    SegmentedButton<String>(
+                      segments: const [
+                        ButtonSegment<String>(
+                          value: 'for_rent',
+                          label: Text('À louer'),
+                          icon: Icon(Icons.vpn_key_outlined, size: 18),
+                        ),
+                        ButtonSegment<String>(
+                          value: 'for_sale',
+                          label: Text('À vendre'),
+                          icon: Icon(Icons.sell_outlined, size: 18),
+                        ),
+                      ],
+                      selected: {_listingType},
+                      onSelectionChanged: (Set<String> next) {
+                        setState(() => _listingType = next.first);
                       },
                     ),
 

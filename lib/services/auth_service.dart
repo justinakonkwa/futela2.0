@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../config/google_oauth_config.dart';
 import '../models/auth/auth_response.dart';
 import '../models/auth/user.dart';
 import '../models/auth/device.dart';
@@ -8,11 +11,25 @@ import 'api_client.dart';
 class AuthService {
   final Dio _dio;
 
-  /// Client ID OAuth 2.0 (type Web) depuis Google Cloud Console.
-  /// Utilisé pour obtenir l'idToken à envoyer au backend (POST /api/auth/google).
-  /// Le GOOGLE_CLIENT_SECRET reste côté backend uniquement.
-  static const String _googleServerClientId =
-      '474613582555-etdekl4un7r2r11u08h1jv2jelg3br0q.apps.googleusercontent.com';
+  GoogleSignIn? _googleSignIn;
+
+  /// Aligné SuperApp : sur iOS, `clientId` = client OAuth **iOS** si renseigné ;
+  /// `serverClientId` = client **Web** (audience `aud` du JWT pour le backend).
+  GoogleSignIn _createGoogleSignIn() {
+    final isIos = !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+    final iosId = kGoogleIosClientId.trim();
+    return GoogleSignIn(
+      clientId: (isIos && iosId.isNotEmpty) ? iosId : null,
+      serverClientId:
+          kGoogleWebClientId.isEmpty ? null : kGoogleWebClientId,
+      scopes: const <String>['email', 'profile'],
+    );
+  }
+
+  GoogleSignIn get _googleSignInInstance {
+    _googleSignIn ??= _createGoogleSignIn();
+    return _googleSignIn!;
+  }
 
   AuthService() : _dio = ApiClient().dio;
 
@@ -42,9 +59,7 @@ class AuthService {
 
   /// Connexion Google : affiche le flux Google Sign-In, récupère l'idToken, appelle POST /api/auth/google.
   Future<AuthResponse> signInWithGoogle() async {
-    final googleSignIn = GoogleSignIn(
-      serverClientId: _googleServerClientId.isEmpty ? null : _googleServerClientId,
-    );
+    final googleSignIn = _googleSignInInstance;
     final GoogleSignInAccount? account = await googleSignIn.signIn();
     if (account == null) {
       throw Exception('Connexion Google annulée');
@@ -52,20 +67,42 @@ class AuthService {
     final GoogleSignInAuthentication auth = await account.authentication;
     final String? idToken = auth.idToken;
     if (idToken == null || idToken.isEmpty) {
-      throw Exception('Impossible d\'obtenir l\'idToken Google. Vérifiez le serverClientId (OAuth 2.0 Web) dans Google Cloud.');
+      throw Exception(
+        'Impossible d\'obtenir l\'idToken Google. Vérifiez le client Web (serverClientId), '
+        'le SHA-1 Android, et sur iOS le client iOS + Info.plist — '
+        'voir GOOGLE_SIGNIN_SETUP.md et GOOGLE_SIGNIN_IOS.md.',
+      );
     }
     return googleLogin(idToken);
   }
 
-  Future<AuthResponse> googleLogin(String idToken) async {
-    final response = await _dio.post('/api/auth/google', data: {
-      'idToken': idToken,
-    });
+  /// À appeler au logout pour permettre de choisir un autre compte Google ensuite.
+  Future<void> signOutGoogleSilently() async {
+    try {
+      await _googleSignInInstance.signOut();
+    } catch (_) {
+      // Ignorer si jamais connecté avec Google
+    }
+  }
 
-    if (response.statusCode == 200) {
-      return AuthResponse.fromJson(response.data);
-    } else {
-      throw Exception('Google login failed: ${response.data}');
+  Future<AuthResponse> googleLogin(String idToken) async {
+    try {
+      // API Futela : POST /api/auth/google — corps { "idToken": "<jwt>" }
+      final response = await _dio.post(kGoogleLoginPath, data: {
+        'idToken': idToken,
+      });
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return AuthResponse.fromJson(response.data);
+      }
+      final message =
+          _messageFromResponse(response.data, 'Connexion Google refusée');
+      throw Exception(message);
+    } on DioException catch (e) {
+      final message = e.response?.data != null
+          ? _messageFromResponse(e.response!.data, 'Connexion Google refusée')
+          : (e.message ?? 'Erreur réseau');
+      throw Exception(message);
     }
   }
 
@@ -109,6 +146,10 @@ class AuthService {
 
   Future<User> getCurrentUser() async {
     final response = await _dio.get('/api/auth/me');
+
+    print('👤 GET PROFILE RESPONSE:');
+    print('  Status: ${response.statusCode}');
+    print('  Data: ${response.data is Map ? const JsonEncoder.withIndent('  ').convert(response.data) : response.data}');
 
     if (response.statusCode == 200) {
       return User.fromJson(response.data);

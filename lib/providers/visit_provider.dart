@@ -3,33 +3,57 @@ import '../models/visit.dart';
 import '../services/api_service.dart';
 
 class VisitProvider with ChangeNotifier {
-  List<Visit> _visits = [];
-  Map<String, dynamic> _metaData = {};
+  List<MyVisit> _visits = [];
+  int _totalItems = 0;
+  int _currentPage = 1;
+  int _totalPages = 1;
+  /// Filtre actif pour `GET /me/visits?status=` (null = tous).
+  String? _listStatusFilter;
+  int _itemsPerPage = 20;
   bool _isLoading = false;
+  bool _isLoadingMore = false;
   String? _error;
 
-  List<Visit> get visits => _visits;
-  Map<String, dynamic> get metaData => _metaData;
+  List<MyVisit> get visits => _visits;
+  int get totalItems => _totalItems;
+  int get currentPage => _currentPage;
+  int get totalPages => _totalPages;
+  String? get listStatusFilter => _listStatusFilter;
   bool get isLoading => _isLoading;
+  bool get isLoadingMore => _isLoadingMore;
+  bool get hasMoreVisits => _currentPage < _totalPages;
   String? get error => _error;
 
+  /// [updateStatusFilter] : true quand l’utilisateur change le chip (sinon on garde le filtre courant).
   Future<void> loadMyVisits({
-    String? direction,
-    String? cursor,
-    int? limit,
+    int page = 1,
+    int itemsPerPage = 20,
+    String? status,
+    bool refresh = true,
+    bool updateStatusFilter = false,
   }) async {
+    if (updateStatusFilter) {
+      _listStatusFilter = status;
+    }
+    _itemsPerPage = itemsPerPage;
     _setLoading(true);
     _clearError();
 
     try {
       final response = await ApiService.getMyVisits(
-        direction: direction,
-        cursor: cursor,
-        limit: limit,
+        page: page,
+        itemsPerPage: itemsPerPage,
+        status: _listStatusFilter,
       );
 
-      _visits = response.visits;
-      _metaData = response.metaData;
+      if (refresh) {
+        _visits = List<MyVisit>.from(response.member);
+      } else {
+        _visits.addAll(response.member);
+      }
+      _totalItems = response.totalItems;
+      _currentPage = response.page;
+      _totalPages = response.totalPages;
     } catch (e) {
       _setError('Erreur lors du chargement des visites: $e');
     } finally {
@@ -37,13 +61,37 @@ class VisitProvider with ChangeNotifier {
     }
   }
 
-  /// Demande une visite (API: propertyId, scheduledAt ISO, paymentAmount, paymentCurrency, paymentPhone).
-  Future<String> createVisit({
+  Future<void> loadMoreVisits() async {
+    if (!hasMoreVisits || _isLoadingMore || _isLoading) return;
+    _isLoadingMore = true;
+    notifyListeners();
+    _clearError();
+    try {
+      final response = await ApiService.getMyVisits(
+        page: _currentPage + 1,
+        itemsPerPage: _itemsPerPage,
+        status: _listStatusFilter,
+      );
+      _visits.addAll(response.member);
+      _totalItems = response.totalItems;
+      _currentPage = response.page;
+      _totalPages = response.totalPages;
+    } catch (e) {
+      _setError('Erreur lors du chargement: $e');
+    } finally {
+      _isLoadingMore = false;
+      notifyListeners();
+    }
+  }
+
+  /// Crée une visite (paiement optionnel via paymentPhone dans le payload).
+  Future<VisitCreateResult> createVisit({
     required String propertyId,
     required String scheduledAt,
-    required num paymentAmount,
-    required String paymentCurrency,
-    required String paymentPhone,
+    String? notes,
+    num? paymentAmount,
+    String? paymentCurrency,
+    String? paymentPhone,
   }) async {
     _setLoading(true);
     _clearError();
@@ -52,14 +100,15 @@ class VisitProvider with ChangeNotifier {
       final payload = RequestVisitPayload(
         propertyId: propertyId,
         scheduledAt: scheduledAt,
+        notes: notes,
         paymentAmount: paymentAmount,
         paymentCurrency: paymentCurrency,
         paymentPhone: paymentPhone,
       );
-      final visitId = await ApiService.createVisit(payload);
-      await Future.delayed(const Duration(milliseconds: 500));
-      await loadMyVisits();
-      return visitId;
+      final result = await ApiService.createVisit(payload);
+      await Future.delayed(const Duration(milliseconds: 400));
+      await loadMyVisits(refresh: true);
+      return result;
     } catch (e) {
       _setError(e.toString().replaceFirst(RegExp(r'^Exception:\s*'), '').trim());
       rethrow;
@@ -67,8 +116,6 @@ class VisitProvider with ChangeNotifier {
       _setLoading(false);
     }
   }
-
-
 
   Future<PaymentResponse> payVisit({
     required String visitId,
@@ -89,10 +136,7 @@ class VisitProvider with ChangeNotifier {
       );
 
       final response = await ApiService.payVisit(visitId, paymentRequest);
-      
-      // Recharger la liste des visites après paiement
-      await loadMyVisits();
-      
+      await loadMyVisits(refresh: true);
       return response;
     } catch (e) {
       _setError('Erreur lors du paiement: $e');
@@ -113,6 +157,26 @@ class VisitProvider with ChangeNotifier {
       rethrow;
     } finally {
       _setLoading(false);
+    }
+  }
+
+  /// Un poll GET payment-status (utilisé par l’écran d’attente).
+  Future<VisitPaymentStatus> fetchVisitPaymentStatus(
+    String visitId,
+    String transactionId,
+  ) {
+    return ApiService.getVisitPaymentStatus(visitId, transactionId);
+  }
+
+  /// POST /api/visits/{id}/cancel
+  Future<void> cancelVisit(String visitId) async {
+    _clearError();
+    try {
+      await ApiService.cancelVisit(visitId);
+      await loadMyVisits(refresh: true);
+    } catch (e) {
+      _setError(e.toString().replaceFirst(RegExp(r'^Exception:\s*'), '').trim());
+      rethrow;
     }
   }
 
@@ -158,7 +222,9 @@ class VisitProvider with ChangeNotifier {
 
   void clearVisits() {
     _visits.clear();
-    _metaData.clear();
+    _totalItems = 0;
+    _currentPage = 1;
+    _totalPages = 1;
     notifyListeners();
   }
 }

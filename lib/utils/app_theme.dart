@@ -3,12 +3,15 @@ import 'app_colors.dart';
 
 class AppTheme {
   static ThemeData get lightTheme {
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: AppColors.primary,
+      brightness: Brightness.light,
+      surface: AppColors.surface,
+    );
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.primary,
-        brightness: Brightness.light,
-      ),
+      colorScheme: colorScheme,
+      scaffoldBackgroundColor: AppColors.surface,
       
       // Typography with Gilroy font
       textTheme: const TextTheme(
@@ -104,9 +107,9 @@ class AppTheme {
         ),
       ),
       
-      // AppBar Theme
+      // AppBar Theme (même fond que le scaffold pour un rendu unifié)
       appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.white,
+        backgroundColor: AppColors.surface,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
         centerTitle: true,

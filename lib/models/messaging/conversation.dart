@@ -6,8 +6,8 @@ class ConversationParticipant {
 
   factory ConversationParticipant.fromJson(Map<String, dynamic> json) {
     return ConversationParticipant(
-      id: json['id'],
-      name: json['name'],
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
     );
   }
 
@@ -20,6 +20,7 @@ class Conversation {
   final String id;
   final String subject;
   final List<ConversationParticipant> participants;
+  final List<String>? participantIds;
   final String? propertyId;
   final String? propertyTitle;
   final DateTime? lastMessageAt;
@@ -30,6 +31,7 @@ class Conversation {
     required this.id,
     required this.subject,
     required this.participants,
+    this.participantIds,
     this.propertyId,
     this.propertyTitle,
     this.lastMessageAt,
@@ -38,19 +40,31 @@ class Conversation {
   });
 
   factory Conversation.fromJson(Map<String, dynamic> json) {
+    final participantsList = json['participants'];
+    final participants = participantsList is List
+        ? (participantsList)
+            .map((e) => ConversationParticipant.fromJson(
+                e is Map<String, dynamic> ? e : <String, dynamic>{}))
+            .toList()
+        : <ConversationParticipant>[];
+    final participantIdsList = json['participantIds'];
+    final participantIds = participantIdsList is List
+        ? (participantIdsList).map((e) => e.toString()).toList()
+        : null;
     return Conversation(
-      id: json['id'],
-      subject: json['subject'],
-      participants: (json['participants'] as List)
-          .map((e) => ConversationParticipant.fromJson(e))
-          .toList(),
-      propertyId: json['propertyId'],
-      propertyTitle: json['propertyTitle'],
+      id: json['id']?.toString() ?? '',
+      subject: json['subject']?.toString() ?? '',
+      participants: participants,
+      participantIds: participantIds,
+      propertyId: json['propertyId']?.toString(),
+      propertyTitle: json['propertyTitle']?.toString(),
       lastMessageAt: json['lastMessageAt'] != null
-          ? DateTime.parse(json['lastMessageAt'])
+          ? DateTime.tryParse(json['lastMessageAt'].toString())
           : null,
-      isArchived: json['isArchived'] ?? false,
-      createdAt: DateTime.parse(json['createdAt']),
+      isArchived: json['isArchived'] == true,
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'].toString())
+          : DateTime.now(),
     );
   }
 
@@ -59,6 +73,7 @@ class Conversation {
       'id': id,
       'subject': subject,
       'participants': participants.map((e) => e.toJson()).toList(),
+      'participantIds': participantIds,
       'propertyId': propertyId,
       'propertyTitle': propertyTitle,
       'lastMessageAt': lastMessageAt?.toIso8601String(),

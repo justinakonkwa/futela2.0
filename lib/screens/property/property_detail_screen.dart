@@ -20,6 +20,9 @@ import '../../widgets/property_card_shimmer.dart';
 import '../visits/request_visit_screen.dart';
 import 'add_property_screen.dart';
 import '../../providers/favorite_provider.dart';
+import '../../providers/messaging_provider.dart';
+import '../messaging/chat_screen.dart';
+import '../../widgets/custom_text_field.dart';
 
 class PropertyDetailScreen extends StatefulWidget {
   final String propertyId;
@@ -567,13 +570,13 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                                     vertical: 8,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: property.type == 'for-rent' 
-                                        ? AppColors.primary 
+                                    color: property.listingBadgeUseRentColors
+                                        ? AppColors.primary
                                         : AppColors.secondary,
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Text(
-                                    property.typeDisplayName,
+                                    property.listingBadgeLabel,
                                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                       color: AppColors.white,
                                       fontWeight: FontWeight.w600,
@@ -690,10 +693,9 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                   Expanded(
                     child: CustomButton(
                       text: 'Contacter',
+                      icon: Icon(Icons.chat_bubble_outline, size: 20, color: AppColors.primary),
                       isOutlined: true,
-                      onPressed: () {
-                        // TODO: Implémenter le contact
-                      },
+                      onPressed: () => _onContactPressed(context),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -714,6 +716,179 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                 ],
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _onContactPressed(BuildContext context) {
+    final auth = context.read<AuthProvider>();
+    final messaging = context.read<MessagingProvider>();
+    if (auth.user != null) {
+      _startConversationAsUser(context, messaging, auth.user!.id);
+    } else {
+      _showContactOwnerSheet(context, messaging);
+    }
+  }
+
+  Future<void> _startConversationAsUser(
+    BuildContext context,
+    MessagingProvider messaging,
+    String userId,
+  ) async {
+    final conversation = await messaging.startConversationOnProperty(
+      widget.propertyId,
+      message: null,
+    );
+    if (!context.mounted) return;
+    if (conversation != null) {
+      messaging.setCurrentConversation(conversation);
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => ChatScreen(
+            conversationId: conversation.id,
+            conversation: conversation,
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            messaging.error ?? 'Impossible de démarrer la conversation',
+          ),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+  }
+
+  void _showContactOwnerSheet(BuildContext context, MessagingProvider messaging) {
+    final nameController = TextEditingController();
+    final emailController = TextEditingController();
+    final phoneController = TextEditingController();
+    final messageController = TextEditingController();
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Contacter le propriétaire',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                CustomTextField(
+                  controller: nameController,
+                  label: 'Nom',
+                  hint: 'Votre nom',
+                  prefixIconData: Icons.person_outline,
+                ),
+                const SizedBox(height: 12),
+                CustomTextField(
+                  controller: emailController,
+                  label: 'Email',
+                  hint: 'votre@email.com',
+                  keyboardType: TextInputType.emailAddress,
+                  prefixIconData: Icons.email_outlined,
+                ),
+                const SizedBox(height: 12),
+                CustomTextField(
+                  controller: phoneController,
+                  label: 'Téléphone (optionnel)',
+                  hint: '+243...',
+                  keyboardType: TextInputType.phone,
+                  prefixIconData: Icons.phone_outlined,
+                ),
+                const SizedBox(height: 12),
+                CustomTextField(
+                  controller: messageController,
+                  label: 'Message',
+                  hint: 'Votre message au propriétaire',
+                  maxLines: 3,
+                  prefixIconData: Icons.message_outlined,
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: CustomButton(
+                        text: 'Annuler',
+                        isOutlined: true,
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: CustomButton(
+                        text: 'Envoyer',
+                        onPressed: () async {
+                          final name = nameController.text.trim();
+                          final email = emailController.text.trim();
+                          final message = messageController.text.trim();
+                          final phone = phoneController.text.trim();
+                          if (name.isEmpty || email.isEmpty || message.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                    'Veuillez remplir le nom, l\'email et le message'),
+                                backgroundColor: AppColors.error,
+                              ),
+                            );
+                            return;
+                          }
+                          final ok = await messaging.contactOwner(
+                            widget.propertyId,
+                            name: name,
+                            email: email,
+                            message: message,
+                            phone: phone.isEmpty ? null : phone,
+                          );
+                          if (!context.mounted) return;
+                          Navigator.of(context).pop();
+                          if (ok) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                    'Votre message a été envoyé au propriétaire'),
+                                backgroundColor: AppColors.success,
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                    messaging.error ??
+                                        'Erreur lors de l\'envoi'),
+                                backgroundColor: AppColors.error,
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -1460,15 +1635,17 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
       final File file = File('${tempDir.path}/$fileName');
       await file.writeAsBytes(pngBytes);
 
-      // Partager l'image
+      // Texte adapté à la propriété (catégorie, type, prix, adresse)
+      final categoryLabel = property.categoryName.isNotEmpty ? '${property.categoryName} • ' : '';
       await Share.shareXFiles(
         [XFile(file.path)],
-        text: 'Découvrez cette propriété sur Futela !\n\n'
+        text: 'Découvrez cette annonce sur Futela !\n\n'
+              '$categoryLabel${property.typeDisplayName}\n'
               '${property.title}\n'
               '${property.formattedPrice}${property.type == 'for-rent' ? '/mois' : ''}\n'
               '${property.fullAddress}\n\n'
               'Téléchargez l\'app Futela ou visitez futela.com',
-        subject: 'Propriété Futela - ${property.title}',
+        subject: 'Futela - ${property.categoryName.isNotEmpty ? property.categoryName : "Annonce"} : ${property.title}',
       );
     } catch (e) {
       if (context.mounted) {

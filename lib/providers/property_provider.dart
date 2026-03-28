@@ -24,6 +24,11 @@ class PropertyProvider with ChangeNotifier {
   String? _prevCursor;
   int _total = 0;
 
+  /// Pagination page d’accueil (GET /api/properties)
+  int _homeNextPage = 1;
+  bool _homeHasMore = false;
+  static const int _homePageSize = 20;
+
   // Getters
   List<Property> get properties => _properties;
   List<Property> get myProperties => _myProperties;
@@ -36,6 +41,8 @@ class PropertyProvider with ChangeNotifier {
   String? get nextCursor => _nextCursor;
   String? get prevCursor => _prevCursor;
   int get total => _total;
+  /// True s’il reste des pages à charger pour le fil d’accueil.
+  bool get hasMoreHomeFeed => _homeHasMore;
 
   // Convertir un categoryId en type correspondant
   String? _categoryIdToType(String? categoryId) {
@@ -93,6 +100,61 @@ class PropertyProvider with ChangeNotifier {
     return null;
   }
 
+  /// Fil d’accueil : liste paginée via GET /api/properties
+  Future<void> loadHomeProperties({
+    String? categoryId,
+    bool refresh = false,
+  }) async {
+    if (!refresh && !_homeHasMore) return;
+
+    print('📋 PropertyProvider.loadHomeProperties');
+    print('Category: $categoryId, refresh: $refresh');
+
+    if (refresh) {
+      _properties.clear();
+      _homeNextPage = 1;
+      _homeHasMore = true;
+      _nextCursor = null;
+      _prevCursor = null;
+    }
+
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final pageToFetch = refresh ? 1 : _homeNextPage;
+      final result = await _propertyService.listProperties(
+        page: pageToFetch,
+        itemsPerPage: _homePageSize,
+        categoryId: (categoryId != null && categoryId.isNotEmpty)
+            ? categoryId
+            : null,
+      );
+
+      if (refresh) {
+        _properties = List<Property>.from(result.items);
+      } else {
+        _properties.addAll(result.items);
+      }
+
+      _homeNextPage = result.page + 1;
+      _homeHasMore = result.hasNextPage;
+      _total = result.totalItems > 0 ? result.totalItems : _properties.length;
+      _nextCursor = _homeHasMore ? 'home' : null;
+
+      print(
+          '✅ loadHomeProperties: +${result.items.length} items, hasMore=$_homeHasMore');
+
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _error = _userFriendlyError(e);
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   // Charger les propriétés avec filtres (GET /api/properties/search)
   Future<void> loadProperties({
     String? direction,
@@ -109,6 +171,9 @@ class PropertyProvider with ChangeNotifier {
     String? query,
     int? bedrooms,
     bool? available,
+    bool? hasParking,
+    bool? hasPool,
+    bool? furnished,
     bool refresh = false,
   }) async {
     print('📋 PropertyProvider.loadProperties called');
@@ -152,16 +217,31 @@ class PropertyProvider with ChangeNotifier {
         categoryId: category,
         bedrooms: bedrooms,
         available: available,
+        hasParking: hasParking,
+        hasPool: hasPool,
+        furnished: furnished,
         limit: limit ?? 20,
         offset: offset ?? 0,
       );
       
       print('✅ PropertyService.searchProperties returned ${response.length} properties');
 
+      // Filtre côté client si l'API ne filtre pas (meublé, parking, piscine)
+      var filtered = response;
+      if (hasParking == true) {
+        filtered = filtered.where((p) => p.hasParking).toList();
+      }
+      if (hasPool == true) {
+        filtered = filtered.where((p) => p.hasPool == true).toList();
+      }
+      if (furnished == true) {
+        filtered = filtered.where((p) => p.isFurnished == true).toList();
+      }
+
       if (refresh) {
-        _properties = response;
+        _properties = filtered;
       } else {
-        _properties.addAll(response);
+        _properties.addAll(filtered);
       }
 
       // Mettre à jour le total avec la taille de la liste
@@ -182,7 +262,10 @@ class PropertyProvider with ChangeNotifier {
     if (s.startsWith('Exception: ')) {
       return s.substring(11);
     }
-    if (s.contains('SocketException') || s.contains('Connection') || s.contains('timeout')) {
+    if (s.contains('took longer') || s.contains('receive timeout') || s.contains('connect timeout')) {
+      return 'La requête a pris trop de temps. Réessayez.';
+    }
+    if (s.contains('SocketException') || s.contains('Connection')) {
       return 'Impossible de joindre le serveur. Vérifiez votre connexion et réessayez.';
     }
     if (s.contains('500') || s.contains('502') || s.contains('503')) {
@@ -192,7 +275,7 @@ class PropertyProvider with ChangeNotifier {
   }
 
   /// Recherche de propriétés (GET /api/properties/search)
-  /// Filtres doc API : type, cityId, townId, minPrice, maxPrice, bedrooms, available, query, limit, offset
+  /// Filtres doc API : type, cityId, townId, minPrice, maxPrice, bedrooms, available, query, limit, offset, hasParking, hasPool, furnished
   Future<void> searchProperties({
     String? query,
     double? minPrice,
@@ -203,6 +286,9 @@ class PropertyProvider with ChangeNotifier {
     String? type,
     int? bedrooms,
     bool? available,
+    bool? hasParking,
+    bool? hasPool,
+    bool? isFurnished,
     int? limit,
     int? offset,
     bool refresh = false,
@@ -217,6 +303,9 @@ class PropertyProvider with ChangeNotifier {
       type: type,
       bedrooms: bedrooms,
       available: available,
+      hasParking: hasParking,
+      hasPool: hasPool,
+      furnished: isFurnished,
       limit: limit,
       offset: offset,
       refresh: refresh,
@@ -266,12 +355,12 @@ class PropertyProvider with ChangeNotifier {
   }
 
   // Charger les catégories
-  Future<void> loadCategories() async {
-    if (_categories.isNotEmpty) return;
+  Future<void> loadCategories({bool forceRefresh = false}) async {
+    if (!forceRefresh && _categories.isNotEmpty) return;
 
     _isLoading = true;
     _error = null;
-    // notifyListeners(); // Avoid immediate notify to prevent build errors
+    notifyListeners();
 
     try {
       _categories = await _propertyService.getCategories();
@@ -321,7 +410,7 @@ class PropertyProvider with ChangeNotifier {
     } catch (e, stackTrace) {
       print('❌ Error loading provinces: $e');
       print('Stack trace: $stackTrace');
-      _error = 'Erreur lors du chargement des provinces: $e';
+      _error = 'Erreur lors du chargement des provinces: ${_userFriendlyError(e)}';
       _isLoading = false;
       notifyListeners();
     }
@@ -344,7 +433,7 @@ class PropertyProvider with ChangeNotifier {
     } catch (e, stackTrace) {
       print('❌ Error loading cities: $e');
       print('Stack trace: $stackTrace');
-      _error = 'Erreur lors du chargement des villes: $e';
+      _error = 'Erreur lors du chargement des villes: ${_userFriendlyError(e)}';
       _isLoading = false;
       notifyListeners();
     }
@@ -372,7 +461,7 @@ class PropertyProvider with ChangeNotifier {
     } catch (e, stackTrace) {
       print('❌ Error loading towns: $e');
       print('Stack trace: $stackTrace');
-      _error = 'Erreur lors du chargement des communes: $e';
+      _error = 'Erreur lors du chargement des communes: ${_userFriendlyError(e)}';
       _isLoading = false;
       notifyListeners();
     }

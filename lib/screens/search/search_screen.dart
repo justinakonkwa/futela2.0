@@ -94,6 +94,9 @@ class _SearchScreenState extends State<SearchScreen> {
       cityId: _selectedCity,
       type: _selectedType,
       bedrooms: _minBeds,
+      hasParking: _hasParking,
+      hasPool: _hasPool,
+      isFurnished: _isFurnished,
       limit: 20,
       offset: 0,
       refresh: refresh,
@@ -386,13 +389,25 @@ class _SearchScreenState extends State<SearchScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          _buildQuickFilterChip('T1', () => _setQuickFilter(1, 1)),
+          Tooltip(
+            message: '1 pièce (studio)',
+            child: _buildQuickFilterChip('T1', () => _setQuickFilter(1, 1)),
+          ),
           const SizedBox(width: 8),
-          _buildQuickFilterChip('T2', () => _setQuickFilter(2, 2)),
+          Tooltip(
+            message: '2 pièces',
+            child: _buildQuickFilterChip('T2', () => _setQuickFilter(2, 2)),
+          ),
           const SizedBox(width: 8),
-          _buildQuickFilterChip('T3', () => _setQuickFilter(3, 3)),
+          Tooltip(
+            message: '3 pièces',
+            child: _buildQuickFilterChip('T3', () => _setQuickFilter(3, 3)),
+          ),
           const SizedBox(width: 8),
-          _buildQuickFilterChip('T4+', () => _setQuickFilter(4, null)),
+          Tooltip(
+            message: '4 pièces et plus',
+            child: _buildQuickFilterChip('T4+', () => _setQuickFilter(4, null)),
+          ),
           const SizedBox(width: 8),
           _buildQuickFilterChip('Meublé', () => _setFurnishedFilter(true)),
           const SizedBox(width: 8),

@@ -1,6 +1,24 @@
-# Configuration pour la Release Android
+# Configuration pour la Release Android (Play Store)
 
-Ce guide vous explique comment configurer votre application Futela pour une build de release Android.
+Ce guide vous explique comment **signer** et construire Futela pour le Google Play Store.
+
+## 🚀 Démarrage rapide (signature + build)
+
+```bash
+# 1. Créer le keystore et key.properties (une seule fois)
+cd android
+chmod +x create-keystore.sh   # si besoin
+./create-keystore.sh
+
+# 2. Revenir à la racine et construire l’App Bundle
+cd ..
+flutter clean
+flutter build appbundle
+```
+
+Le fichier signé sera dans : `build/app/outputs/bundle/release/app.aab` (à uploader sur Play Console).
+
+---
 
 ## 📋 Étapes de configuration
 
@@ -39,7 +57,17 @@ keytool -genkey -v -keystore $env:USERPROFILE\upload-keystore.jks `
 
 ### 2. Créer le fichier key.properties
 
-Créez un fichier `android/key.properties` avec le contenu suivant :
+**Si vous avez utilisé le script (Option A), `key.properties` a été créé automatiquement — passez à l’étape 3.**
+
+Sinon, copiez le fichier d’exemple puis éditez-le :
+
+```bash
+cd android
+cp key.properties.example key.properties
+# Éditez key.properties avec vos mots de passe et le chemin vers le .jks
+```
+
+Ou créez manuellement un fichier `android/key.properties` avec le contenu suivant :
 
 ```properties
 storePassword=<votre-mot-de-passe-keystore>
@@ -99,10 +127,10 @@ Pour des instructions détaillées sur la publication, consultez la [documentati
 
 ## ✅ Vérifications avant la publication
 
-- [ ] L'icône de lanceur est configurée (déjà fait via `flutter_launcher_icons`)
-- [ ] Material Components est activé (déjà configuré)
-- [ ] Le keystore est créé et sécurisé
-- [ ] Le fichier `key.properties` est créé (et non commité)
+- [x] **Icône de lanceur** : configurée via `flutter_launcher_icons` (`@mipmap/launcher_icon`)
+- [x] **Material Components** : activé dans `styles.xml` et `build.gradle.kts`
+- [ ] **Signature** : keystore créé (ex. `./android/create-keystore.sh`) et conservé en lieu sûr
+- [ ] **key.properties** : présent dans `android/` (jamais commité ; modèle : `key.properties.example`)
 - [ ] Le numéro de version est mis à jour dans `pubspec.yaml`
 - [ ] L'application a été testée en mode release
 - [ ] Les permissions dans `AndroidManifest.xml` sont correctes

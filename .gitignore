@@ -48,3 +48,7 @@ app.*.map.json
 /android/key.properties
 *.jks
 *.keystore
+
+# JSON OAuth Google Cloud (peut contenir client_secret dans d’autres exports)
+ANDROIDclient_secret*.json
+*client_secret*.json

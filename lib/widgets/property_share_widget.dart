@@ -31,20 +31,19 @@ class _PropertyShareWidgetState extends State<PropertyShareWidget> {
     print('🔍 PropertyShareWidget - Debug Images:');
     print('  - cover: ${widget.property.cover}');
     print('  - images: ${widget.property.images}');
-    print('  - images length: ${widget.property.images?.length}');
+    print('  - images length: ${widget.property.images.length}');
     
     // Priorité 1: Image de couverture (seulement si c'est une URL complète)
-    if (widget.property.cover != null && 
-        widget.property.cover!.isNotEmpty && 
-        widget.property.cover!.startsWith('http')) {
-      print('  ✅ Using cover image: ${widget.property.cover}');
-      return widget.property.cover;
+    final cover = widget.property.cover;
+    if (cover != null && cover.isNotEmpty && cover.startsWith('http')) {
+      print('  ✅ Using cover image: $cover');
+      return cover;
     }
     
     // Priorité 2: Première image de la liste
-    if (widget.property.images != null && widget.property.images!.isNotEmpty) {
-      print('  ✅ Using first image from list: ${widget.property.images!.first}');
-      return widget.property.images!.first;
+    if (widget.property.images.isNotEmpty) {
+      print('  ✅ Using first image from list: ${widget.property.images.first}');
+      return widget.property.images.first;
     }
     
     // Aucune image disponible
@@ -324,31 +323,51 @@ class _PropertyShareWidgetState extends State<PropertyShareWidget> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Prix et type
+                    // Catégorie (adaptée à la propriété)
+                    if (widget.property.categoryName.isNotEmpty) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          widget.property.categoryName,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+
+                    // Prix et type (location/vente)
                     Row(
                       children: [
                         Expanded(
                           child: Text(
                             widget.property.formattedPrice,
                             style: const TextStyle(
-                              fontSize: 24,
+                              fontSize: 22,
                               fontWeight: FontWeight.w700,
                               color: AppColors.primary,
                             ),
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
-                            color: widget.property.type == 'for-rent' 
-                                ? AppColors.secondary 
+                            color: widget.property.type == 'for-rent'
+                                ? AppColors.secondary
                                 : AppColors.success,
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
                             widget.property.typeDisplayName,
                             style: const TextStyle(
-                              fontSize: 12,
+                              fontSize: 11,
                               fontWeight: FontWeight.w600,
                               color: AppColors.white,
                             ),
@@ -357,13 +376,13 @@ class _PropertyShareWidgetState extends State<PropertyShareWidget> {
                       ],
                     ),
 
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
 
                     // Titre
                     Text(
                       widget.property.title,
                       style: const TextStyle(
-                        fontSize: 18,
+                        fontSize: 16,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textPrimary,
                       ),
@@ -375,10 +394,11 @@ class _PropertyShareWidgetState extends State<PropertyShareWidget> {
 
                     // Adresse
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Icon(
                           Icons.location_on_outlined,
-                          size: 16,
+                          size: 14,
                           color: AppColors.textTertiary,
                         ),
                         const SizedBox(width: 4),
@@ -386,7 +406,7 @@ class _PropertyShareWidgetState extends State<PropertyShareWidget> {
                           child: Text(
                             widget.property.fullAddress,
                             style: const TextStyle(
-                              fontSize: 14,
+                              fontSize: 13,
                               color: AppColors.textSecondary,
                             ),
                             maxLines: 2,
@@ -396,47 +416,10 @@ class _PropertyShareWidgetState extends State<PropertyShareWidget> {
                       ],
                     ),
 
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
 
-                    // Caractéristiques
-                    if (widget.property.apartment != null) ...[
-                      _buildCharacteristics(
-                        'Chambres',
-                        '${widget.property.apartment!.beds}',
-                        Icons.bed_outlined,
-                      ),
-                      const SizedBox(height: 6),
-                      _buildCharacteristics(
-                        'Salles de bain',
-                        '${widget.property.apartment!.baths}',
-                        Icons.bathtub_outlined,
-                      ),
-                      const SizedBox(height: 6),
-                      _buildCharacteristics(
-                        'Surface',
-                        '${widget.property.apartment!.area.toInt()} m²',
-                        Icons.square_foot,
-                      ),
-                    ] else if (widget.property.house != null) ...[
-                      _buildCharacteristics(
-                        'Chambres',
-                        '${widget.property.house!.beds}',
-                        Icons.bed_outlined,
-                      ),
-                      const SizedBox(height: 6),
-                      _buildCharacteristics(
-                        'Salles de bain',
-                        '${widget.property.house!.baths}',
-                        Icons.bathtub_outlined,
-                      ),
-                      const SizedBox(height: 6),
-                      _buildCharacteristics(
-                        'Surface',
-                        '${widget.property.house!.area.toInt()} m²',
-                        Icons.square_foot,
-                      ),
-                    ],
-
+                    // Caractéristiques selon le type / catégorie de la propriété
+                    ..._buildShareCharacteristics(context),
                   ],
                 ),
               ),
@@ -447,28 +430,107 @@ class _PropertyShareWidgetState extends State<PropertyShareWidget> {
     );
   }
 
+  /// Construit les caractéristiques affichées selon le type/catégorie de la propriété.
+  List<Widget> _buildShareCharacteristics(BuildContext context) {
+    final p = widget.property;
+    final List<Widget> list = [];
+
+    switch (p.type) {
+      case 'apartment':
+        if ((p.bedrooms ?? 0) > 0) {
+          list.add(_buildCharacteristics('Chambres', '${p.bedrooms}', Icons.bed_outlined));
+          list.add(const SizedBox(height: 4));
+        }
+        if ((p.bathrooms ?? 0) > 0) {
+          list.add(_buildCharacteristics('SDB', '${p.bathrooms}', Icons.bathtub_outlined));
+          list.add(const SizedBox(height: 4));
+        }
+        if (p.squareMeters != null && p.squareMeters! > 0) {
+          list.add(_buildCharacteristics('Surface', '${p.squareMeters!.toInt()} m²', Icons.square_foot));
+        }
+        break;
+      case 'house':
+        if ((p.bedrooms ?? 0) > 0) {
+          list.add(_buildCharacteristics('Chambres', '${p.bedrooms}', Icons.bed_outlined));
+          list.add(const SizedBox(height: 4));
+        }
+        if ((p.bathrooms ?? 0) > 0) {
+          list.add(_buildCharacteristics('SDB', '${p.bathrooms}', Icons.bathtub_outlined));
+          list.add(const SizedBox(height: 4));
+        }
+        if (p.houseSquareMeters != null && p.houseSquareMeters! > 0) {
+          list.add(_buildCharacteristics('Surface', '${p.houseSquareMeters!.toInt()} m²', Icons.home));
+        }
+        if (p.landSquareMeters != null && p.landSquareMeters! > 0) {
+          list.add(const SizedBox(height: 4));
+          list.add(_buildCharacteristics('Terrain', '${p.landSquareMeters!.toInt()} m²', Icons.landscape));
+        }
+        break;
+      case 'car':
+        if (p.brand != null && p.brand!.isNotEmpty) {
+          list.add(_buildCharacteristics('Marque', p.brand!, Icons.directions_car_outlined));
+          list.add(const SizedBox(height: 4));
+        }
+        if (p.model != null && p.model!.isNotEmpty) {
+          list.add(_buildCharacteristics('Modèle', p.model!, Icons.car_rental_outlined));
+          list.add(const SizedBox(height: 4));
+        }
+        if (p.year != null && p.year! > 0) {
+          list.add(_buildCharacteristics('Année', '${p.year}', Icons.calendar_today_outlined));
+          list.add(const SizedBox(height: 4));
+        }
+        if (p.seats != null && p.seats! > 0) {
+          list.add(_buildCharacteristics('Places', '${p.seats}', Icons.event_seat_outlined));
+        }
+        break;
+      case 'event_hall':
+        if (p.capacity != null && p.capacity! > 0) {
+          list.add(_buildCharacteristics('Capacité', '${p.capacity} pers.', Icons.groups_outlined));
+        }
+        break;
+      case 'land':
+        if (p.landType != null && p.landType!.isNotEmpty) {
+          list.add(_buildCharacteristics('Type', p.landType!, Icons.landscape_outlined));
+          list.add(const SizedBox(height: 4));
+        }
+        if (p.squareMeters != null && p.squareMeters! > 0) {
+          list.add(_buildCharacteristics('Surface', '${p.squareMeters!.toInt()} m²', Icons.square_foot));
+        }
+        break;
+      default:
+        // Fallback: afficher la catégorie si rien d'autre
+        if (p.categoryName.isNotEmpty && list.isEmpty) {
+          list.add(_buildCharacteristics('Catégorie', p.categoryName, Icons.category_outlined));
+        }
+    }
+    return list;
+  }
+
   Widget _buildCharacteristics(String label, String value, IconData icon) {
     return Row(
       children: [
         Icon(
           icon,
-          size: 16,
+          size: 14,
           color: AppColors.textTertiary,
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 6),
         Text(
           '$label: ',
           style: const TextStyle(
-            fontSize: 14,
+            fontSize: 13,
             color: AppColors.textSecondary,
           ),
         ),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+        Flexible(
+          child: Text(
+            value,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
@@ -563,15 +625,17 @@ class PropertyShareButton extends StatelessWidget {
       final File file = File('${tempDir.path}/$fileName');
       await file.writeAsBytes(pngBytes);
 
-      // Partager l'image
+      // Texte adapté à la propriété (catégorie, type, prix, adresse)
+      final categoryLabel = property.categoryName.isNotEmpty ? '${property.categoryName} • ' : '';
       await Share.shareXFiles(
         [XFile(file.path)],
-        text: 'Découvrez cette propriété sur Futela !\n\n'
+        text: 'Découvrez cette annonce sur Futela !\n\n'
+              '$categoryLabel${property.typeDisplayName}\n'
               '${property.title}\n'
               '${property.formattedPrice}${property.type == 'for-rent' ? '/mois' : ''}\n'
               '${property.fullAddress}\n\n'
-              'Téléchargez l\'app Futela pour plus de propriétés !',
-        subject: 'Propriété Futela - ${property.title}',
+              'Téléchargez l\'app Futela pour plus d\'annonces !',
+        subject: 'Futela - ${property.categoryName.isNotEmpty ? property.categoryName : "Annonce"} : ${property.title}',
       );
     } catch (e) {
       if (context.mounted) {

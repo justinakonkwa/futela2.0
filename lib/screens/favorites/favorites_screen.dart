@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../utils/app_colors.dart';
 import '../../providers/favorite_provider.dart';
 import '../../widgets/favorite_property_card.dart';
+import '../../widgets/property_card_shimmer.dart';
 import '../../widgets/futela_logo.dart';
 import '../property/property_detail_screen.dart';
 import '../main_navigation.dart';
@@ -74,17 +75,15 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         builder: (context, favoriteProvider, child) {
           
           if (favoriteProvider.isLoading && favoriteProvider.favorites.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-                  ),
-                  SizedBox(height: 16),
-                  Text('Chargement de vos favoris...'),
-                ],
-              ),
+            return ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: 6,
+              itemBuilder: (context, index) {
+                return const Padding(
+                  padding: EdgeInsets.only(bottom: 16),
+                  child: PropertyCardShimmer(),
+                );
+              },
             );
           }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/app_colors.dart';
@@ -188,60 +189,64 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                 ),
                 const SizedBox(height: 20),
-                Row(
-                  children: [
-                    const Expanded(child: Divider(color: AppColors.grey300)),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        'ou',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.textTertiary,
-                        ),
-                      ),
-                    ),
-                    const Expanded(child: Divider(color: AppColors.grey300)),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Consumer<AuthProvider>(
-                  builder: (context, authProvider, child) {
-                    return SizedBox(
-                      height: 52,
-                      child: OutlinedButton.icon(
-                        onPressed: authProvider.isLoading
-                            ? null
-                            : () async {
-                                final success = await authProvider.signInWithGoogle();
-                                if (success && mounted) {
-                                  Navigator.of(context).pushReplacement(
-                                    MaterialPageRoute(
-                                      builder: (context) => const MainNavigation(),
-                                    ),
-                                  );
-                                } else if (mounted && authProvider.error != null) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(authProvider.error!),
-                                      backgroundColor: AppColors.error,
-                                    ),
-                                  );
-                                }
-                              },
-                        icon: const Icon(CupertinoIcons.globe, size: 22, color: AppColors.textPrimary),
-                        label: const Text('Continuer avec Google'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.textPrimary,
-                          side: const BorderSide(color: AppColors.grey300),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 16),
+                // Row(
+                //   children: [
+                //     const Expanded(child: Divider(color: AppColors.grey300)),
+                //     Padding(
+                //       padding: const EdgeInsets.symmetric(horizontal: 16),
+                //       child: Text(
+                //         'ou',
+                //         style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                //           color: AppColors.textTertiary,
+                //         ),
+                //       ),
+                //     ),
+                //     const Expanded(child: Divider(color: AppColors.grey300)),
+                //   ],
+                // ),
+                // const SizedBox(height: 20),
+                // Consumer<AuthProvider>(
+                //   builder: (context, authProvider, child) {
+                //     return SizedBox(
+                //       height: 52,
+                //       child: OutlinedButton.icon(
+                //         onPressed: authProvider.isLoading
+                //             ? null
+                //             : () async {
+                //                 final success = await authProvider.signInWithGoogle();
+                //                 if (success && mounted) {
+                //                   Navigator.of(context).pushReplacement(
+                //                     MaterialPageRoute(
+                //                       builder: (context) => const MainNavigation(),
+                //                     ),
+                //                   );
+                //                 } else if (mounted && authProvider.error != null) {
+                //                   ScaffoldMessenger.of(context).showSnackBar(
+                //                     SnackBar(
+                //                       content: Text(authProvider.error!),
+                //                       backgroundColor: AppColors.error,
+                //                     ),
+                //                   );
+                //                 }
+                //               },
+                //         icon: Icon(
+                //           PhosphorIcons.googleLogo(PhosphorIconsStyle.bold),
+                //           size: 22,
+                //           color: AppColors.textPrimary,
+                //         ),
+                //         label: const Text('Continuer avec Google'),
+                //         style: OutlinedButton.styleFrom(
+                //           foregroundColor: AppColors.textPrimary,
+                //           side: const BorderSide(color: AppColors.grey300),
+                //           shape: RoundedRectangleBorder(
+                //             borderRadius: BorderRadius.circular(14),
+                //           ),
+                //         ),
+                //       ),
+                //     );
+                //   },
+                // ),
+                // const SizedBox(height: 16),
                 SizedBox(
                   height: 52,
                   child: OutlinedButton.icon(

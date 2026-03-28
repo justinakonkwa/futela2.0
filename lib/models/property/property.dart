@@ -8,6 +8,8 @@ import 'property_photo.dart';
 class Property {
   final String id;
   final String type;
+  /// Annonce : `for_rent` ou `for_sale` (enum backend, une seule valeur).
+  final String? listingType;
   final String title;
   final String description;
   final double? pricePerDay;
@@ -88,6 +90,7 @@ class Property {
   Property({
     required this.id,
     required this.type,
+    this.listingType,
     required this.title,
     required this.description,
     this.pricePerDay,
@@ -152,6 +155,7 @@ class Property {
     return Property(
       id: json['id']?.toString() ?? '',
       type: json['type']?.toString() ?? '',
+      listingType: json['listingType']?.toString(),
       title: json['title']?.toString() ?? '',
       description: json['description']?.toString() ?? '',
       pricePerDay: (json['pricePerDay'] as num?)?.toDouble(),
@@ -287,6 +291,7 @@ class Property {
     return {
       'id': id,
       'type': type,
+      if (listingType != null && listingType!.isNotEmpty) 'listingType': listingType,
       'title': title,
       'description': description,
       'pricePerDay': pricePerDay,
@@ -377,6 +382,42 @@ class Property {
       default:
         return type;
     }
+  }
+
+  static String _normListingKey(String? s) =>
+      s?.toLowerCase().replaceAll('-', '_').trim() ?? '';
+
+  /// Valeur API pour formulaires (`for_rent` / `for_sale`).
+  String get listingTypeApiValue {
+    final n = _normListingKey(listingType);
+    if (n == 'for_rent' || n == 'forrent') return 'for_rent';
+    if (n == 'for_sale' || n == 'forsale') return 'for_sale';
+    if (type == 'for-rent') return 'for_rent';
+    if (type == 'for-sale') return 'for_sale';
+    return 'for_rent';
+  }
+
+  bool get isListingForRent {
+    final n = _normListingKey(listingType);
+    if (n == 'for_rent') return true;
+    if (n == 'for_sale') return false;
+    return type == 'for-rent';
+  }
+
+  /// Libellé badge image carte / fiche : priorité à [listingType], sinon catégorie bâtiment.
+  String get listingBadgeLabel {
+    final n = _normListingKey(listingType);
+    if (n == 'for_rent') return 'À louer';
+    if (n == 'for_sale') return 'À vendre';
+    return typeDisplayName;
+  }
+
+  /// Couleur badge : vert « à louer », sinon secondaire pour « à vendre » / autres.
+  bool get listingBadgeUseRentColors {
+    final n = _normListingKey(listingType);
+    if (n == 'for_rent') return true;
+    if (n == 'for_sale') return false;
+    return type == 'for-rent';
   }
 
   bool get isValidated => isPublished && isActive;

@@ -118,7 +118,7 @@ class _PropertyCardState extends State<PropertyCard> {
                       ),
                     ),
                     
-                    // Badge de type
+                    // Badge : listingType (à louer / à vendre) ou type de bien
                     Positioned(
                       top: 12,
                       left: 12,
@@ -128,13 +128,13 @@ class _PropertyCardState extends State<PropertyCard> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: widget.property.type == 'for-rent' 
-                              ? AppColors.primary 
+                          color: widget.property.listingBadgeUseRentColors
+                              ? AppColors.primary
                               : AppColors.secondary,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          widget.property.typeDisplayName,
+                          widget.property.listingBadgeLabel,
                           style: Theme.of(context).textTheme.labelSmall?.copyWith(
                             color: AppColors.white,
                             fontWeight: FontWeight.w600,

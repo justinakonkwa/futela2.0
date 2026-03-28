@@ -94,6 +94,6 @@ class BookingService {
   }
 
   Future<void> cancelVisit(String id) async {
-    await _dio.delete('/api/visits/$id');
+    await _dio.post('/api/visits/$id/cancel');
   }
 }

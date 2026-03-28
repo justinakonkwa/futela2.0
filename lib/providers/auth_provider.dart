@@ -154,6 +154,8 @@ class AuthProvider with ChangeNotifier {
       print("Logout error: $e");
     }
 
+    await _authService.signOutGoogleSilently();
+
     _user = null;
     _accessToken = null;
     _refreshToken = null;
@@ -175,7 +177,7 @@ class AuthProvider with ChangeNotifier {
     return this.login(login, password);
   }
 
-  /// Connexion via Google OAuth (POST /api/auth/google avec idToken).
+  /// Connexion via Google OAuth (POST /api/auth/google — corps `{ "idToken": "..." }`).
   Future<bool> signInWithGoogle() async {
     _isLoading = true;
     _error = null;

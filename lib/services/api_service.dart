@@ -749,8 +749,8 @@ class ApiService {
   }
 
   // Visits endpoints
-  /// Demande une visite (payload: propertyId, scheduledAt ISO, paymentAmount, paymentCurrency, paymentPhone).
-  static Future<String> createVisit(RequestVisitPayload payload) async {
+  /// POST /api/visits — retourne l’ID visite + éventuel paymentTransactionId (paiement FlexPay).
+  static Future<VisitCreateResult> createVisit(RequestVisitPayload payload) async {
     final url = '$fullBaseUrl/visits';
     final headers = await _getHeaders();
     final body = jsonEncode(payload.toJson());
@@ -771,13 +771,17 @@ class ApiService {
 
     if (response.statusCode == 201) {
       if (response.body.isEmpty) {
-        return 'visit_${DateTime.now().millisecondsSinceEpoch}';
+        return VisitCreateResult(
+          id: 'visit_${DateTime.now().millisecondsSinceEpoch}',
+        );
       }
       try {
-        final data = jsonDecode(response.body);
-        return data['id']?.toString() ?? 'visit_${DateTime.now().millisecondsSinceEpoch}';
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return VisitCreateResult.fromJson(data);
       } catch (e) {
-        return 'visit_${DateTime.now().millisecondsSinceEpoch}';
+        return VisitCreateResult(
+          id: 'visit_${DateTime.now().millisecondsSinceEpoch}',
+        );
       }
     } else if (response.statusCode == 409) {
       throw Exception('Conflit: Cette visite existe déjà');
@@ -795,39 +799,131 @@ class ApiService {
     }
   }
 
-  static Future<VisitResponse> getMyVisits({
-    String? direction,
-    String? cursor,
-    int? limit,
+  /// GET /api/me/visits (pagination v2 : page, itemsPerPage, status).
+  static Future<PaginatedVisitsResponse> getMyVisits({
+    int page = 1,
+    int itemsPerPage = 30,
+    String? status,
   }) async {
-    final queryParams = <String, String>{};
-    if (direction != null) queryParams['direction'] = direction;
-    if (cursor != null) queryParams['cursor'] = cursor;
-    if (limit != null) queryParams['limit'] = limit.toString();
+    final queryParams = <String, String>{
+      'page': '$page',
+      'itemsPerPage': '$itemsPerPage',
+    };
+    if (status != null && status.isNotEmpty) {
+      queryParams['status'] = status;
+    }
 
-    final uri = Uri.parse('$fullBaseUrl/visits/my-visits')
-        .replace(queryParameters: queryParams);
+    final uri = Uri.parse('$fullBaseUrl/me/visits').replace(
+      queryParameters: queryParams,
+    );
     final headers = await _getHeaders();
 
     print('📅 GET MY VISITS REQUEST');
     print('URL: ${uri.toString()}');
-    print('Headers: $headers');
-    print('Query: $queryParams');
 
     final response = await http.get(uri, headers: headers);
 
     print('📅 GET MY VISITS RESPONSE');
     print('Status Code: ${response.statusCode}');
-    print('Headers: ${response.headers}');
     print('Body: ${response.body}');
 
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return VisitResponse.fromJson(data);
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      return PaginatedVisitsResponse.fromJson(data);
     } else {
       throw Exception(
           'Erreur de récupération des visites: ${response.statusCode}');
     }
+  }
+
+  /// Polling paiement visite (guide migration §2).
+  static Future<VisitPaymentStatus> getVisitPaymentStatus(
+    String visitId,
+    String transactionId,
+  ) async {
+    final url =
+        '$fullBaseUrl/visits/$visitId/payment-status/$transactionId';
+    final headers = await _getHeaders();
+
+    // GET sans body : "payload" = URL + paramètres de chemin + en-têtes (hors token complet)
+    final safeHeaders = Map<String, String>.from(headers);
+    if (safeHeaders.containsKey('Authorization')) {
+      safeHeaders['Authorization'] = 'Bearer ***';
+    }
+    print('💳 GET VISIT PAYMENT STATUS (poll ~5s)');
+    print('  Method: GET');
+    print('  URL: $url');
+    print('  Path params: visitId=$visitId, transactionId=$transactionId');
+    print('  Headers: $safeHeaders');
+
+    final response = await http.get(Uri.parse(url), headers: headers);
+
+    print('💳 GET VISIT PAYMENT STATUS RESPONSE');
+    print('  Status: ${response.statusCode}');
+    print('  Body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final raw = jsonDecode(response.body) as Map<String, dynamic>;
+      final data = Map<String, dynamic>.from(raw);
+      data.putIfAbsent('visitId', () => visitId);
+      data.putIfAbsent('transactionId', () => transactionId);
+      final parsed = VisitPaymentStatus.fromJson(data);
+      print('💳 DÉTAIL PAIEMENT VISITE (objet parsé)');
+      print('  visitId: ${parsed.visitId}');
+      print('  transactionId: ${parsed.transactionId}');
+      print('  status (brut): ${parsed.status}');
+      print('  libellé: ${parsed.displayHeadline}');
+      print('  statusLabel: ${parsed.statusLabel}');
+      print('  message: ${parsed.message}');
+      print('  statusColor: ${parsed.statusColor}');
+      print('  isCompleted: ${parsed.isCompleted}');
+      print('  isFailed: ${parsed.isFailed}');
+      print('  isPending: ${parsed.isPending}');
+      print('  amount: ${parsed.amount} | currency: ${parsed.currency}');
+      print('  externalId: ${parsed.externalId}');
+      print('  paidAt (traitement): ${parsed.paidAt}');
+      return parsed;
+    }
+    if (response.statusCode == 404) {
+      throw Exception('Visite ou transaction introuvable');
+    }
+    throw Exception(
+        'Erreur statut paiement: ${response.statusCode} — ${response.body}');
+  }
+
+  /// POST /api/visits/{id}/cancel — remplace l’ancien DELETE /visits/{id}.
+  static Future<void> cancelVisit(String visitId) async {
+    final url = '$fullBaseUrl/visits/$visitId/cancel';
+    final headers = await _getHeaders();
+
+    print('📅 CANCEL VISIT REQUEST');
+    print('URL: $url');
+
+    final response = await http.post(
+      Uri.parse(url),
+      headers: headers,
+      body: jsonEncode(<String, dynamic>{}),
+    );
+
+    print('📅 CANCEL VISIT RESPONSE');
+    print('Status: ${response.statusCode}');
+    print('Body: ${response.body}');
+
+    if (response.statusCode == 200 ||
+        response.statusCode == 204 ||
+        response.statusCode == 201) {
+      return;
+    }
+    if (response.statusCode == 400) {
+      try {
+        final err = jsonDecode(response.body) as Map<String, dynamic>;
+        throw Exception(err['message']?.toString() ?? err['detail']?.toString() ?? response.body);
+      } catch (_) {
+        throw Exception(response.body);
+      }
+    }
+    throw Exception(
+        'Annulation impossible (${response.statusCode}): ${response.body}');
   }
 
   static Future<PaymentResponse> payVisit(

@@ -57,5 +57,25 @@
 	<string>Cette application a besoin d'accéder à votre appareil photo pour prendre des photos de propriétés.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Cette application a besoin d'accéder à votre galerie photo pour sélectionner des images de propriétés.</string>
+
+	<!-- Google Sign-In (SuperApp-style) : client Web pour l’id_token côté API -->
+	<key>GIDServerClientID</key>
+	<string>474613582555-etdekl4un7r2r11u08h1jv2jelg3br0q.apps.googleusercontent.com</string>
+	<!--
+	  CFBundleURLTypes : utiliser le REVERSED_CLIENT_ID du client OAuth **iOS** (pas Web).
+	  Tant que kGoogleIosClientId est vide dans Dart, ce schéma Web peut aider en dev ;
+	  en cas d’erreur iOS, créer un client iOS et suivre GOOGLE_SIGNIN_IOS.md.
+	-->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.474613582555-etdekl4un7r2r11u08h1jv2jelg3br0q</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

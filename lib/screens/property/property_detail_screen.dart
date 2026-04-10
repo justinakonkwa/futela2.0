@@ -24,6 +24,7 @@ import 'add_property_screen.dart';
 import '../../providers/favorite_provider.dart';
 import '../../providers/review_provider.dart';
 import '../property/property_reviews_screen.dart';
+import '../user/public_profile_screen.dart';
 
 class PropertyDetailScreen extends StatefulWidget {
   final String propertyId;
@@ -48,9 +49,15 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
   void initState() {
     super.initState();
     _pageController = PageController();
-    // Différer le chargement après le build pour éviter setState() pendant build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadProperty();
+      // Charger les 2 derniers avis pour la section aperçu
+      final reviewProvider = Provider.of<ReviewProvider>(context, listen: false);
+      reviewProvider.reset();
+      reviewProvider.loadReviews(
+        propertyId: widget.propertyId,
+        refresh: true,
+      );
     });
   }
 
@@ -1767,9 +1774,104 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                 ],
               ),
 
-              // Les 2 derniers avis - Affichage simple sans chargement automatique
-              if (property.reviewCount > 0) ...[
+              // Les 2 derniers avis depuis le provider
+              if (reviewProvider.isLoading && reviewProvider.reviews.isEmpty) ...[
                 const SizedBox(height: 16),
+                const Center(
+                  child: SizedBox(
+                    width: 24, height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.warning),
+                    ),
+                  ),
+                ),
+              ] else if (reviewProvider.reviews.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                ...reviewProvider.reviews.take(2).map((review) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.border.withValues(alpha: 0.3)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 16,
+                              backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                              child: Text(
+                                review.userName.isNotEmpty ? review.userName[0].toUpperCase() : 'U',
+                                style: const TextStyle(
+                                  fontFamily: 'Gilroy',
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                review.userName,
+                                style: const TextStyle(
+                                  fontFamily: 'Gilroy',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: AppColors.warning.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.star_rounded, size: 14, color: AppColors.warning),
+                                  const SizedBox(width: 3),
+                                  Text(
+                                    '${review.rating}',
+                                    style: const TextStyle(
+                                      fontFamily: 'Gilroy',
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.warning,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        if ((review.comment ?? '').isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            review.comment!,
+                            style: const TextStyle(
+                              fontFamily: 'Gilroy',
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.textSecondary,
+                              height: 1.4,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                )).toList(),
+                const SizedBox(height: 8),
                 Center(
                   child: Container(
                     decoration: BoxDecoration(
@@ -1788,27 +1890,22 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => PropertyReviewsScreen(
-                                propertyId: property.id,
-                                propertyTitle: property.title,
-                              ),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => PropertyReviewsScreen(
+                              propertyId: property.id,
+                              propertyTitle: property.title,
                             ),
-                          );
-                        },
+                          ),
+                        ),
                         borderRadius: BorderRadius.circular(12),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               const Text(
-                                'Voir les avis',
+                                'Voir tous les avis',
                                 style: TextStyle(
                                   fontFamily: 'Gilroy',
                                   fontSize: 14,
@@ -1816,22 +1913,8 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                                   color: AppColors.white,
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              Text(
-                                '(${property.reviewCount})',
-                                style: const TextStyle(
-                                  fontFamily: 'Gilroy',
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.white,
-                                ),
-                              ),
                               const SizedBox(width: 6),
-                              const Icon(
-                                Icons.arrow_forward_rounded,
-                                color: AppColors.white,
-                                size: 18,
-                              ),
+                              const Icon(Icons.arrow_forward_rounded, color: AppColors.white, size: 18),
                             ],
                           ),
                         ),
@@ -1864,6 +1947,59 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textSecondary,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Bouton "Laisser le premier avis" même si reviewCount == 0
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          gradient: const LinearGradient(
+                            colors: [AppColors.primary, AppColors.primaryDark],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withValues(alpha: 0.3),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => PropertyReviewsScreen(
+                                  propertyId: property.id,
+                                  propertyTitle: property.title,
+                                ),
+                              ),
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 12,
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.rate_review_rounded, color: AppColors.white, size: 18),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Laisser le premier avis',
+                                    style: TextStyle(
+                                      fontFamily: 'Gilroy',
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -2065,10 +2201,10 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.5)),
+        border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadow.withOpacity(0.05),
+            color: AppColors.shadow.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -2079,18 +2215,29 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
           Container(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: AppColors.primary.withOpacity(0.2), width: 2),
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primary.withValues(alpha: 0.2),
+                  AppColors.primaryLight.withValues(alpha: 0.1),
+                ],
+              ),
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.3),
+                width: 2,
+              ),
             ),
             child: CircleAvatar(
-              radius: 30,
-              backgroundColor: AppColors.primary.withOpacity(0.1),
+              radius: 28,
+              backgroundColor: AppColors.primary.withValues(alpha: 0.1),
               child: Text(
                 property.ownerName.isNotEmpty
                     ? property.ownerName[0].toUpperCase()
                     : 'U',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                style: const TextStyle(
+                  fontFamily: 'Gilroy',
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
                   color: AppColors.primary,
-                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),
@@ -2100,28 +2247,77 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Text(
-                      'Propriétaire',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    // Note: La vérification du propriétaire n'est pas disponible dans le modèle Property actuel
-                    // Si nécessaire, ajouter un champ isOwnerVerified dans Property
-                  ],
+                const Text(
+                  'Commissionnaire',
+                  style: TextStyle(
+                    fontFamily: 'Gilroy',
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textTertiary,
+                    letterSpacing: 0.3,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   property.ownerName,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  style: const TextStyle(
+                    fontFamily: 'Gilroy',
+                    fontSize: 17,
                     fontWeight: FontWeight.w700,
-                    color: Theme.of(context).colorScheme.onSurface,
+                    letterSpacing: -0.2,
+                    color: AppColors.textPrimary,
                   ),
                 ),
               ],
+            ),
+          ),
+          // Bouton voir le profil
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              gradient: const LinearGradient(
+                colors: [AppColors.primary, AppColors.primaryDark],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.3),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => PublicProfileScreen(
+                      userId: property.ownerId,
+                      ownerName: property.ownerName,
+                    ),
+                  ),
+                ),
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.person_rounded, color: AppColors.white, size: 18),
+                      SizedBox(width: 6),
+                      Text(
+                        'Voir profil',
+                        style: TextStyle(
+                          fontFamily: 'Gilroy',
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         ],

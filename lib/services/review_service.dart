@@ -5,34 +5,56 @@ import 'api_client.dart';
 class ReviewService {
   final Dio _dio = ApiClient().dio;
 
+  /// POST /api/properties/{propertyId}/reviews
+  Future<void> submitReview({
+    required String propertyId,
+    required int rating,
+    String? comment,
+    bool wouldRecommend = true,
+  }) async {
+    try {
+      await _dio.post(
+        '/api/properties/$propertyId/reviews',
+        data: {
+          'rating': rating,
+          'comment': comment ?? '',
+          'wouldRecommend': wouldRecommend,
+        },
+      );
+    } on DioException catch (e) {
+      String msg = 'Erreur serveur (${e.response?.statusCode})';
+      try {
+        final responseData = e.response?.data;
+        if (responseData is Map<String, dynamic>) {
+          msg = (responseData['message'] ?? responseData['detail'] ?? responseData['error'] ?? msg).toString();
+        }
+      } catch (_) {}
+      throw Exception(msg);
+    }
+  }
+
   /// GET /api/properties/{propertyId}/reviews
   Future<ReviewsResponse> getPropertyReviews({
     required String propertyId,
     int page = 1,
-    String? orderRating, // 'asc' ou 'desc'
+    String? orderRating,
   }) async {
-    print('📝 GET PROPERTY REVIEWS');
-    print('Property ID: $propertyId');
-    print('Page: $page');
-
     try {
-      final queryParams = <String, dynamic>{
-        'page': page,
-      };
-
-      if (orderRating != null) {
-        queryParams['order[rating]'] = orderRating;
-      }
+      final queryParams = <String, dynamic>{'page': page};
+      if (orderRating != null) queryParams['order[rating]'] = orderRating;
 
       final response = await _dio.get(
         '/api/properties/$propertyId/reviews',
         queryParameters: queryParams,
       );
 
-      print('✅ Reviews loaded: ${response.statusCode}');
-      return ReviewsResponse.fromJson(response.data as Map<String, dynamic>);
+      // L'API retourne [] directement ou {member: [...]}
+      final data = response.data;
+      if (data is List) {
+        return ReviewsResponse.fromList(data);
+      }
+      return ReviewsResponse.fromJson(data as Map<String, dynamic>);
     } on DioException catch (e) {
-      print('❌ Error loading reviews: ${e.message}');
       throw Exception('Erreur lors du chargement des avis: ${e.message}');
     }
   }
@@ -41,18 +63,12 @@ class ReviewService {
   Future<Map<String, dynamic>> getAverageRating({
     required String propertyId,
   }) async {
-    print('⭐ GET AVERAGE RATING');
-    print('Property ID: $propertyId');
-
     try {
-      final response = await _dio.get(
-        '/api/properties/$propertyId/reviews/average',
-      );
-
-      print('✅ Average rating loaded: ${response.statusCode}');
-      return response.data as Map<String, dynamic>;
+      final response = await _dio.get('/api/properties/$propertyId/reviews/average');
+      final data = response.data;
+      if (data is List) return {};
+      return data as Map<String, dynamic>;
     } on DioException catch (e) {
-      print('❌ Error loading average rating: ${e.message}');
       throw Exception('Erreur lors du chargement de la note moyenne: ${e.message}');
     }
   }
@@ -61,18 +77,24 @@ class ReviewService {
   Future<ReviewStats> getReviewStats({
     required String propertyId,
   }) async {
-    print('📊 GET REVIEW STATS');
-    print('Property ID: $propertyId');
-
     try {
-      final response = await _dio.get(
-        '/api/properties/$propertyId/reviews/stats',
-      );
+      final response = await _dio.get('/api/properties/$propertyId/reviews/stats');
+      final data = response.data;
 
-      print('✅ Review stats loaded: ${response.statusCode}');
-      return ReviewStats.fromJson(response.data as Map<String, dynamic>);
+      // L'API peut retourner [] si aucun avis
+      if (data is List) {
+        return ReviewStats(
+          propertyId: propertyId,
+          totalReviews: 0,
+          averageRating: 0.0,
+          ratingDistribution: {},
+          recommendationRate: 0,
+          topPros: [],
+          topCons: [],
+        );
+      }
+      return ReviewStats.fromJson(data as Map<String, dynamic>);
     } on DioException catch (e) {
-      print('❌ Error loading review stats: ${e.message}');
       throw Exception('Erreur lors du chargement des statistiques: ${e.message}');
     }
   }

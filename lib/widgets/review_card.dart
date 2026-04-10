@@ -13,19 +13,19 @@ class ReviewCard extends StatelessWidget {
     final df = DateFormat('dd/MM/yyyy');
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: AppColors.border.withValues(alpha: 0.5),
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadow.withValues(alpha: 0.06),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: AppColors.shadow.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -36,7 +36,7 @@ class ReviewCard extends StatelessWidget {
           Row(
             children: [
               CircleAvatar(
-                radius: 20,
+                radius: 17,
                 backgroundColor: AppColors.primary.withValues(alpha: 0.15),
                 backgroundImage: review.userAvatar != null
                     ? NetworkImage(review.userAvatar!)
@@ -48,14 +48,14 @@ class ReviewCard extends StatelessWidget {
                             : 'U',
                         style: const TextStyle(
                           fontFamily: 'Gilroy',
-                          fontSize: 16,
+                          fontSize: 13,
                           fontWeight: FontWeight.w700,
                           color: AppColors.primary,
                         ),
                       )
                     : null,
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,17 +64,17 @@ class ReviewCard extends StatelessWidget {
                       review.userName,
                       style: const TextStyle(
                         fontFamily: 'Gilroy',
-                        fontSize: 15,
+                        fontSize: 13,
                         fontWeight: FontWeight.w700,
                         color: AppColors.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 1),
                     Text(
                       df.format(review.createdAt),
                       style: const TextStyle(
                         fontFamily: 'Gilroy',
-                        fontSize: 12,
+                        fontSize: 11,
                         fontWeight: FontWeight.w500,
                         color: AppColors.textSecondary,
                       ),
@@ -84,27 +84,23 @@ class ReviewCard extends StatelessWidget {
               ),
               // Note
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [AppColors.warning, Color(0xFFFFA726)],
                   ),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
-                      Icons.star_rounded,
-                      size: 16,
-                      color: AppColors.white,
-                    ),
-                    const SizedBox(width: 4),
+                    const Icon(Icons.star_rounded, size: 13, color: AppColors.white),
+                    const SizedBox(width: 3),
                     Text(
                       review.rating.toString(),
                       style: const TextStyle(
                         fontFamily: 'Gilroy',
-                        fontSize: 14,
+                        fontSize: 12,
                         fontWeight: FontWeight.w700,
                         color: AppColors.white,
                       ),
@@ -116,104 +112,46 @@ class ReviewCard extends StatelessWidget {
           ),
 
           if (review.comment != null && review.comment!.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
+            if (review.title != null && review.title!.isNotEmpty) ...[
+              Text(
+                review.title!,
+                style: const TextStyle(
+                  fontFamily: 'Gilroy',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 4),
+            ],
             Text(
               review.comment!,
               style: const TextStyle(
                 fontFamily: 'Gilroy',
-                fontSize: 14,
+                fontSize: 13,
                 fontWeight: FontWeight.w500,
                 color: AppColors.textPrimary,
-                height: 1.5,
+                height: 1.4,
+              ),
+            ),
+          ] else if (review.title != null && review.title!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              review.title!,
+              style: const TextStyle(
+                fontFamily: 'Gilroy',
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
               ),
             ),
           ],
 
-          if (review.pros.isNotEmpty || review.cons.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            if (review.pros.isNotEmpty) ...[
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: review.pros.map((pro) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppColors.success.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: AppColors.success.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.check_circle_rounded,
-                          size: 14,
-                          color: AppColors.success,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          pro,
-                          style: const TextStyle(
-                            fontFamily: 'Gilroy',
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.success,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-              ),
-            ],
-            if (review.cons.isNotEmpty) ...[
-              const SizedBox(height: 6),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: review.cons.map((con) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppColors.error.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: AppColors.error.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.cancel_rounded,
-                          size: 14,
-                          color: AppColors.error,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          con,
-                          style: const TextStyle(
-                            fontFamily: 'Gilroy',
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.error,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-              ),
-            ],
-          ],
-
           if (review.wouldRecommend) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               decoration: BoxDecoration(
                 color: AppColors.info.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(8),
@@ -221,17 +159,13 @@ class ReviewCard extends StatelessWidget {
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    Icons.thumb_up_rounded,
-                    size: 14,
-                    color: AppColors.info,
-                  ),
-                  SizedBox(width: 6),
+                  Icon(Icons.thumb_up_rounded, size: 12, color: AppColors.info),
+                  SizedBox(width: 5),
                   Text(
                     'Recommande cette propriété',
                     style: TextStyle(
                       fontFamily: 'Gilroy',
-                      fontSize: 12,
+                      fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: AppColors.info,
                     ),

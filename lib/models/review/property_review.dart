@@ -1,64 +1,48 @@
 class PropertyReview {
   final String id;
   final String propertyId;
+  final String? propertyTitle;
   final String userId;
   final String userName;
   final String? userAvatar;
   final int rating;
+  final String? title;
   final String? comment;
-  final List<String> pros;
-  final List<String> cons;
   final bool wouldRecommend;
+  final String? status;
   final DateTime createdAt;
-  final DateTime? updatedAt;
 
   PropertyReview({
     required this.id,
     required this.propertyId,
+    this.propertyTitle,
     required this.userId,
     required this.userName,
     this.userAvatar,
     required this.rating,
+    this.title,
     this.comment,
-    required this.pros,
-    required this.cons,
     required this.wouldRecommend,
+    this.status,
     required this.createdAt,
-    this.updatedAt,
   });
 
   factory PropertyReview.fromJson(Map<String, dynamic> json) {
     return PropertyReview(
-      id: json['id'] as String,
-      propertyId: json['propertyId'] as String,
-      userId: json['userId'] as String,
-      userName: json['userName'] as String? ?? 'Utilisateur',
-      userAvatar: json['userAvatar'] as String?,
-      rating: json['rating'] as int,
-      comment: json['comment'] as String?,
-      pros: (json['pros'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
-      cons: (json['cons'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
+      id: json['id']?.toString() ?? '',
+      propertyId: json['propertyId']?.toString() ?? '',
+      propertyTitle: json['propertyTitle']?.toString(),
+      // L'API retourne reviewerId/reviewerName
+      userId: (json['reviewerId'] ?? json['userId'])?.toString() ?? '',
+      userName: (json['reviewerName'] ?? json['userName'])?.toString() ?? 'Utilisateur',
+      userAvatar: json['userAvatar']?.toString(),
+      rating: (json['rating'] as num?)?.toInt() ?? 0,
+      title: json['title']?.toString(),
+      comment: json['comment']?.toString(),
       wouldRecommend: json['wouldRecommend'] as bool? ?? false,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: json['updatedAt'] != null ? DateTime.parse(json['updatedAt'] as String) : null,
+      status: json['status']?.toString(),
+      createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ?? DateTime.now(),
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'propertyId': propertyId,
-      'userId': userId,
-      'userName': userName,
-      'userAvatar': userAvatar,
-      'rating': rating,
-      'comment': comment,
-      'pros': pros,
-      'cons': cons,
-      'wouldRecommend': wouldRecommend,
-      'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt?.toIso8601String(),
-    };
   }
 }
 
@@ -82,20 +66,23 @@ class ReviewStats {
   });
 
   factory ReviewStats.fromJson(Map<String, dynamic> json) {
-    final ratingDist = json['ratingDistribution'] as Map<String, dynamic>? ?? {};
+    final ratingDist = json['ratingDistribution'];
     final Map<int, int> distribution = {};
-    ratingDist.forEach((key, value) {
-      distribution[int.parse(key)] = value as int;
-    });
+    if (ratingDist is Map) {
+      ratingDist.forEach((key, value) {
+        final k = int.tryParse(key.toString());
+        if (k != null) distribution[k] = (value as num?)?.toInt() ?? 0;
+      });
+    }
 
     return ReviewStats(
-      propertyId: json['propertyId'] as String,
-      totalReviews: json['totalReviews'] as int? ?? 0,
+      propertyId: json['propertyId']?.toString() ?? '',
+      totalReviews: (json['totalReviews'] as num?)?.toInt() ?? 0,
       averageRating: (json['averageRating'] as num?)?.toDouble() ?? 0.0,
       ratingDistribution: distribution,
-      recommendationRate: json['recommendationRate'] as int? ?? 0,
-      topPros: (json['topPros'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
-      topCons: (json['topCons'] as List<dynamic>?)?.map((e) => e as String).toList() ?? [],
+      recommendationRate: (json['recommendationRate'] as num?)?.toInt() ?? 0,
+      topPros: (json['topPros'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
+      topCons: (json['topCons'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
     );
   }
 }
@@ -121,11 +108,29 @@ class ReviewsResponse {
     final member = json['member'] as List<dynamic>? ?? [];
     return ReviewsResponse(
       reviews: member.map((e) => PropertyReview.fromJson(e as Map<String, dynamic>)).toList(),
-      totalItems: json['totalItems'] as int? ?? 0,
-      page: json['page'] as int? ?? 1,
-      itemsPerPage: json['itemsPerPage'] as int? ?? 30,
-      totalPages: json['totalPages'] as int? ?? 0,
+      totalItems: (json['totalItems'] as num?)?.toInt() ?? 0,
+      page: (json['page'] as num?)?.toInt() ?? 1,
+      itemsPerPage: (json['itemsPerPage'] as num?)?.toInt() ?? 30,
+      totalPages: (json['totalPages'] as num?)?.toInt() ?? 0,
       averageRating: (json['averageRating'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+
+  /// Depuis une liste directe (quand l'API retourne [] au lieu de {member: []})
+  factory ReviewsResponse.fromList(List<dynamic> list) {
+    final reviews = list
+        .whereType<Map<String, dynamic>>()
+        .map((e) => PropertyReview.fromJson(e))
+        .toList();
+    return ReviewsResponse(
+      reviews: reviews,
+      totalItems: reviews.length,
+      page: 1,
+      itemsPerPage: 30,
+      totalPages: reviews.isEmpty ? 0 : 1,
+      averageRating: reviews.isEmpty
+          ? 0.0
+          : reviews.map((r) => r.rating).reduce((a, b) => a + b) / reviews.length,
     );
   }
 }

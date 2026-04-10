@@ -8,6 +8,7 @@ class ReviewProvider with ChangeNotifier {
   List<PropertyReview> _reviews = [];
   ReviewStats? _stats;
   bool _isLoading = false;
+  bool _isSubmitting = false;
   String? _error;
 
   int _currentPage = 1;
@@ -18,6 +19,7 @@ class ReviewProvider with ChangeNotifier {
   List<PropertyReview> get reviews => _reviews;
   ReviewStats? get stats => _stats;
   bool get isLoading => _isLoading;
+  bool get isSubmitting => _isSubmitting;
   String? get error => _error;
   int get currentPage => _currentPage;
   int get totalPages => _totalPages;
@@ -87,6 +89,35 @@ class ReviewProvider with ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print('Error loading stats: $e');
+    }
+  }
+
+  /// Soumettre un avis
+  Future<bool> submitReview({
+    required String propertyId,
+    required int rating,
+    String? comment,
+    bool wouldRecommend = true,
+  }) async {
+    _isSubmitting = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      await _reviewService.submitReview(
+        propertyId: propertyId,
+        rating: rating,
+        comment: comment,
+        wouldRecommend: wouldRecommend,
+      );
+      _isSubmitting = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString().replaceAll('Exception: ', '');
+      _isSubmitting = false;
+      notifyListeners();
+      return false;
     }
   }
 

@@ -15,7 +15,7 @@ const String kGoogleWebClientId =
 ///
 /// Tant que cette chaîne est vide, seul `serverClientId` (Web) est utilisé sur iOS
 /// (peut suffire selon version du SDK ; en cas d’erreur audience / redirect, remplir iOS).
-const String kGoogleIosClientId = '';
+const String kGoogleIosClientId = '474613582555-hhr7atbpp8uesekpevt69gav51a8ep5c.apps.googleusercontent.com';
 
 /// Endpoint (chemin relatif à la base API).
 const String kGoogleLoginPath = '/api/auth/google';

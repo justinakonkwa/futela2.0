@@ -1,0 +1,43 @@
+{
+  "project_info": {
+    "project_number": "474613582555",
+    "project_id": "futela",
+    "storage_bucket": "futela.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:474613582555:android:android_app_id_here",
+        "android_client_info": {
+          "package_name": "com.naara.futela"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "474613582555-t7p56t9dejfjfa2fovv8f4jc7ospogbm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.naara.futela",
+            "certificate_hash": "YOUR_SHA1_FINGERPRINT_HERE"
+          }
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "YOUR_API_KEY_HERE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "474613582555-etdekl4un7r2r11u08h1jv2jelg3br0q.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

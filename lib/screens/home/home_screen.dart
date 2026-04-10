@@ -6,11 +6,11 @@ import '../../providers/favorite_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/role_permissions.dart';
+import '../../utils/auth_helper.dart';
 import '../../widgets/property_card.dart';
 import '../../widgets/property_card_shimmer.dart';
 import '../../widgets/search_bar_widget.dart';
 import '../../widgets/category_chips.dart';
-import '../../widgets/custom_button.dart';
 import '../../widgets/futela_logo.dart';
 import '../property/property_detail_screen.dart';
 import '../property/add_property_screen.dart';
@@ -46,8 +46,11 @@ class _HomeScreenState extends State<HomeScreen> {
       final locationProvider = Provider.of<LocationProvider>(context, listen: false);
       final favoriteProvider = Provider.of<FavoriteProvider>(context, listen: false);
 
-      propertyProvider.loadHomeProperties(refresh: true);
-      propertyProvider.loadCategories();
+      // Charger les catégories en premier
+      propertyProvider.loadCategories().then((_) {
+        // Puis charger les propriétés
+        propertyProvider.loadHomeProperties(refresh: true);
+      });
       propertyProvider.loadProvinces();
       locationProvider.getCurrentLocation();
       favoriteProvider.loadLocalFavorites();
@@ -77,121 +80,192 @@ class _HomeScreenState extends State<HomeScreen> {
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async => _refreshData(),
+          color: AppColors.primary,
           child: CustomScrollView(
             controller: _scrollController,
             slivers: [
-              // App Bar avec recherche
+              // App Bar moderne avec header élégant
               SliverAppBar(
-                expandedHeight: 140,
+                expandedHeight: 160,
                 floating: true,
                 pinned: true,
-                backgroundColor: Theme.of(context).appBarTheme.backgroundColor ?? Theme.of(context).colorScheme.surface,
+                backgroundColor: AppColors.white,
                 elevation: 0,
-                actions: [
-                  // Bouton pour créer une propriété
-                  Consumer<AuthProvider>(
-                    builder: (context, authProvider, child) {
-                      if (authProvider.user != null && RolePermissions.canAddProperties(authProvider.user!)) {
-                        return Container(
-                          margin: const EdgeInsets.only(right: 8, top: 8),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: IconButton(
-                            onPressed: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => const AddPropertyScreen(),
-                                ),
-                              );
-                            },
-                            icon: const Icon(
-                              Icons.add,
-                              color: AppColors.primary,
-                              size: 24,
-                            ),
-                            tooltip: 'Créer une propriété',
-                          ),
-                        );
-                      }
-                      return const SizedBox.shrink();
-                    },
-                  ),
-                  // Icône de notification
-                  Container(
-                    margin: const EdgeInsets.only(right: 16, top: 8),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: IconButton(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const NotificationsScreen(),
-                          ),
-                        );
-                      },
-                      icon: const Icon(
-                        Icons.notifications_outlined,
-                        color: AppColors.primary,
-                        size: 24,
-                      ),
-                    ),
-                  ),
-                ],
                 flexibleSpace: FlexibleSpaceBar(
                   background: Container(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Bonjour ! 👋',
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          AppColors.primary.withOpacity(0.08),
+                          AppColors.primaryLight.withOpacity(0.04),
+                        ],
+                      ),
+                    ),
+                    child: SafeArea(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(10, 8, 10, 0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Bonjour ! 👋',
+                                        style: const TextStyle(
+                                          fontFamily: 'Gilroy',
+                                          fontSize: 28,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColors.textPrimary,
+                                          letterSpacing: -0.5,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Trouvez votre maison de rêve',
+                                        style: const TextStyle(
+                                          fontFamily: 'Gilroy',
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w500,
+                                          color: AppColors.textSecondary,
+                                          height: 1.4,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                // Actions groupées
+                                Row(
+                                  children: [
+                                    // Bouton pour créer une propriété
+                                    Consumer<AuthProvider>(
+                                      builder: (context, authProvider, child) {
+                                        if (authProvider.user != null && RolePermissions.canAddProperties(authProvider.user!)) {
+                                          return Container(
+                                            margin: const EdgeInsets.only(right: 8),
+                                            decoration: BoxDecoration(
+                                              color: AppColors.white,
+                                              borderRadius: BorderRadius.circular(14),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: AppColors.primary.withOpacity(0.15),
+                                                  blurRadius: 12,
+                                                  offset: const Offset(0, 4),
+                                                ),
+                                              ],
+                                            ),
+                                            child: Material(
+                                              color: Colors.transparent,
+                                              child: InkWell(
+                                                onTap: () {
+                                                  Navigator.of(context).push(
+                                                    MaterialPageRoute(
+                                                      builder: (context) => const AddPropertyScreen(),
+                                                    ),
+                                                  );
+                                                },
+                                                borderRadius: BorderRadius.circular(14),
+                                                child: Container(
+                                                  padding: const EdgeInsets.all(12),
+                                                  child: const Icon(
+                                                    Icons.add_rounded,
+                                                    color: AppColors.primary,
+                                                    size: 24,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                        return const SizedBox.shrink();
+                                      },
+                                    ),
+                                    // Icône de notification
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color: AppColors.white,
+                                        borderRadius: BorderRadius.circular(14),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: AppColors.primary.withOpacity(0.15),
+                                            blurRadius: 12,
+                                            offset: const Offset(0, 4),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Material(
+                                        color: Colors.transparent,
+                                        child: InkWell(
+                                          onTap: () {
+                                            Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                builder: (context) => const NotificationsScreen(),
+                                              ),
+                                            );
+                                          },
+                                          borderRadius: BorderRadius.circular(14),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(12),
+                                            child: const Icon(
+                                              Icons.notifications_outlined,
+                                              color: AppColors.primary,
+                                              size: 24,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Trouvez votre maison de rêve',
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
                 bottom: PreferredSize(
-                  preferredSize: const Size.fromHeight(60),
+                  preferredSize: const Size.fromHeight(68),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.fromLTRB(10, 0, 10, 16),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          AppColors.primary.withOpacity(0.08),
+                          AppColors.primaryLight.withOpacity(0.04),
+                        ],
+                      ),
+                    ),
                     child: const SearchBarWidget(),
                   ),
                 ),
               ),
 
-              // Catégories
+              // Catégories avec design amélioré
               SliverToBoxAdapter(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 20),
                   child: CategoryChips(
                     selectedCategory: _selectedCategory,
-                    onCategorySelected: (categoryId) {
-                      print('🏷️ CATEGORY SELECTED on HomeScreen');
-                      print('Category ID: $categoryId');
-                      print('Previous selected category: $_selectedCategory');
+                    onCategorySelected: (categoryName) {
+                      print('🔥 HOME - Category selected: "$categoryName"');
                       setState(() {
-                        _selectedCategory = categoryId;
+                        _selectedCategory = categoryName;
                       });
-                      print('✅ Updated _selectedCategory to: $_selectedCategory');
+                      
                       final propertyProvider = Provider.of<PropertyProvider>(context, listen: false);
-                      print('🔄 Loading properties with category filter: $_selectedCategory');
+                      
+                      print('🔥 HOME - Calling loadHomeProperties with categoryId: "$categoryName"');
                       propertyProvider.loadHomeProperties(
-                        categoryId: _selectedCategory,
+                        categoryId: categoryName,
                         refresh: true,
                       );
                     },
@@ -199,12 +273,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-              // Liste des propriétés
+              // Liste des propriétés avec design amélioré
               Consumer<PropertyProvider>(
                 builder: (context, propertyProvider, child) {
-                  if (propertyProvider.isLoading && propertyProvider.properties.isEmpty) {
+                  if (propertyProvider.isLoading && propertyProvider.homeProperties.isEmpty) {
                     return SliverPadding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
                       sliver: SliverList(
                         delegate: SliverChildBuilderDelegate(
                           (context, index) {
@@ -213,97 +287,230 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: PropertyCardShimmer(),
                             );
                           },
-                          childCount: 6, // Afficher 6 cartes shimmer
+                          childCount: 6,
                         ),
                       ),
                     );
                   }
 
-                  if (propertyProvider.error != null && propertyProvider.properties.isEmpty) {
+                  if (propertyProvider.error != null && propertyProvider.homeProperties.isEmpty) {
                     return SliverFillRemaining(
                       hasScrollBody: false,
                       child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.error_outline,
-                              size: 64,
-                              color: AppColors.error,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Erreur de chargement',
-                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                color: AppColors.textPrimary,
+                        child: Padding(
+                          padding: const EdgeInsets.all(32),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(24),
+                                decoration: BoxDecoration(
+                                  color: AppColors.error.withOpacity(0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.error_outline_rounded,
+                                  size: 64,
+                                  color: AppColors.error,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              propertyProvider.error!,
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: AppColors.textSecondary,
+                              const SizedBox(height: 24),
+                              Text(
+                                'Erreur de chargement',
+                                style: const TextStyle(
+                                  fontFamily: 'Gilroy',
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textPrimary,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 24),
-                            CustomButton(
-                              text: 'Réessayer',
-                              onPressed: _refreshData,
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }
-
-                  if (propertyProvider.properties.isEmpty) {
-                    return SliverFillRemaining(
-                      hasScrollBody: false,
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            // Logo Futela
-                            const FutelaLogo(size: 80),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Aucune propriété trouvée',
-                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                color: AppColors.textPrimary,
+                              const SizedBox(height: 12),
+                              Text(
+                                propertyProvider.error!,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontFamily: 'Gilroy',
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.textSecondary,
+                                  height: 1.5,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Soyez le premier à ajouter une propriété !',
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                            CustomButton(
-                              text: 'Ajouter une propriété',
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => const AddPropertyScreen(),
+                              const SizedBox(height: 32),
+                              Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      AppColors.primary,
+                                      AppColors.primaryDark,
+                                    ],
                                   ),
-                                );
-                              },
-                            ),
-                          ],
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.primary.withOpacity(0.3),
+                                      blurRadius: 20,
+                                      offset: const Offset(0, 8),
+                                    ),
+                                  ],
+                                ),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: _refreshData,
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: const [
+                                          Icon(
+                                            Icons.refresh_rounded,
+                                            color: AppColors.white,
+                                            size: 22,
+                                          ),
+                                          SizedBox(width: 10),
+                                          Text(
+                                            'Réessayer',
+                                            style: TextStyle(
+                                              fontFamily: 'Gilroy',
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w700,
+                                              color: AppColors.white,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+
+                  if (propertyProvider.homeProperties.isEmpty) {
+                    return SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(32),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(24),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      AppColors.primary.withOpacity(0.15),
+                                      AppColors.primaryLight.withOpacity(0.08),
+                                    ],
+                                  ),
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.primary.withOpacity(0.2),
+                                      blurRadius: 30,
+                                      offset: const Offset(0, 10),
+                                    ),
+                                  ],
+                                ),
+                                child: const FutelaLogo(size: 80),
+                              ),
+                              const SizedBox(height: 28),
+                              Text(
+                                'Aucune propriété trouvée',
+                                style: const TextStyle(
+                                  fontFamily: 'Gilroy',
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'Soyez le premier à ajouter une propriété !',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontFamily: 'Gilroy',
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.textSecondary,
+                                  height: 1.5,
+                                ),
+                              ),
+                              const SizedBox(height: 32),
+                              Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      AppColors.primary,
+                                      AppColors.primaryDark,
+                                    ],
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.primary.withOpacity(0.3),
+                                      blurRadius: 20,
+                                      offset: const Offset(0, 8),
+                                    ),
+                                  ],
+                                ),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) => const AddPropertyScreen(),
+                                        ),
+                                      );
+                                    },
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: const [
+                                          Icon(
+                                            Icons.add_home_rounded,
+                                            color: AppColors.white,
+                                            size: 22,
+                                          ),
+                                          SizedBox(width: 10),
+                                          Text(
+                                            'Ajouter une propriété',
+                                            style: TextStyle(
+                                              fontFamily: 'Gilroy',
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w700,
+                                              color: AppColors.white,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     );
                   }
 
                   return SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
                     sliver: SliverList(
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {
-                          final property = propertyProvider.properties[index];
+                          final property = propertyProvider.homeProperties[index];
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 16),
                             child: Consumer<FavoriteProvider>(
@@ -320,7 +527,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                     );
                                   },
                                   onFavorite: () {
-                                    favoriteProvider.toggleFavorite(property.id);
+                                    if (AuthHelper.requireAuth(
+                                      context,
+                                      message: 'Connectez-vous pour ajouter des propriétés à vos favoris',
+                                    )) {
+                                      favoriteProvider.toggleFavorite(property.id);
+                                    }
                                   },
                                   showFavorite: true,
                                 );
@@ -328,27 +540,44 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           );
                         },
-                        childCount: propertyProvider.properties.length,
+                        childCount: propertyProvider.homeProperties.length,
                       ),
                     ),
                   );
                 },
               ),
 
-              // Indicateur de chargement en bas
+              // Indicateur de chargement en bas avec design amélioré
               Consumer<PropertyProvider>(
                 builder: (context, propertyProvider, child) {
-                  if (propertyProvider.isLoading && propertyProvider.properties.isNotEmpty) {
-                    return const SliverToBoxAdapter(
+                  if (propertyProvider.isLoading && propertyProvider.homeProperties.isNotEmpty) {
+                    return SliverToBoxAdapter(
                       child: Padding(
-                        padding: EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(24),
                         child: Center(
-                          child: CircularProgressIndicator(),
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppColors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.shadow.withOpacity(0.1),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: const CircularProgressIndicator(
+                              strokeWidth: 3,
+                              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                            ),
+                          ),
                         ),
                       ),
                     );
                   }
-                  return const SliverToBoxAdapter(child: SizedBox(height: 16));
+                  return const SliverToBoxAdapter(child: SizedBox(height: 24));
                 },
               ),
             ],
@@ -358,18 +587,43 @@ class _HomeScreenState extends State<HomeScreen> {
       floatingActionButton: Consumer<AuthProvider>(
         builder: (context, authProvider, child) {
           if (authProvider.user != null && RolePermissions.canAddProperties(authProvider.user!)) {
-            return FloatingActionButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const AddPropertyScreen(),
+            return Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(18),
+                gradient: const LinearGradient(
+                  colors: [
+                    AppColors.primary,
+                    AppColors.primaryDark,
+                  ],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withOpacity(0.4),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
                   ),
-                );
-              },
-              backgroundColor: AppColors.primary,
-              child: const Icon(
-                Icons.add,
-                color: AppColors.white,
+                ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const AddPropertyScreen(),
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(18),
+                  child: Container(
+                    padding: const EdgeInsets.all(18),
+                    child: const Icon(
+                      Icons.add_rounded,
+                      color: AppColors.white,
+                      size: 28,
+                    ),
+                  ),
+                ),
               ),
             );
           }

@@ -8,6 +8,7 @@ class RolePermissions {
   static const String premium = 'premium';
   static const String agent = 'agent';
   static const String owner = 'owner';
+  static const String commissionnaire = 'commissionnaire';
 
   // Normaliser le rôle (gérer les formats avec et sans préfixe ROLE_)
   static String _normalizeRole(String role) {
@@ -123,7 +124,21 @@ class RolePermissions {
     return true;
   }
 
-  // Obtenir le nom d'affichage du rôle
+  // Vérifier si l'utilisateur est commissionnaire
+  static bool isCommissionnaire(User user) {
+    for (String userRole in user.roles) {
+      String normalizedRole = _normalizeRole(userRole);
+      if (normalizedRole == commissionnaire) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // Vérifier si l'utilisateur peut accéder aux fonctionnalités de commission
+  static bool canAccessCommissionFeatures(User user) {
+    return isCommissionnaire(user);
+  }
   static String getRoleDisplayName(String role) {
     String normalizedRole = _normalizeRole(role);
     switch (normalizedRole) {
@@ -135,6 +150,8 @@ class RolePermissions {
         return 'Agent';
       case owner:
         return 'Propriétaire';
+      case commissionnaire:
+        return 'Commissionnaire';
       case premium:
         return 'Premium';
       case standard:
@@ -156,6 +173,8 @@ class RolePermissions {
         return '#00A699'; // Vert
       case owner:
         return '#4DB6AC'; // Vert clair
+      case commissionnaire:
+        return '#9C27B0'; // Violet
       case premium:
         return '#FFB400'; // Jaune
       case standard:

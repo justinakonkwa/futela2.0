@@ -59,32 +59,50 @@ class FinanceService {
     print('  URL complète: $displayUri');
     print('  Query params: $params');
 
-    final response =
-        await _dio.get('/api/transactions', queryParameters: params);
+    try {
+      final response =
+          await _dio.get('/api/transactions', queryParameters: params);
 
-    print('💰 GET /api/transactions — RÉPONSE');
-    print('  Status: ${response.statusCode}');
-    print('  Data (brut): ${response.data}');
+      print('💰 GET /api/transactions — RÉPONSE');
+      print('  Status: ${response.statusCode}');
+      print('  Data (brut): ${response.data}');
 
-    if (response.statusCode == 200) {
-      final data = (response.data is Map<String, dynamic>)
-          ? response.data as Map<String, dynamic>
-          : <String, dynamic>{};
-      final parsed = PaginatedTransactionsResponse.fromJson(data);
-      print(
-          '  Pagination: page=${parsed.page} / ${parsed.totalPages} (total=${parsed.totalItems})');
-      print('  member.length=${parsed.member.length}');
-      for (var i = 0; i < parsed.member.length && i < 5; i++) {
-        final t = parsed.member[i];
+      if (response.statusCode == 200) {
+        final data = (response.data is Map<String, dynamic>)
+            ? response.data as Map<String, dynamic>
+            : <String, dynamic>{};
+        final parsed = PaginatedTransactionsResponse.fromJson(data);
         print(
-            '  [tx $i] id=${t.id} type=${t.type} status=${t.status} amount=${t.amount} ${t.currency}');
+            '  Pagination: page=${parsed.page} / ${parsed.totalPages} (total=${parsed.totalItems})');
+        print('  member.length=${parsed.member.length}');
+        for (var i = 0; i < parsed.member.length && i < 5; i++) {
+          final t = parsed.member[i];
+          print(
+              '  [tx $i] id=${t.id} type=${t.type} status=${t.status} amount=${t.amount} ${t.currency}');
+        }
+        if (parsed.member.length > 5) {
+          print('  … (${parsed.member.length - 5} autres non affichées)');
+        }
+        return parsed;
       }
-      if (parsed.member.length > 5) {
-        print('  … (${parsed.member.length - 5} autres non affichées)');
+    } on DioException catch (e) {
+      print('💰 Erreur API transactions: ${e.response?.statusCode} - ${e.message}');
+      
+      if (e.response?.statusCode == 403) {
+        throw Exception('Accès refusé. Vous devez être connecté pour consulter vos transactions.');
       }
-      return parsed;
+      
+      if (e.response?.statusCode == 401) {
+        throw Exception('Session expirée. Veuillez vous reconnecter.');
+      }
+      
+      throw Exception('Erreur lors du chargement des transactions. Veuillez réessayer.');
+    } catch (e) {
+      print('💰 Erreur inattendue: $e');
+      throw Exception('Erreur lors du chargement des transactions. Veuillez réessayer.');
     }
-    throw Exception('Failed to load transactions');
+    
+    throw Exception('Erreur lors du chargement des transactions');
   }
 
   /// Détail : GET /api/transactions/{id}
@@ -93,19 +111,41 @@ class FinanceService {
     print('💰 GET /api/transactions/{id}');
     print('  URL complète: $displayUri');
 
-    final response = await _dio.get('/api/transactions/$id');
+    try {
+      final response = await _dio.get('/api/transactions/$id');
 
-    print('💰 GET /api/transactions/{id} — RÉPONSE');
-    print('  Status: ${response.statusCode}');
-    print('  Data (brut): ${response.data}');
+      print('💰 GET /api/transactions/{id} — RÉPONSE');
+      print('  Status: ${response.statusCode}');
+      print('  Data (brut): ${response.data}');
 
-    if (response.statusCode == 200) {
-      final data = (response.data is Map<String, dynamic>)
-          ? response.data as Map<String, dynamic>
-          : <String, dynamic>{};
-      return Transaction.fromJson(data);
+      if (response.statusCode == 200) {
+        final data = (response.data is Map<String, dynamic>)
+            ? response.data as Map<String, dynamic>
+            : <String, dynamic>{};
+        return Transaction.fromJson(data);
+      }
+    } on DioException catch (e) {
+      print('💰 Erreur API transaction détail: ${e.response?.statusCode} - ${e.message}');
+      
+      if (e.response?.statusCode == 403) {
+        throw Exception('Accès refusé. Vous devez être connecté pour consulter cette transaction.');
+      }
+      
+      if (e.response?.statusCode == 401) {
+        throw Exception('Session expirée. Veuillez vous reconnecter.');
+      }
+      
+      if (e.response?.statusCode == 404) {
+        throw Exception('Transaction introuvable.');
+      }
+      
+      throw Exception('Erreur lors du chargement de la transaction. Veuillez réessayer.');
+    } catch (e) {
+      print('💰 Erreur inattendue: $e');
+      throw Exception('Erreur lors du chargement de la transaction. Veuillez réessayer.');
     }
-    throw Exception('Failed to load transaction detail');
+    
+    throw Exception('Erreur lors du chargement de la transaction');
   }
 
   // --- Payments (FlexPay) ---

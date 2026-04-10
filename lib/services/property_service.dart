@@ -38,6 +38,53 @@ class PropertyService {
 
   PropertyService() : _dio = ApiClient().dio;
 
+  /// Mappe une catégorie (nom ou slug) vers le type API correspondant
+  String? _mapCategoryToType(String category) {
+    if (category.isEmpty) return null;
+    
+    final categoryLower = category.toLowerCase().trim();
+    
+    print('🔄 _mapCategoryToType: Converting "$category" (lowercase: "$categoryLower")');
+    
+    // Mapping selon la documentation API : apartment, house, land, event_hall, car
+    if (categoryLower.contains('apartment') || 
+        categoryLower.contains('appartement')) {
+      print('✅ Mapped to: apartment');
+      return 'apartment';
+    } else if (categoryLower.contains('house') || 
+               categoryLower.contains('maison') ||
+               categoryLower.contains('villa')) {
+      print('✅ Mapped to: house');
+      return 'house';
+    } else if (categoryLower.contains('land') || 
+               categoryLower.contains('terrain')) {
+      print('✅ Mapped to: land');
+      return 'land';
+    } else if (categoryLower.contains('event') || 
+               categoryLower.contains('hall') ||
+               categoryLower.contains('salle')) {
+      print('✅ Mapped to: event_hall');
+      return 'event_hall';
+    } else if (categoryLower.contains('car') || 
+               categoryLower.contains('voiture') ||
+               categoryLower.contains('vehicule') ||
+               categoryLower.contains('véhicule') ||
+               categoryLower.contains('auto')) {
+      print('✅ Mapped to: car');
+      return 'car';
+    }
+    
+    // Si aucun mapping trouvé, essayer de retourner le nom tel quel s'il correspond à un type API
+    final validTypes = ['apartment', 'house', 'land', 'event_hall', 'car'];
+    if (validTypes.contains(categoryLower)) {
+      print('✅ Direct match with API type: $categoryLower');
+      return categoryLower;
+    }
+    
+    print('⚠️ No mapping found for category: "$category"');
+    return null; // Catégorie non reconnue
+  }
+
   // --- Categories ---
 
   Future<List<Category>> getCategories() async {
@@ -102,19 +149,20 @@ class PropertyService {
   // --- Properties ---
 
   /// Recherche de propriétés avec filtres (GET /api/properties/search)
-  /// Doc API : type, cityId, townId, minPrice, maxPrice, bedrooms, available, query, limit, offset, hasParking, hasPool, furnished
+  /// Doc API : type, cityId, townId, minPrice, maxPrice, bedrooms, available, query, limit, offset
   Future<List<Property>> searchProperties({
     int limit = 20,
     int offset = 0,
     String? type,
     String? cityId,
     String? townId,
-    String? categoryId,
+    String? categoryId, // Sera converti en type
     double? minPrice,
     double? maxPrice,
     int? bedrooms,
     bool? available,
     String? query,
+    // Ces paramètres ne sont pas dans la doc API mais on les garde pour compatibilité
     bool? hasParking,
     bool? hasPool,
     bool? furnished,
@@ -123,15 +171,31 @@ class PropertyService {
       'limit': limit,
       'offset': offset,
     };
-    if (type != null && type.isNotEmpty) params['type'] = type;
+    
+    // Utiliser le type fourni ou mapper la catégorie vers le type
+    String? finalType = type;
+    if (finalType == null && categoryId != null && categoryId.isNotEmpty) {
+      print('🔥 SEARCH SERVICE - Attempting to map category to type');
+      print('  - Input categoryId: "$categoryId"');
+      finalType = _mapCategoryToType(categoryId);
+      print('  - Mapped to type: "$finalType"');
+    } else if (finalType != null) {
+      print('🔥 SEARCH SERVICE - Type already provided: "$finalType"');
+    } else {
+      print('🔥 SEARCH SERVICE - No type or category provided');
+    }
+    
+    // Paramètres selon la documentation API
+    if (finalType != null && finalType.isNotEmpty) params['type'] = finalType;
     if (cityId != null && cityId.isNotEmpty) params['cityId'] = cityId;
     if (townId != null && townId.isNotEmpty) params['townId'] = townId;
-    if (categoryId != null && categoryId.isNotEmpty) params['categoryId'] = categoryId;
-    if (minPrice != null) params['minPrice'] = minPrice;
-    if (maxPrice != null) params['maxPrice'] = maxPrice;
-    if (bedrooms != null) params['bedrooms'] = bedrooms;
+    if (minPrice != null && minPrice > 0) params['minPrice'] = minPrice; // Ne pas envoyer si 0
+    if (maxPrice != null && maxPrice > 0) params['maxPrice'] = maxPrice;
+    if (bedrooms != null && bedrooms > 0) params['bedrooms'] = bedrooms; // Ne pas envoyer si 0
     if (available != null) params['available'] = available;
-    if (query != null && query.isNotEmpty) params['query'] = query;
+    if (query != null && query.isNotEmpty && query.length <= 255) params['query'] = query;
+    
+    // Paramètres non documentés mais gardés pour compatibilité (seront ignorés par l'API)
     if (hasParking == true) params['hasParking'] = true;
     if (hasPool == true) params['hasPool'] = true;
     if (furnished == true) params['furnished'] = true;
@@ -139,6 +203,7 @@ class PropertyService {
     print('🏠 GET PROPERTIES SEARCH (PropertyService)');
     print('URL: /api/properties/search');
     print('Query Parameters: $params');
+    print('🔥 FINAL SEARCH PARAMS: $params');
 
     try {
       final response = await _dio.get('/api/properties/search', queryParameters: params);
@@ -146,6 +211,10 @@ class PropertyService {
       print('🏠 GET PROPERTIES RESPONSE (PropertyService)');
       print('Status Code: ${response.statusCode}');
       print('Response Data Type: ${response.data.runtimeType}');
+      print('═══════════════════════════════════════════════════════════');
+      print('📥 RAW API RESPONSE:');
+      print(response.data);
+      print('═══════════════════════════════════════════════════════════');
 
       if (response.statusCode == 200) {
         List<dynamic> propertiesList;
@@ -158,7 +227,15 @@ class PropertyService {
         } else if (response.data is Map) {
           print('📋 Response is a Map with keys: ${(response.data as Map).keys.toList()}');
           final Map<String, dynamic> responseData = response.data as Map<String, dynamic>;
-          propertiesList = responseData['properties'] ?? [];
+          
+          // L'API peut retourner 'member', 'properties', ou 'hydra:member'
+          propertiesList = responseData['member'] ?? 
+                          responseData['properties'] ?? 
+                          responseData['hydra:member'] ?? 
+                          [];
+          
+          print('📋 Found ${propertiesList.length} properties in response');
+          
           pagination = responseData['pagination'] != null
               ? responseData['pagination'] as Map<String, dynamic>
               : null;
@@ -221,12 +298,25 @@ class PropertyService {
       'itemsPerPage': itemsPerPage,
     };
     if (categoryId != null && categoryId.isNotEmpty) {
-      params['categoryId'] = categoryId;
+      print('🔥 SERVICE - Attempting to map category to type');
+      print('  - Input categoryId: "$categoryId"');
+      final mappedType = _mapCategoryToType(categoryId);
+      print('  - Mapped type: "$mappedType"');
+      if (mappedType != null) {
+        params['type'] = mappedType;
+        print('🔥 SERVICE - Added type param to request');
+        print('  - API param "type": ${params['type']}');
+      } else {
+        print('🔥 SERVICE - Could not map category "$categoryId" to a valid type');
+      }
+    } else {
+      print('🔥 SERVICE - No category filter (showing all properties)');
     }
 
     print('🏠 GET PROPERTIES LIST (PropertyService)');
     print('URL: /api/properties');
     print('Query Parameters: $params');
+    print('🔥 FINAL PARAMS BEING SENT TO API: $params');
 
     try {
       final response =
@@ -252,6 +342,14 @@ class PropertyService {
           'Pagination: page=${result.page}, totalPages=${result.totalPages}, totalItems=${result.totalItems}');
       if (result.items.isNotEmpty) {
         print('First Property Sample: ${result.items.first.id}');
+        print('🔍 PROPERTY DETAILS FOR DEBUGGING:');
+        print('  - Property ID: ${result.items.first.id}');
+        print('  - Property Title: ${result.items.first.title}');
+        print('  - Property Category: ${result.items.first.categoryName}');
+        if (result.items.length > 1) {
+          print('  - Second Property ID: ${result.items[1].id}');
+          print('  - Second Property Category: ${result.items[1].categoryName}');
+        }
       }
       print('✅ Successfully parsed ${result.items.length} properties (list)');
       return result;
@@ -277,19 +375,30 @@ class PropertyService {
     int totalPages = 1;
     int currentPage = requestedPage;
 
+    print('🔍 _parsePagedPropertiesResponse called');
+    print('  - data type: ${data.runtimeType}');
+
     if (data is List) {
+      print('  - Data is a List');
       rawList = data;
       totalItems = rawList.length;
       currentPage = requestedPage;
       totalPages = rawList.length < itemsPerPage ? requestedPage : requestedPage + 1;
     } else if (data is Map<String, dynamic>) {
       final m = data;
+      print('  - Data is a Map with keys: ${m.keys.toList()}');
+      
       if (m['member'] is List) {
         rawList = m['member'] as List<dynamic>;
+        print('  - Found "member" key with ${rawList.length} items');
       } else if (m['properties'] is List) {
         rawList = m['properties'] as List<dynamic>;
+        print('  - Found "properties" key with ${rawList.length} items');
       } else if (m['hydra:member'] is List) {
         rawList = m['hydra:member'] as List<dynamic>;
+        print('  - Found "hydra:member" key with ${rawList.length} items');
+      } else {
+        print('  - ⚠️ No valid list key found in Map');
       }
 
       totalItems = (m['totalItems'] as num?)?.toInt() ??
@@ -297,6 +406,10 @@ class PropertyService {
           rawList.length;
       totalPages = (m['totalPages'] as num?)?.toInt() ?? 1;
       currentPage = (m['page'] as num?)?.toInt() ?? requestedPage;
+
+      print('  - totalItems: $totalItems');
+      print('  - totalPages: $totalPages');
+      print('  - currentPage: $currentPage');
 
       if (totalPages <= 1 &&
           totalItems > rawList.length &&
@@ -307,16 +420,32 @@ class PropertyService {
         totalPages = currentPage + 1;
       }
     } else {
+      print('  - ❌ Unexpected data type');
       throw Exception('Format de réponse inattendu pour /api/properties');
     }
 
+    print('🔄 About to parse ${rawList.length} properties');
+
     final items = rawList.map((json) {
       if (json is! Map<String, dynamic>) {
+        print('❌ Property JSON is not a Map: ${json.runtimeType}');
         throw Exception('Property JSON is not a Map: ${json.runtimeType}');
       }
-      return Property.fromJson(json);
+      try {
+        final property = Property.fromJson(json);
+        print('✅ Successfully parsed property: id=${property.id}, type=${property.type}, title=${property.title}');
+        return property;
+      } catch (e, stackTrace) {
+        print('❌ Error parsing property JSON:');
+        print('JSON: $json');
+        print('Error: $e');
+        print('StackTrace: $stackTrace');
+        rethrow;
+      }
     }).toList();
 
+    print('📊 Parsed ${items.length} properties successfully');
+    
     return PagedPropertiesResult(
       items: items,
       page: currentPage,

@@ -1,4 +1,4 @@
-package com.futelaapp.mobile
+package com.naara.futela
 
 import io.flutter.embedding.android.FlutterActivity
 

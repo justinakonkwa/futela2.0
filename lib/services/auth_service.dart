@@ -3,13 +3,17 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../config/google_oauth_config.dart';
+import '../config/apple_signin_config.dart';
 import '../models/auth/auth_response.dart';
 import '../models/auth/user.dart';
 import '../models/auth/device.dart';
+import '../models/auth/apple_signin_credential.dart';
+import '../services/apple_signin_service.dart';
 import 'api_client.dart';
 
 class AuthService {
   final Dio _dio;
+  final AppleSignInService _appleSignInService = AppleSignInService();
 
   GoogleSignIn? _googleSignIn;
 
@@ -83,6 +87,100 @@ class AuthService {
     } catch (_) {
       // Ignorer si jamais connecté avec Google
     }
+  }
+
+  /// Connexion Apple : utilise le service AppleSignInService selon le guide
+  Future<AuthResponse> signInWithApple() async {
+    print('🍎 [AuthService] Début de l\'authentification Apple');
+    
+    try {
+      // Vérifier la disponibilité
+      if (!await _appleSignInService.isAvailable()) {
+        throw Exception('Apple Sign-In n\'est pas disponible sur cet appareil');
+      }
+
+      // Obtenir les credentials Apple
+      final credential = await _appleSignInService.signIn();
+      if (credential == null) {
+        throw Exception('Impossible d\'obtenir les credentials Apple');
+      }
+
+      // Vérifier que nous avons les données essentielles
+      if (credential.identityToken == null || credential.authorizationCode == null) {
+        throw Exception('Tokens Apple manquants - vérifiez la configuration Apple Developer');
+      }
+
+      // Authentifier avec le backend
+      return await _authenticateWithBackend(credential);
+    } on AppleSignInException catch (e) {
+      print('❌ [AuthService] AppleSignInException: ${e.message}');
+      throw Exception(e.message);
+    } catch (e) {
+      print('❌ [AuthService] Erreur Apple Sign-In: $e');
+      rethrow;
+    }
+  }
+
+  /// Authentifier avec le backend selon les spécifications API
+  Future<AuthResponse> _authenticateWithBackend(AppleSignInCredential credential) async {
+    print('🌐 [AuthService] Authentification backend avec Apple credentials');
+    
+    try {
+      // Préparer les données selon les spécifications backend réelles
+      final Map<String, dynamic> requestData = {
+        'idToken': credential.identityToken,  // Backend attend 'idToken' comme Google
+        'authorizationCode': credential.authorizationCode,
+        'userIdentifier': credential.userIdentifier,
+        'email': credential.email,
+        'firstName': credential.givenName,  // Maintenant inclut les noms sauvegardés
+        'lastName': credential.familyName,
+      };
+
+      // Nettoyer les valeurs nulles
+      requestData.removeWhere((key, value) => value == null);
+
+      print('🌐 [AuthService] Données envoyées au backend:');
+      requestData.forEach((key, value) {
+        if (key.contains('token') || key.contains('code')) {
+          print('   - $key: ${value != null ? "présent" : "null"}');
+        } else {
+          print('   - $key: $value');
+        }
+      });
+
+      // Appel API selon vos spécifications
+      final response = await _dio.post(kAppleLoginPath, data: requestData);
+
+      print('🌐 [AuthService] Réponse backend:');
+      print('   - Status: ${response.statusCode}');
+      print('   - Data: ${response.data}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return AuthResponse.fromJson(response.data);
+      }
+
+      final message = _messageFromResponse(response.data, 'Authentification Apple refusée');
+      throw Exception(message);
+    } on DioException catch (e) {
+      print('❌ [AuthService] Erreur réseau: ${e.message}');
+      print('   - Status: ${e.response?.statusCode}');
+      print('   - Data: ${e.response?.data}');
+      
+      final message = e.response?.data != null
+          ? _messageFromResponse(e.response!.data, 'Erreur serveur Apple Sign-In')
+          : (e.message ?? 'Erreur réseau');
+      throw Exception(message);
+    }
+  }
+
+  /// Vérifier l'état des credentials Apple
+  Future<bool> checkAppleCredentialState() async {
+    return await _appleSignInService.checkCredentialState();
+  }
+
+  /// Déconnexion Apple Sign-In
+  Future<void> signOutApple() async {
+    await _appleSignInService.signOut();
   }
 
   Future<AuthResponse> googleLogin(String idToken) async {

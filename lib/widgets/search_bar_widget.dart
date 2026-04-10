@@ -25,35 +25,60 @@ class SearchBarWidget extends StatelessWidget {
             ),
           );
         },
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         child: Container(
-          height: 48,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          height: 52,
+          padding: const EdgeInsets.symmetric(horizontal: 18),
           decoration: BoxDecoration(
-            color: AppColors.grey50,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.grey200, width: 1),
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: AppColors.border.withOpacity(0.3),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.shadow.withOpacity(0.08),
+                blurRadius: 20,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Row(
             children: [
-              Icon(
-                CupertinoIcons.search,
-                color: AppColors.textTertiary,
-                size: 22,
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  CupertinoIcons.search,
+                  color: AppColors.primary,
+                  size: 20,
+                ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
               Expanded(
                 child: Text(
                   initialQuery ?? 'Rechercher une propriété...',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  style: TextStyle(
+                    fontFamily: 'Gilroy',
+                    fontSize: 15,
+                    fontWeight: FontWeight.w500,
                     color: initialQuery != null
                         ? AppColors.textPrimary
                         : AppColors.textTertiary,
-                    fontWeight: FontWeight.w500,
+                    letterSpacing: -0.2,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
+              ),
+              Icon(
+                Icons.tune_rounded,
+                color: AppColors.textTertiary.withOpacity(0.6),
+                size: 20,
               ),
             ],
           ),

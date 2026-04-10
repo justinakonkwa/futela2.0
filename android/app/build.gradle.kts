@@ -6,6 +6,8 @@ plugins {
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+    // Google Services plugin for Firebase/Google Sign-In
+    id("com.google.gms.google-services")
 }
 
 // Charger les propriétés du keystore
@@ -16,7 +18,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.futelaapp.mobile"
+    namespace = "com.naara.futela"
     // Certaines dépendances exigent SDK 36
     compileSdk = 36
     // Force an explicit NDK version compatible with recent plugins
@@ -33,13 +35,13 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.futelaapp.mobile"
+        applicationId = "com.naara.futela"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
-        versionCode = 5
-        versionName = "1.0.0"
+        versionCode = 6
+        versionName = "1.0.1"
     }
 
     signingConfigs {

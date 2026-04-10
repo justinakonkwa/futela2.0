@@ -13,10 +13,12 @@ import '../../providers/location_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/role_permissions.dart';
+import '../../utils/auth_helper.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/address_display.dart';
 import '../../widgets/property_share_widget.dart';
 import '../../widgets/property_card_shimmer.dart';
+import '../../widgets/image_gallery_viewer.dart';
 import '../visits/request_visit_screen.dart';
 import 'add_property_screen.dart';
 import '../../providers/favorite_provider.dart';
@@ -87,167 +89,375 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
               return const PropertyDetailShimmer();
             } else if (propertyProvider.error != null) {
               return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: Colors.red[300],
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Erreur de chargement',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      propertyProvider.error!,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Colors.grey[600],
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: AppColors.error.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.error_outline_rounded,
+                          size: 64,
+                          color: AppColors.error,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: () => _loadProperty(),
-                      child: const Text('Réessayer'),
-                    ),
-                  ],
+                      const SizedBox(height: 24),
+                      Text(
+                        'Erreur de chargement',
+                        style: const TextStyle(
+                          fontFamily: 'Gilroy',
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        propertyProvider.error!,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontFamily: 'Gilroy',
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.textSecondary,
+                          height: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          gradient: const LinearGradient(
+                            colors: [
+                              AppColors.primary,
+                              AppColors.primaryDark,
+                            ],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withOpacity(0.3),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () => _loadProperty(),
+                            borderRadius: BorderRadius.circular(16),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: const [
+                                  Icon(
+                                    Icons.refresh_rounded,
+                                    color: AppColors.white,
+                                    size: 22,
+                                  ),
+                                  SizedBox(width: 10),
+                                  Text(
+                                    'Réessayer',
+                                    style: TextStyle(
+                                      fontFamily: 'Gilroy',
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             } else {
-              return const Center(
-                child: Text('Propriété non trouvée'),
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              AppColors.primary.withOpacity(0.15),
+                              AppColors.primaryLight.withOpacity(0.08),
+                            ],
+                          ),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.home_work_outlined,
+                          size: 64,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        'Propriété non trouvée',
+                        style: TextStyle(
+                          fontFamily: 'Gilroy',
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               );
             }
           }
 
           return CustomScrollView(
             slivers: [
-              // App Bar avec image
+              // App Bar avec image moderne
               SliverAppBar(
                 expandedHeight: 300,
                 pinned: true,
-                backgroundColor: Theme.of(context).appBarTheme.backgroundColor ?? Theme.of(context).colorScheme.surface,
+                backgroundColor: Colors.transparent,
                 leading: Container(
                   margin: const EdgeInsets.all(8),
+                  width: 48,
+                  height: 48,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor.withOpacity(0.9),
-                    borderRadius: BorderRadius.circular(12),
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.15),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  child: IconButton(
-                    icon: Icon(Icons.arrow_back, color: Theme.of(context).colorScheme.onSurface),
-                    onPressed: () => Navigator.of(context).pop(),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => Navigator.of(context).pop(),
+                      borderRadius: BorderRadius.circular(14),
+                      child: const Center(
+                        child: Icon(
+                          Icons.arrow_back_rounded,
+                          color: AppColors.textPrimary,
+                          size: 24,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
                 actions: [
                   if (!widget.myProperty) Container(
                     margin: const EdgeInsets.all(8),
+                    width: 48,
+                    height: 48,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor.withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(12),
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.15),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
                     child: Consumer<FavoriteProvider>(
                       builder: (context, favoriteProvider, child) {
                         final isFavorite = favoriteProvider.isFavorite(widget.propertyId);
-                        return IconButton(
-                          icon: favoriteProvider.isLoading
-                              ? const SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-                                  ),
-                                )
-                              : Icon(
-                                  isFavorite ? Icons.favorite : Icons.favorite_border,
-                                  color: isFavorite ? AppColors.error : Theme.of(context).colorScheme.onSurface,
-                                ),
-                          onPressed: favoriteProvider.isLoading
-                              ? null
-                              : () async {
-                                  try {
-                                    await favoriteProvider.toggleFavorite(widget.propertyId);
-                                    if (mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            favoriteProvider.isFavorite(widget.propertyId)
-                                                ? 'Ajouté aux favoris'
-                                                : 'Retiré des favoris',
+                        return Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: favoriteProvider.isLoading
+                                ? null
+                                : () async {
+                                    if (!AuthHelper.requireAuth(
+                                      context,
+                                      message: 'Connectez-vous pour ajouter des propriétés à vos favoris',
+                                    )) {
+                                      return;
+                                    }
+                                    
+                                    try {
+                                      await favoriteProvider.toggleFavorite(widget.propertyId);
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Row(
+                                              children: [
+                                                Icon(
+                                                  isFavorite ? Icons.favorite_border : Icons.favorite,
+                                                  color: AppColors.white,
+                                                  size: 20,
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Text(
+                                                  favoriteProvider.isFavorite(widget.propertyId)
+                                                      ? 'Ajouté aux favoris'
+                                                      : 'Retiré des favoris',
+                                                  style: const TextStyle(
+                                                    fontFamily: 'Gilroy',
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            backgroundColor: favoriteProvider.isFavorite(widget.propertyId)
+                                                ? AppColors.success
+                                                : AppColors.warning,
+                                            behavior: SnackBarBehavior.floating,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
                                           ),
-                                          backgroundColor: favoriteProvider.isFavorite(widget.propertyId)
-                                              ? Colors.green
-                                              : Colors.orange,
-                                        ),
-                                      );
+                                        );
+                                      }
+                                    } catch (e) {
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Row(
+                                              children: [
+                                                const Icon(Icons.error_outline, color: AppColors.white, size: 20),
+                                                const SizedBox(width: 12),
+                                                Expanded(
+                                                  child: Text(
+                                                    'Erreur: $e',
+                                                    style: const TextStyle(
+                                                      fontFamily: 'Gilroy',
+                                                      fontWeight: FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            backgroundColor: AppColors.error,
+                                            behavior: SnackBarBehavior.floating,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                          ),
+                                        );
+                                      }
                                     }
-                                  } catch (e) {
-                                    if (mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(
-                                          content: Text('Erreur: $e'),
-                                          backgroundColor: Colors.red,
-                                        ),
-                                      );
-                                    }
-                                  }
-                                },
+                                  },
+                            borderRadius: BorderRadius.circular(14),
+                            child: Center(
+                              child: favoriteProvider.isLoading
+                                  ? const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                                      ),
+                                    )
+                                  : Icon(
+                                      isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                                      color: isFavorite ? AppColors.error : AppColors.textPrimary,
+                                      size: 24,
+                                    ),
+                            ),
+                          ),
                         );
                       },
                     ),
                   ),
                   if (!widget.myProperty) Container(
                     margin: const EdgeInsets.all(8),
+                    width: 48,
+                    height: 48,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor.withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(12),
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.15),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    child: IconButton(
-                      icon: Icon(Icons.share, color: Theme.of(context).colorScheme.onSurface),
-                      onPressed: () {
-                        _showShareDialog(context, property);
-                      },
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          _showShareDialog(context, property);
+                        },
+                        borderRadius: BorderRadius.circular(14),
+                        child: const Center(
+                          child: Icon(
+                            Icons.share_rounded,
+                            color: AppColors.textPrimary,
+                            size: 24,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                   Consumer<AuthProvider>(
                     builder: (context, authProvider, child) {
-                      // Afficher le bouton d'édition si c'est la propriété de l'utilisateur
                       final canEdit = widget.myProperty && authProvider.user != null;
                       
                       if (!canEdit) return const SizedBox.shrink();
                       
                       return Container(
                         margin: const EdgeInsets.all(8),
+                        width: 48,
+                        height: 48,
                         decoration: BoxDecoration(
-                          color: Theme.of(context).cardColor.withOpacity(0.9),
-                          borderRadius: BorderRadius.circular(12),
+                          color: AppColors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.15),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                        child: IconButton(
-                          icon: Icon(Icons.edit, color: Theme.of(context).colorScheme.onSurface),
-                          tooltip: 'Modifier',
-                          onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (context) => AddPropertyScreen(
-                                  propertyId: widget.propertyId,
-                                  isEditMode: true,
-                                  myProperty: widget.myProperty,
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => AddPropertyScreen(
+                                    propertyId: widget.propertyId,
+                                    isEditMode: true,
+                                    myProperty: widget.myProperty,
+                                  ),
                                 ),
+                              );
+                            },
+                            borderRadius: BorderRadius.circular(14),
+                            child: const Center(
+                              child: Icon(
+                                Icons.edit_rounded,
+                                color: AppColors.textPrimary,
+                                size: 24,
                               ),
-                            );
-                          },
+                            ),
+                          ),
                         ),
                       );
                     },
                   ),
                   Consumer<AuthProvider>(
                     builder: (context, authProvider, child) {
-                      // Afficher le bouton de suppression si :
-                      // 1. C'est la propriété de l'utilisateur ET
-                      // 2. L'utilisateur a le droit d'ajouter des propriétés
                       final canDelete = widget.myProperty && 
                           authProvider.user != null && 
                           RolePermissions.canAddProperties(authProvider.user!);
@@ -256,56 +466,153 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                       
                       return Container(
                         margin: const EdgeInsets.all(8),
+                        width: 48,
+                        height: 48,
                         decoration: BoxDecoration(
-                          color: Theme.of(context).cardColor.withOpacity(0.9),
-                          borderRadius: BorderRadius.circular(12),
+                          color: AppColors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.15),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                        child: IconButton(
-                          icon: const Icon(Icons.delete_outline, color: AppColors.error),
-                          tooltip: 'Supprimer',
-                          onPressed: () async {
-                        final confirm = await showDialog<bool>(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: const Text('Supprimer l\'annonce'),
-                            content: const Text('Voulez-vous vraiment supprimer cette annonce ?'),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.of(context).pop(false),
-                                child: const Text('Annuler'),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () async {
+                              final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  title: Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.error.withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: const Icon(
+                                          Icons.delete_outline_rounded,
+                                          color: AppColors.error,
+                                          size: 24,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      const Text('Supprimer l\'annonce'),
+                                    ],
+                                  ),
+                                  content: const Text(
+                                    'Voulez-vous vraiment supprimer cette annonce ?',
+                                    style: TextStyle(
+                                      fontFamily: 'Gilroy',
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.of(context).pop(false),
+                                      child: const Text(
+                                        'Annuler',
+                                        style: TextStyle(
+                                          fontFamily: 'Gilroy',
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () => Navigator.of(context).pop(true),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: AppColors.error,
+                                        foregroundColor: AppColors.white,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                      ),
+                                      child: const Text(
+                                        'Supprimer',
+                                        style: TextStyle(
+                                          fontFamily: 'Gilroy',
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (confirm == true) {
+                                try {
+                                  await Provider.of<PropertyProvider>(context, listen: false)
+                                      .deleteProperty(widget.propertyId);
+                                  if (mounted) {
+                                    Navigator.of(context).pop();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Row(
+                                          children: const [
+                                            Icon(Icons.check_circle, color: AppColors.white, size: 20),
+                                            SizedBox(width: 12),
+                                            Text(
+                                              'Annonce supprimée',
+                                              style: TextStyle(
+                                                fontFamily: 'Gilroy',
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        backgroundColor: AppColors.success,
+                                        behavior: SnackBarBehavior.floating,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Row(
+                                          children: [
+                                            const Icon(Icons.error_outline, color: AppColors.white, size: 20),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: Text(
+                                                'Erreur: $e',
+                                                style: const TextStyle(
+                                                  fontFamily: 'Gilroy',
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        backgroundColor: AppColors.error,
+                                        behavior: SnackBarBehavior.floating,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                }
+                              }
+                            },
+                            borderRadius: BorderRadius.circular(14),
+                            child: const Center(
+                              child: Icon(
+                                Icons.delete_outline_rounded,
+                                color: AppColors.error,
+                                size: 24,
                               ),
-                              TextButton(
-                                onPressed: () => Navigator.of(context).pop(true),
-                                child: const Text('Supprimer'),
-                              ),
-                            ],
+                            ),
                           ),
-                        );
-                        if (confirm == true) {
-                          try {
-                            await Provider.of<PropertyProvider>(context, listen: false)
-                                .deleteProperty(widget.propertyId);
-                            if (mounted) {
-                              Navigator.of(context).pop();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Annonce supprimée'),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
-                            }
-                          } catch (e) {
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Erreur: $e'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                          }
-                        }
-                          },
                         ),
                       );
                     },
@@ -336,21 +643,33 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                             itemCount: _imageUrls.length,
                             itemBuilder: (context, index) {
                               final url = _imageUrls[index];
-                              return Hero(
-                                tag: 'property_image_$index',
-                                child: CachedNetworkImage(
-                                  imageUrl: url,
-                                  fit: BoxFit.cover,
-                                  placeholder: (context, _) => Container(
-                                    color: AppColors.grey100,
-                                    child: const Center(child: CircularProgressIndicator()),
-                                  ),
-                                  errorWidget: (context, _, __) => Container(
-                                    color: AppColors.grey100,
-                                    child: const Icon(
-                                      Icons.home_work,
-                                      size: 64,
-                                      color: AppColors.textTertiary,
+                              return GestureDetector(
+                                onTap: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => ImageGalleryViewer(
+                                        imageUrls: _imageUrls,
+                                        initialIndex: index,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: Hero(
+                                  tag: 'property_image_$index',
+                                  child: CachedNetworkImage(
+                                    imageUrl: url,
+                                    fit: BoxFit.cover,
+                                    placeholder: (context, _) => Container(
+                                      color: AppColors.grey100,
+                                      child: const Center(child: CircularProgressIndicator()),
+                                    ),
+                                    errorWidget: (context, _, __) => Container(
+                                      color: AppColors.grey100,
+                                      child: const Icon(
+                                        Icons.home_work,
+                                        size: 64,
+                                        color: AppColors.textTertiary,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -703,13 +1022,19 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                     child: CustomButton(
                       text: 'Demander visite',
                       onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => RequestVisitScreen(
-                              propertyId: widget.propertyId,
+                        // Vérifier l'authentification avant de permettre la demande de visite
+                        if (AuthHelper.requireAuth(
+                          context,
+                          message: 'Connectez-vous pour demander une visite',
+                        )) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => RequestVisitScreen(
+                                propertyId: widget.propertyId,
+                              ),
                             ),
-                          ),
-                        );
+                          );
+                        }
                       },
                     ),
                   ),
@@ -1610,8 +1935,12 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
-              Navigator.of(context).pop();
+              // Ne pas fermer le dialog immédiatement
               await _shareProperty(context, property, repaintBoundaryKey);
+              // Fermer le dialog seulement après le partage
+              if (mounted && Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              }
             },
             child: const Text('Partager'),
           ),

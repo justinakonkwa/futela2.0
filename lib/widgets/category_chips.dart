@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/property_provider.dart';
@@ -28,6 +27,15 @@ class _CategoryChipsState extends State<CategoryChips> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadCategories();
     });
+  }
+
+  @override
+  void didUpdateWidget(CategoryChips oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Synchroniser avec les changements externes
+    if (widget.selectedCategory != oldWidget.selectedCategory) {
+      _selectedCategory = widget.selectedCategory;
+    }
   }
 
   void _loadCategories() {
@@ -64,14 +72,14 @@ class _CategoryChipsState extends State<CategoryChips> {
                   child: _buildCategoryChip(
                     context,
                     label: category.name,
-                    isSelected: _selectedCategory == category.id,
+                    isSelected: _selectedCategory == category.name,
                     onTap: () {
-                      setState(() => _selectedCategory = category.id);
-                      widget.onCategorySelected?.call(category.id);
+                      setState(() => _selectedCategory = category.name);
+                      widget.onCategorySelected?.call(category.name);
                     },
                   ),
                 );
-              }).toList(),
+              }),
             ],
           ),
         );
@@ -89,24 +97,49 @@ class _CategoryChipsState extends State<CategoryChips> {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primary : AppColors.grey50,
-            borderRadius: BorderRadius.circular(14),
+            gradient: isSelected
+                ? const LinearGradient(
+                    colors: [
+                      AppColors.primary,
+                      AppColors.primaryDark,
+                    ],
+                  )
+                : null,
+            color: isSelected ? null : AppColors.white,
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isSelected ? AppColors.primary : AppColors.grey200,
-              width: isSelected ? 0 : 1,
+              color: isSelected ? Colors.transparent : AppColors.border.withOpacity(0.3),
+              width: 1,
             ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : [
+                    BoxShadow(
+                      color: AppColors.shadow.withOpacity(0.06),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
           ),
           child: Text(
             label,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: isSelected ? AppColors.white : AppColors.textPrimary,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+            style: TextStyle(
+              fontFamily: 'Gilroy',
               fontSize: 14,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+              color: isSelected ? AppColors.white : AppColors.textPrimary,
+              letterSpacing: isSelected ? -0.2 : 0,
             ),
           ),
         ),

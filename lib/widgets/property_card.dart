@@ -292,15 +292,22 @@ class _PropertyCardState extends State<PropertyCard> {
                       // Caractéristiques selon la catégorie / type
                       Row(
                         children: [
-                          ..._buildDetailChipsForType(context, widget.property),
-                          const Spacer(),
-                          if (distance != null)
+                          Expanded(
+                            child: Wrap(
+                              spacing: 8,
+                              runSpacing: 4,
+                              children: _buildDetailChipsForType(context, widget.property),
+                            ),
+                          ),
+                          if (distance != null) ...[
+                            const SizedBox(width: 8),
                             Text(
                               locationProvider.formatDistance(distance),
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: Theme.of(context).colorScheme.onSurfaceVariant,
                               ),
                             ),
+                          ],
                         ],
                       ),
                     ],
@@ -316,17 +323,14 @@ class _PropertyCardState extends State<PropertyCard> {
 
   List<Widget> _buildDetailChipsForType(BuildContext context, Property p) {
     final chips = <Widget>[];
-    const spacing = SizedBox(width: 8);
 
     switch (p.type) {
       case 'apartment':
         if (p.bedrooms != null && p.bedrooms! > 0) {
           chips.add(_buildDetailChip(context, Icons.bed_outlined, '${p.bedrooms} ch.'));
-          chips.add(spacing);
         }
         if (p.bathrooms != null && p.bathrooms! > 0) {
           chips.add(_buildDetailChip(context, Icons.bathtub_outlined, '${p.bathrooms} SDB'));
-          chips.add(spacing);
         }
         if (p.squareMeters != null) {
           chips.add(_buildDetailChip(context, Icons.square_foot, '${p.squareMeters!.toInt()} m²'));
@@ -335,11 +339,9 @@ class _PropertyCardState extends State<PropertyCard> {
       case 'house':
         if (p.bedrooms != null && p.bedrooms! > 0) {
           chips.add(_buildDetailChip(context, Icons.bed_outlined, '${p.bedrooms} ch.'));
-          chips.add(spacing);
         }
         if (p.bathrooms != null && p.bathrooms! > 0) {
           chips.add(_buildDetailChip(context, Icons.bathtub_outlined, '${p.bathrooms} SDB'));
-          chips.add(spacing);
         }
         if (p.houseSquareMeters != null) {
           chips.add(_buildDetailChip(context, Icons.home, '${p.houseSquareMeters!.toInt()} m²'));
@@ -347,14 +349,12 @@ class _PropertyCardState extends State<PropertyCard> {
           chips.add(_buildDetailChip(context, Icons.square_foot, '${p.squareMeters!.toInt()} m²'));
         }
         if (p.landSquareMeters != null) {
-          chips.add(spacing);
           chips.add(_buildDetailChip(context, Icons.landscape, '${p.landSquareMeters!.toInt()} m² terr.'));
         }
         break;
       case 'land':
         if (p.squareMeters != null) {
           chips.add(_buildDetailChip(context, Icons.square_foot, '${p.squareMeters!.toInt()} m²'));
-          chips.add(spacing);
         }
         if (p.landType != null && p.landType!.isNotEmpty) {
           final label = p.landType == 'residential' ? 'Résid.' : p.landType == 'commercial' ? 'Comm.' : p.landType == 'agricultural' ? 'Agric.' : 'Ind.';
@@ -366,7 +366,6 @@ class _PropertyCardState extends State<PropertyCard> {
           chips.add(_buildDetailChip(context, Icons.groups, '${p.capacity} pers.'));
         }
         if (p.hasParking) {
-          chips.add(spacing);
           chips.add(_buildDetailChip(context, Icons.local_parking, 'Parking'));
         }
         break;
@@ -377,13 +376,11 @@ class _PropertyCardState extends State<PropertyCard> {
             Icons.directions_car,
             [p.brand, p.model].where((e) => e != null && e.isNotEmpty).join(' '),
           ));
-          chips.add(spacing);
         }
         if (p.seats != null) {
           chips.add(_buildDetailChip(context, Icons.event_seat, '${p.seats} pl.'));
         }
         if (p.year != null) {
-          chips.add(spacing);
           chips.add(_buildDetailChip(context, Icons.calendar_today, '${p.year}'));
         }
         break;
@@ -391,11 +388,9 @@ class _PropertyCardState extends State<PropertyCard> {
         // Fallback: chambres, SDB, m² si présents
         if (p.bedrooms != null && p.bedrooms! > 0) {
           chips.add(_buildDetailChip(context, Icons.bed_outlined, '${p.bedrooms} ch.'));
-          chips.add(spacing);
         }
         if (p.bathrooms != null && p.bathrooms! > 0) {
           chips.add(_buildDetailChip(context, Icons.bathtub_outlined, '${p.bathrooms} SDB'));
-          chips.add(spacing);
         }
         if (p.squareMeters != null) {
           chips.add(_buildDetailChip(context, Icons.square_foot, '${p.squareMeters!.toInt()} m²'));

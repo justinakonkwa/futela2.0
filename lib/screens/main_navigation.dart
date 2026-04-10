@@ -8,7 +8,6 @@ import 'home/home_screen.dart';
 import 'search/search_screen.dart';
 import 'favorites/favorites_screen.dart';
 import 'profile/profile_screen.dart';
-import 'auth/login_screen.dart';
 
 class MainNavigation extends StatefulWidget {
   final int initialIndex;
@@ -69,20 +68,6 @@ class _MainNavigationState extends State<MainNavigation> {
 
     return Consumer<AuthProvider>(
       builder: (context, authProvider, child) {
-        if (!authProvider.isAuthenticated) {
-          // Rediriger vers l'écran de connexion si l'utilisateur n'est pas authentifié
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (context) => const LoginScreen()),
-            );
-          });
-          return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
-
         return Scaffold(
           body: IndexedStack(
             index: _currentIndex,
@@ -98,7 +83,7 @@ class _MainNavigationState extends State<MainNavigation> {
             child: SafeArea(
               top: false,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 8,),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: _navigationItems.asMap().entries.map((entry) {
@@ -120,19 +105,19 @@ class _MainNavigationState extends State<MainNavigation> {
                           },
                           borderRadius: BorderRadius.circular(14),
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            padding: const EdgeInsets.symmetric(vertical: 6), // Réduit de 10 à 6
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
                                   isSelected ? item.activeIcon : item.icon,
-                                  size: 26,
+                                  size: 22, // Réduit de 26 à 22
                                   color: isSelected
                                       ? AppColors.primary
                                       : AppColors.textTertiary,
                                 ),
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 2), // Réduit de 4 à 2
                                 Text(
                                   item.label,
                                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
@@ -142,7 +127,7 @@ class _MainNavigationState extends State<MainNavigation> {
                                     fontWeight: isSelected
                                         ? FontWeight.w600
                                         : FontWeight.w500,
-                                    fontSize: 11,
+                                    fontSize: 10, // Réduit de 11 à 10
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,

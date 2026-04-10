@@ -600,8 +600,12 @@ class PropertyShareButton extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () async {
-              Navigator.of(context).pop();
+              // Ne pas fermer le dialog immédiatement
               await _shareProperty(context, property, repaintBoundaryKey);
+              // Fermer le dialog seulement après le partage
+              if (context.mounted && Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              }
             },
             child: const Text('Partager'),
           ),

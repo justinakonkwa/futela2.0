@@ -11,7 +11,9 @@ class PropertyProvider with ChangeNotifier {
   final PropertyService _propertyService = PropertyService();
   final LocationService _locationService = LocationService();
 
-  List<Property> _properties = [];
+  // Listes séparées pour Home et Search
+  List<Property> _homeProperties = [];
+  List<Property> _searchProperties = [];
   List<Property> _myProperties = [];
   List<Category> _categories = [];
   List<Province> _provinces = [];
@@ -30,7 +32,9 @@ class PropertyProvider with ChangeNotifier {
   static const int _homePageSize = 20;
 
   // Getters
-  List<Property> get properties => _properties;
+  List<Property> get homeProperties => _homeProperties;
+  List<Property> get searchResults => _searchProperties;
+  List<Property> get properties => _searchProperties; // Pour compatibilité avec SearchScreen
   List<Property> get myProperties => _myProperties;
   List<Category> get categories => _categories;
   List<Province> get provinces => _provinces;
@@ -44,59 +48,50 @@ class PropertyProvider with ChangeNotifier {
   /// True s’il reste des pages à charger pour le fil d’accueil.
   bool get hasMoreHomeFeed => _homeHasMore;
 
-  // Convertir un categoryId en type correspondant
-  String? _categoryIdToType(String? categoryId) {
-    if (categoryId == null) return null;
+  // Convertir un nom de catégorie en type correspondant
+  String? _categoryNameToType(String? categoryName) {
+    if (categoryName == null || categoryName.isEmpty) return null;
     
-    // Trouver la catégorie correspondante
-    final category = _categories.firstWhere(
-      (c) => c.id == categoryId,
-      orElse: () => Category(
-        id: '',
-        name: '',
-        slug: '',
-        icon: '',
-      ),
-    );
+    final categoryLower = categoryName.toLowerCase().trim();
     
-    if (category.id.isEmpty) return null;
+    print('🔄 _categoryNameToType: Converting "$categoryName" (lowercase: "$categoryLower")');
     
-    // Mapper le nom ou slug de la catégorie au type
-    final categoryNameLower = category.name.toLowerCase();
-    final categorySlugLower = category.slug.toLowerCase();
-    
-    // Mapping des catégories vers les types
-    if (categoryNameLower.contains('apartment') || 
-        categoryNameLower.contains('appartement') ||
-        categorySlugLower.contains('apartment') ||
-        categorySlugLower.contains('appartement')) {
+    // Mapping selon la documentation API : apartment, house, land, event_hall, car
+    if (categoryLower.contains('apartment') || 
+        categoryLower.contains('appartement')) {
+      print('✅ Mapped to: apartment');
       return 'apartment';
-    } else if (categoryNameLower.contains('house') || 
-               categoryNameLower.contains('maison') ||
-               categoryNameLower.contains('villa') ||
-               categorySlugLower.contains('house') ||
-               categorySlugLower.contains('maison') ||
-               categorySlugLower.contains('villa')) {
+    } else if (categoryLower.contains('house') || 
+               categoryLower.contains('maison') ||
+               categoryLower.contains('villa')) {
+      print('✅ Mapped to: house');
       return 'house';
-    } else if (categoryNameLower.contains('land') || 
-               categoryNameLower.contains('terrain') ||
-               categorySlugLower.contains('land') ||
-               categorySlugLower.contains('terrain')) {
+    } else if (categoryLower.contains('land') || 
+               categoryLower.contains('terrain')) {
+      print('✅ Mapped to: land');
       return 'land';
-    } else if (categoryNameLower.contains('event') || 
-               categoryNameLower.contains('salle') ||
-               categorySlugLower.contains('event') ||
-               categorySlugLower.contains('salle')) {
+    } else if (categoryLower.contains('event') || 
+               categoryLower.contains('hall') ||
+               categoryLower.contains('salle')) {
+      print('✅ Mapped to: event_hall');
       return 'event_hall';
-    } else if (categoryNameLower.contains('car') || 
-               categoryNameLower.contains('vehicule') ||
-               categoryNameLower.contains('voiture') ||
-               categorySlugLower.contains('car') ||
-               categorySlugLower.contains('vehicule') ||
-               categorySlugLower.contains('voiture')) {
+    } else if (categoryLower.contains('car') || 
+               categoryLower.contains('voiture') ||
+               categoryLower.contains('vehicule') ||
+               categoryLower.contains('véhicule') ||
+               categoryLower.contains('auto')) {
+      print('✅ Mapped to: car');
       return 'car';
     }
     
+    // Si aucun mapping trouvé, essayer de retourner le nom tel quel s'il correspond à un type API
+    final validTypes = ['apartment', 'house', 'land', 'event_hall', 'car'];
+    if (validTypes.contains(categoryLower)) {
+      print('✅ Direct match with API type: $categoryLower');
+      return categoryLower;
+    }
+    
+    print('⚠️ No mapping found for category: "$categoryName"');
     return null;
   }
 
@@ -111,7 +106,7 @@ class PropertyProvider with ChangeNotifier {
     print('Category: $categoryId, refresh: $refresh');
 
     if (refresh) {
-      _properties.clear();
+      _homeProperties.clear();
       _homeNextPage = 1;
       _homeHasMore = true;
       _nextCursor = null;
@@ -124,23 +119,28 @@ class PropertyProvider with ChangeNotifier {
 
     try {
       final pageToFetch = refresh ? 1 : _homeNextPage;
+      final categoryParam = (categoryId != null && categoryId.isNotEmpty) ? categoryId : null;
+      
+      print('🔥 PROVIDER - About to call listProperties');
+      print('  - pageToFetch: $pageToFetch');
+      print('  - itemsPerPage: $_homePageSize');
+      print('  - categoryParam: $categoryParam');
+      
       final result = await _propertyService.listProperties(
         page: pageToFetch,
         itemsPerPage: _homePageSize,
-        categoryId: (categoryId != null && categoryId.isNotEmpty)
-            ? categoryId
-            : null,
+        categoryId: categoryParam,
       );
 
       if (refresh) {
-        _properties = List<Property>.from(result.items);
+        _homeProperties = List<Property>.from(result.items);
       } else {
-        _properties.addAll(result.items);
+        _homeProperties.addAll(result.items);
       }
 
       _homeNextPage = result.page + 1;
       _homeHasMore = result.hasNextPage;
-      _total = result.totalItems > 0 ? result.totalItems : _properties.length;
+      _total = result.totalItems > 0 ? result.totalItems : _homeProperties.length;
       _nextCursor = _homeHasMore ? 'home' : null;
 
       print(
@@ -177,24 +177,24 @@ class PropertyProvider with ChangeNotifier {
     bool refresh = false,
   }) async {
     print('📋 PropertyProvider.loadProperties called');
-    print('Category filter (categoryId): $category');
+    print('Category filter (categoryName): $category');
     print('Type filter: $type');
     print('Town filter: $town');
     print('Query: $query');
     print('Refresh: $refresh');
     
-    // Convertir categoryId en type si nécessaire
+    // Convertir categoryName en type si nécessaire
     String? finalType = type;
     if (category != null && category.isNotEmpty && type == null) {
-      finalType = _categoryIdToType(category);
-      print('🔄 Converted categoryId "$category" to type: $finalType');
+      finalType = _categoryNameToType(category);
+      print('🔄 Converted categoryName "$category" to type: $finalType');
     }
     
     if (refresh) {
-      _properties.clear();
+      _searchProperties.clear();
       _nextCursor = null;
       _prevCursor = null;
-      print('🔄 Cleared properties list for refresh');
+      print('🔄 Cleared search properties list for refresh');
     }
 
     _isLoading = true;
@@ -204,7 +204,6 @@ class PropertyProvider with ChangeNotifier {
     try {
       print('🔍 Calling PropertyService.searchProperties');
       print('  - type: $finalType');
-      print('  - categoryId: $category');
       print('  - townId: $town');
       print('  - query: ${query ?? ""}');
       final response = await _propertyService.searchProperties(
@@ -214,7 +213,7 @@ class PropertyProvider with ChangeNotifier {
         townId: town,
         cityId: cityId,
         type: finalType,
-        categoryId: category,
+        categoryId: null, // Ne plus passer categoryId, utiliser type
         bedrooms: bedrooms,
         available: available,
         hasParking: hasParking,
@@ -225,27 +224,49 @@ class PropertyProvider with ChangeNotifier {
       );
       
       print('✅ PropertyService.searchProperties returned ${response.length} properties');
+      if (response.isNotEmpty) {
+        print('📋 First property sample:');
+        print('  - id: ${response.first.id}');
+        print('  - type: ${response.first.type}');
+        print('  - title: ${response.first.title}');
+        print('  - hasParking: ${response.first.hasParking}');
+        print('  - hasPool: ${response.first.hasPool}');
+        print('  - isFurnished: ${response.first.isFurnished}');
+      }
 
       // Filtre côté client si l'API ne filtre pas (meublé, parking, piscine)
       var filtered = response;
+      print('🔍 Applying client-side filters:');
+      print('  - hasParking filter: $hasParking');
+      print('  - hasPool filter: $hasPool');
+      print('  - furnished filter: $furnished');
+      
       if (hasParking == true) {
+        final beforeCount = filtered.length;
         filtered = filtered.where((p) => p.hasParking).toList();
+        print('  - hasParking filter removed ${beforeCount - filtered.length} properties');
       }
       if (hasPool == true) {
+        final beforeCount = filtered.length;
         filtered = filtered.where((p) => p.hasPool == true).toList();
+        print('  - hasPool filter removed ${beforeCount - filtered.length} properties');
       }
       if (furnished == true) {
+        final beforeCount = filtered.length;
         filtered = filtered.where((p) => p.isFurnished == true).toList();
+        print('  - furnished filter removed ${beforeCount - filtered.length} properties');
       }
+      
+      print('✅ After client-side filtering: ${filtered.length} properties remain');
 
       if (refresh) {
-        _properties = filtered;
+        _searchProperties = filtered;
       } else {
-        _properties.addAll(filtered);
+        _searchProperties.addAll(filtered);
       }
 
       // Mettre à jour le total avec la taille de la liste
-      _total = _properties.length;
+      _total = _searchProperties.length;
 
       _isLoading = false;
       notifyListeners();
@@ -293,6 +314,11 @@ class PropertyProvider with ChangeNotifier {
     int? offset,
     bool refresh = false,
   }) async {
+    print('🔍 PropertyProvider.searchProperties called');
+    print('  - category (Name): $category');
+    print('  - type: $type');
+    print('  - query: $query');
+    
     await loadProperties(
       query: query,
       minPrice: minPrice,
@@ -364,9 +390,14 @@ class PropertyProvider with ChangeNotifier {
 
     try {
       _categories = await _propertyService.getCategories();
+      print('📋 Categories loaded: ${_categories.length}');
+      for (var cat in _categories) {
+        print('  - Category: id="${cat.id}", name="${cat.name}", slug="${cat.slug}"');
+      }
       _isLoading = false;
       notifyListeners();
     } catch (e) {
+      print('❌ Error loading categories: $e');
       _error = e.toString();
       _isLoading = false;
       notifyListeners();
@@ -498,10 +529,15 @@ class PropertyProvider with ChangeNotifier {
     try {
       final property = await _propertyService.updateProperty(id, propertyData);
 
-      // Mettre à jour la propriété dans la liste locale
-      final index = _properties.indexWhere((p) => p.id == id);
-      if (index != -1) {
-        _properties[index] = property;
+      // Mettre à jour la propriété dans toutes les listes locales
+      final homeIndex = _homeProperties.indexWhere((p) => p.id == id);
+      if (homeIndex != -1) {
+        _homeProperties[homeIndex] = property;
+      }
+      
+      final searchIndex = _searchProperties.indexWhere((p) => p.id == id);
+      if (searchIndex != -1) {
+        _searchProperties[searchIndex] = property;
       }
 
       final myIndex = _myProperties.indexWhere((p) => p.id == id);
@@ -534,8 +570,9 @@ class PropertyProvider with ChangeNotifier {
     try {
       await _propertyService.deleteProperty(id);
 
-      // Supprimer la propriété des listes locales
-      _properties.removeWhere((p) => p.id == id);
+      // Supprimer la propriété de toutes les listes locales
+      _homeProperties.removeWhere((p) => p.id == id);
+      _searchProperties.removeWhere((p) => p.id == id);
       _myProperties.removeWhere((p) => p.id == id);
 
       _isLoading = false;
@@ -558,12 +595,19 @@ class PropertyProvider with ChangeNotifier {
     try {
       final property = await _propertyService.getProperty(id);
 
-      // Ajouter la propriété à la liste si elle n'y est pas déjà
-      final existingIndex = _properties.indexWhere((p) => p.id == id);
-      if (existingIndex != -1) {
-        _properties[existingIndex] = property;
+      // Ajouter la propriété aux listes si elle n'y est pas déjà
+      final homeIndex = _homeProperties.indexWhere((p) => p.id == id);
+      if (homeIndex != -1) {
+        _homeProperties[homeIndex] = property;
       } else {
-        _properties.add(property);
+        _homeProperties.add(property);
+      }
+      
+      final searchIndex = _searchProperties.indexWhere((p) => p.id == id);
+      if (searchIndex != -1) {
+        _searchProperties[searchIndex] = property;
+      } else {
+        _searchProperties.add(property);
       }
 
       _isLoading = false;
@@ -625,7 +669,8 @@ class PropertyProvider with ChangeNotifier {
   }
 
   void clearProperties() {
-    _properties.clear();
+    _homeProperties.clear();
+    _searchProperties.clear();
     _nextCursor = null;
     _prevCursor = null;
     _total = 0;

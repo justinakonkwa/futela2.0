@@ -85,6 +85,14 @@ class _SearchScreenState extends State<SearchScreen> {
   void _performSearch({bool refresh = false}) {
     final propertyProvider = Provider.of<PropertyProvider>(context, listen: false);
     final queryText = _searchController.text.trim();
+    
+    print('🔥 SEARCH - _performSearch called');
+    print('  - query: "$queryText"');
+    print('  - category: "$_selectedCategory"');
+    print('  - minPrice: $_minPrice');
+    print('  - maxPrice: $_maxPrice');
+    print('  - refresh: $refresh');
+    
     propertyProvider.searchProperties(
       query: queryText.isEmpty ? null : queryText,
       minPrice: _minPrice,
@@ -165,48 +173,111 @@ class _SearchScreenState extends State<SearchScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Rechercher'),
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor ?? Theme.of(context).colorScheme.surface,
+        title: Text(
+          'Rechercher',
+          style: TextStyle(
+            fontFamily: 'Gilroy',
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.3,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        backgroundColor: AppColors.white,
         elevation: 0,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(72),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(
-                  child: CustomTextField(
-                    controller: _searchController,
-                    label: null,
-                    hint: 'Rechercher une propriété...',
-                    prefixIconData: CupertinoIcons.search,
-                    onChanged: (value) {
-                      if (value.length >= 3) {
-                        _performSearch(refresh: true);
-                      }
-                    },
+                  child: Container(
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.shadow.withOpacity(0.08),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (value) {
+                        if (value.length >= 3) {
+                          _performSearch(refresh: true);
+                        }
+                      },
+                      style: TextStyle(
+                        fontFamily: 'Gilroy',
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textPrimary,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'Rechercher une propriété...',
+                        hintStyle: TextStyle(
+                          fontFamily: 'Gilroy',
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.textTertiary,
+                        ),
+                        prefixIcon: Container(
+                          margin: const EdgeInsets.all(10),
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                AppColors.primary.withOpacity(0.1),
+                                AppColors.primaryLight.withOpacity(0.05),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Icon(
+                            CupertinoIcons.search,
+                            size: 20,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
-                Material(
-                  color: AppColors.grey50,
-                  borderRadius: BorderRadius.circular(14),
-                  child: InkWell(
-                    onTap: _showFilters,
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
                     borderRadius: BorderRadius.circular(14),
-                    child: Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppColors.grey200),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.shadow.withOpacity(0.15),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
                       ),
-                      alignment: Alignment.center,
-                      child: Icon(
-                        CupertinoIcons.slider_horizontal_3,
-                        size: 22,
-                        color: AppColors.textPrimary,
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: _showFilters,
+                      borderRadius: BorderRadius.circular(14),
+                      child: Center(
+                        child: Icon(
+                          Icons.tune_rounded,
+                          size: 24,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
                     ),
                   ),
@@ -225,19 +296,25 @@ class _SearchScreenState extends State<SearchScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(left: 16, bottom: 8),
+                  padding: const EdgeInsets.only(left: 20, bottom: 8),
                   child: Text(
                     'Catégorie',
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: AppColors.textSecondary,
+                    style: TextStyle(
+                      fontFamily: 'Gilroy',
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
+                      letterSpacing: -0.2,
+                      color: AppColors.textSecondary,
                     ),
                   ),
                 ),
                 CategoryChips(
                   selectedCategory: _selectedCategory,
                   onCategorySelected: (categoryId) {
-                    setState(() => _selectedCategory = categoryId);
+                    print('🔥 SEARCH - Category selected: $categoryId');
+                    setState(() {
+                      _selectedCategory = categoryId; // Garder l'ID, pas le nom/slug
+                    });
                     _performSearch(refresh: true);
                   },
                 ),
@@ -272,33 +349,89 @@ class _SearchScreenState extends State<SearchScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            Icons.error_outline,
-                            size: 64,
-                            color: AppColors.error,
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppColors.error.withOpacity(0.1),
+                                  AppColors.error.withOpacity(0.05),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                            ),
+                            child: Icon(
+                              Icons.error_outline_rounded,
+                              size: 40,
+                              color: AppColors.error,
+                            ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 24),
                           Text(
                             'Erreur de recherche',
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            style: TextStyle(
+                              fontFamily: 'Gilroy',
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.5,
                               color: AppColors.textPrimary,
                             ),
                             textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 12),
                           Text(
                             propertyProvider.error!,
                             textAlign: TextAlign.center,
                             maxLines: 5,
                             overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            style: TextStyle(
+                              fontFamily: 'Gilroy',
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
                               color: AppColors.textSecondary,
+                              height: 1.5,
                             ),
                           ),
-                          const SizedBox(height: 24),
-                          CustomButton(
-                            text: 'Réessayer',
-                            onPressed: () => _performSearch(refresh: true),
+                          const SizedBox(height: 32),
+                          Container(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [AppColors.primary, AppColors.primaryDark],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(14),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primary.withOpacity(0.3),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () => _performSearch(refresh: true),
+                                borderRadius: BorderRadius.circular(14),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                                  child: Text(
+                                    'Réessayer',
+                                    style: TextStyle(
+                                      fontFamily: 'Gilroy',
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: -0.2,
+                                      color: AppColors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -314,25 +447,48 @@ class _SearchScreenState extends State<SearchScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            Icons.search_off,
-                            size: 64,
-                            color: AppColors.textTertiary,
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppColors.textTertiary.withOpacity(0.1),
+                                  AppColors.textTertiary.withOpacity(0.05),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                            ),
+                            child: Icon(
+                              Icons.search_off_rounded,
+                              size: 40,
+                              color: AppColors.textTertiary,
+                            ),
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 24),
                           Text(
                             'Aucun résultat trouvé',
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            style: TextStyle(
+                              fontFamily: 'Gilroy',
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.5,
                               color: AppColors.textPrimary,
                             ),
                             textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 12),
                           Text(
                             'Essayez de modifier vos critères de recherche',
                             textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            style: TextStyle(
+                              fontFamily: 'Gilroy',
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
                               color: AppColors.textSecondary,
+                              height: 1.5,
                             ),
                           ),
                         ],
@@ -342,10 +498,11 @@ class _SearchScreenState extends State<SearchScreen> {
                 }
 
                 return RefreshIndicator(
+                  color: AppColors.primary,
                   onRefresh: () async => _performSearch(refresh: true),
                   child: ListView.builder(
                     controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                     itemCount: propertyProvider.properties.length + 
                         (propertyProvider.isLoading ? 1 : 0),
                     itemBuilder: (context, index) {
@@ -384,56 +541,133 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildQuickFilters() {
+    // Déterminer quels filtres afficher selon la catégorie
+    final categoryLower = _selectedCategory?.toLowerCase() ?? '';
+    
+    // T1-T4+ : Seulement pour Apartment et House
+    final showRoomFilters = categoryLower.isEmpty || 
+                           categoryLower.contains('apartment') || 
+                           categoryLower.contains('appartement') ||
+                           categoryLower.contains('house') ||
+                           categoryLower.contains('maison');
+    
+    // Meublé : Pour Apartment et House
+    final showFurnished = categoryLower.isEmpty || 
+                         categoryLower.contains('apartment') || 
+                         categoryLower.contains('appartement') ||
+                         categoryLower.contains('house') ||
+                         categoryLower.contains('maison');
+    
+    // Parking : Pour Apartment, House, Event Hall
+    final showParking = categoryLower.isEmpty || 
+                       categoryLower.contains('apartment') || 
+                       categoryLower.contains('appartement') ||
+                       categoryLower.contains('house') ||
+                       categoryLower.contains('maison') ||
+                       categoryLower.contains('event') ||
+                       categoryLower.contains('hall') ||
+                       categoryLower.contains('salle');
+    
+    // Piscine : Pour House principalement
+    final showPool = categoryLower.isEmpty || 
+                    categoryLower.contains('house') ||
+                    categoryLower.contains('maison') ||
+                    categoryLower.contains('villa');
+    
+    List<Widget> filters = [];
+    
+    // Filtres de chambres (T1-T4+)
+    if (showRoomFilters) {
+      filters.addAll([
+        Tooltip(
+          message: '1 pièce (studio)',
+          child: _buildQuickFilterChip('T1', _minBeds == 1 && _maxBeds == 1, () => _setQuickFilter(1, 1)),
+        ),
+        const SizedBox(width: 8),
+        Tooltip(
+          message: '2 pièces',
+          child: _buildQuickFilterChip('T2', _minBeds == 2 && _maxBeds == 2, () => _setQuickFilter(2, 2)),
+        ),
+        const SizedBox(width: 8),
+        Tooltip(
+          message: '3 pièces',
+          child: _buildQuickFilterChip('T3', _minBeds == 3 && _maxBeds == 3, () => _setQuickFilter(3, 3)),
+        ),
+        const SizedBox(width: 8),
+        Tooltip(
+          message: '4 pièces et plus',
+          child: _buildQuickFilterChip('T4+', _minBeds == 4 && _maxBeds == null, () => _setQuickFilter(4, null)),
+        ),
+      ]);
+    }
+    
+    // Filtre Meublé
+    if (showFurnished) {
+      if (filters.isNotEmpty) filters.add(const SizedBox(width: 8));
+      filters.add(_buildQuickFilterChip('Meublé', _isFurnished == true, () => _setFurnishedFilter(true)));
+    }
+    
+    // Filtre Parking
+    if (showParking) {
+      if (filters.isNotEmpty) filters.add(const SizedBox(width: 8));
+      filters.add(_buildQuickFilterChip('Parking', _hasParking == true, () => _setParkingFilter(true)));
+    }
+    
+    // Filtre Piscine
+    if (showPool) {
+      if (filters.isNotEmpty) filters.add(const SizedBox(width: 8));
+      filters.add(_buildQuickFilterChip('Piscine', _hasPool == true, () => _setPoolFilter(true)));
+    }
+    
+    // Si aucun filtre à afficher, retourner un widget vide
+    if (filters.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: [
-          Tooltip(
-            message: '1 pièce (studio)',
-            child: _buildQuickFilterChip('T1', () => _setQuickFilter(1, 1)),
-          ),
-          const SizedBox(width: 8),
-          Tooltip(
-            message: '2 pièces',
-            child: _buildQuickFilterChip('T2', () => _setQuickFilter(2, 2)),
-          ),
-          const SizedBox(width: 8),
-          Tooltip(
-            message: '3 pièces',
-            child: _buildQuickFilterChip('T3', () => _setQuickFilter(3, 3)),
-          ),
-          const SizedBox(width: 8),
-          Tooltip(
-            message: '4 pièces et plus',
-            child: _buildQuickFilterChip('T4+', () => _setQuickFilter(4, null)),
-          ),
-          const SizedBox(width: 8),
-          _buildQuickFilterChip('Meublé', () => _setFurnishedFilter(true)),
-          const SizedBox(width: 8),
-          _buildQuickFilterChip('Parking', () => _setParkingFilter(true)),
-          const SizedBox(width: 8),
-          _buildQuickFilterChip('Piscine', () => _setPoolFilter(true)),
-        ],
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(children: filters),
     );
   }
 
-  Widget _buildQuickFilterChip(String label, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: AppColors.grey100,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Text(
-          label,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.w500,
+  Widget _buildQuickFilterChip(String label, bool isSelected, VoidCallback onTap) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            gradient: isSelected
+                ? LinearGradient(
+                    colors: [AppColors.primary, AppColors.primaryDark],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : null,
+            color: isSelected ? null : AppColors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: isSelected
+                    ? AppColors.primary.withOpacity(0.3)
+                    : AppColors.shadow.withOpacity(0.08),
+                blurRadius: isSelected ? 8 : 6,
+                offset: Offset(0, isSelected ? 3 : 2),
+              ),
+            ],
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontFamily: 'Gilroy',
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              letterSpacing: -0.2,
+              color: isSelected ? AppColors.white : AppColors.textPrimary,
+            ),
           ),
         ),
       ),
@@ -577,10 +811,10 @@ class _AdvancedFiltersBottomSheetState extends State<_AdvancedFiltersBottomSheet
     return Container(
       height: MediaQuery.of(context).size.height * 0.8,
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: AppColors.white,
         borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
         ),
       ),
       child: Column(
@@ -598,43 +832,69 @@ class _AdvancedFiltersBottomSheetState extends State<_AdvancedFiltersBottomSheet
           
           // Header
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             child: Row(
               children: [
                 Text(
                   'Filtres',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  style: TextStyle(
+                    fontFamily: 'Gilroy',
+                    fontSize: 22,
                     fontWeight: FontWeight.w700,
+                    letterSpacing: -0.5,
+                    color: AppColors.textPrimary,
                   ),
                 ),
                 const Spacer(),
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      _selectedType = null;
-                      _minPrice = null;
-                      _maxPrice = null;
-                      _selectedProvince = null;
-                      _selectedCity = null;
-                      _selectedTown = null;
-                      _minBeds = null;
-                      _maxBeds = null;
-                      _minBaths = null;
-                      _maxBaths = null;
-                      _minArea = null;
-                      _maxArea = null;
-                      _minFloor = null;
-                      _maxFloor = null;
-                      _isFurnished = null;
-                      _hasParking = null;
-                      _hasPool = null;
-                      _hasBalcony = null;
-                      _hasAirConditioning = null;
-                      _hasHeating = null;
-                      _petsAllowed = null;
-                    });
-                  },
-                  child: const Text('Réinitialiser'),
+                Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.grey50,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        setState(() {
+                          _selectedType = null;
+                          _minPrice = null;
+                          _maxPrice = null;
+                          _selectedProvince = null;
+                          _selectedCity = null;
+                          _selectedTown = null;
+                          _minBeds = null;
+                          _maxBeds = null;
+                          _minBaths = null;
+                          _maxBaths = null;
+                          _minArea = null;
+                          _maxArea = null;
+                          _minFloor = null;
+                          _maxFloor = null;
+                          _isFurnished = null;
+                          _hasParking = null;
+                          _hasPool = null;
+                          _hasBalcony = null;
+                          _hasAirConditioning = null;
+                          _hasHeating = null;
+                          _petsAllowed = null;
+                        });
+                      },
+                      borderRadius: BorderRadius.circular(10),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        child: Text(
+                          'Réinitialiser',
+                          style: TextStyle(
+                            fontFamily: 'Gilroy',
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: -0.2,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),

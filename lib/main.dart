@@ -14,6 +14,7 @@ import 'providers/favorite_list_provider.dart';
 import 'providers/notification_provider.dart';
 import 'providers/messaging_provider.dart';
 import 'providers/theme_provider.dart';
+import 'providers/commission_provider.dart';
 import 'screens/splash_screen.dart';
 import 'utils/app_theme.dart';
 
@@ -22,20 +23,41 @@ void main() {
   ErrorWidget.builder = (FlutterErrorDetails details) {
     final ex = details.exception;
     final msg = ex.toString();
+    
+    // Gestion spécifique des erreurs d'images (404, HttpException)
     if (ex is HttpException ||
         (msg.contains('404') && msg.contains('statusCode')) ||
-        (msg.contains('HttpException'))) {
-      return Material(
-        color: Colors.grey.shade200,
+        (msg.contains('HttpException')) ||
+        (msg.contains('NetworkImageLoadException')) ||
+        (msg.contains('Failed to load network image'))) {
+      return Container(
+        width: double.infinity,
+        height: double.infinity,
+        color: Colors.grey.shade100,
         child: Center(
-          child: Icon(
-            Icons.broken_image_outlined,
-            size: 48,
-            color: Colors.grey.shade600,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.broken_image_outlined,
+                size: 32,
+                color: Colors.grey.shade400,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Image non disponible',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey.shade500,
+                ),
+              ),
+            ],
           ),
         ),
       );
     }
+    
+    // Pour les autres erreurs, utiliser le widget d'erreur par défaut
     return ErrorWidget(ex);
   };
   runApp(const FutelaApp());
@@ -59,6 +81,7 @@ class FutelaApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => FavoriteListProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => MessagingProvider()),
+        ChangeNotifierProvider(create: (_) => CommissionProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {

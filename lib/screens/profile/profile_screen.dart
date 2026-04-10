@@ -23,7 +23,8 @@ import '../support/contact_us_screen.dart';
 import '../support/about_screen.dart';
 // import '../messaging/conversations_list_screen.dart';
 // import '../../providers/messaging_provider.dart';
-import '../../widgets/futela_logo.dart';
+import '../commission/commissionnaire_dashboard.dart';
+import '../commission/visitor_codes_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -36,21 +37,20 @@ class ProfileScreen extends StatelessWidget {
         title: const Text('Profil'),
         backgroundColor: Theme.of(context).appBarTheme.backgroundColor ?? Theme.of(context).colorScheme.surface,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () {
-              // TODO: Implémenter les paramètres
-            },
-          ),
-        ],
+        // actions: [
+        //   IconButton(
+        //     icon: const Icon(Icons.settings_outlined),
+        //     onPressed: () {
+        //       // TODO: Implémenter les paramètres
+        //     },
+        //   ),
+        // ],
       ),
       body: Consumer<AuthProvider>(
         builder: (context, authProvider, child) {
-          if (authProvider.user == null) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+          // Si l'utilisateur n'est pas connecté, afficher l'interface de connexion
+          if (!authProvider.isAuthenticated || authProvider.user == null) {
+            return _buildGuestProfile(context);
           }
 
           final user = authProvider.user!;
@@ -59,99 +59,180 @@ class ProfileScreen extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                // Profil header — carte compacte
+                // Profil header moderne avec gradient
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.06),
-                    borderRadius: BorderRadius.circular(16),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppColors.primary.withOpacity(0.08),
+                        AppColors.primaryLight.withOpacity(0.05),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(24),
                     border: Border.all(
-                      color: AppColors.primary.withOpacity(0.12),
+                      color: AppColors.primary.withOpacity(0.1),
                       width: 1,
                     ),
                   ),
                   child: Column(
                     children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          // Avatar compact
-                          Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: AppColors.white,
-                                width: 2,
-                              ),
-                            ),
-                            child: CircleAvatar(
-                              radius: 32,
-                              backgroundColor: AppColors.primary.withOpacity(0.12),
-                              backgroundImage: user.profilePictureFilePath != null
-                                  ? NetworkImage(user.profilePictureFilePath!)
-                                  : null,
-                              child: user.profilePictureFilePath == null
-                                  ? Text(
-                                      user.firstName.isNotEmpty
-                                          ? user.firstName[0].toUpperCase()
-                                          : 'U',
-                                      style: const TextStyle(
-                                        fontFamily: 'Gilroy',
-                                        fontSize: 22,
-                                        color: AppColors.primary,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    )
-                                  : null,
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                      Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          children: [
+                            // Avatar avec effet d'élévation
+                            Stack(
                               children: [
-                                Text(
-                                  user.fullName,
-                                  style: const TextStyle(
-                                    fontFamily: 'Gilroy',
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.textPrimary,
+                                Container(
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppColors.primary.withOpacity(0.2),
+                                        blurRadius: 20,
+                                        offset: const Offset(0, 8),
+                                      ),
+                                    ],
                                   ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    Icon(Icons.email_outlined, size: 14, color: AppColors.textSecondary),
-                                    const SizedBox(width: 6),
-                                    Expanded(
-                                      child: Text(
-                                        user.email,
-                                        style: const TextStyle(
-                                          fontFamily: 'Gilroy',
-                                          fontSize: 13,
-                                          color: AppColors.textSecondary,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: AppColors.white,
+                                        width: 4,
                                       ),
                                     ),
+                                    child: CircleAvatar(
+                                      radius: 48,
+                                      backgroundColor: AppColors.primary.withOpacity(0.15),
+                                      backgroundImage: user.profilePictureFilePath != null
+                                          ? NetworkImage(user.profilePictureFilePath!)
+                                          : null,
+                                      child: user.profilePictureFilePath == null
+                                          ? Text(
+                                              user.firstName.isNotEmpty
+                                                  ? user.firstName[0].toUpperCase()
+                                                  : 'U',
+                                              style: const TextStyle(
+                                                fontFamily: 'Gilroy',
+                                                fontSize: 32,
+                                                color: AppColors.primary,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            )
+                                          : null,
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.success,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: AppColors.white,
+                                        width: 3,
+                                      ),
+                                    ),
+                                    child: const Icon(
+                                      Icons.check,
+                                      size: 16,
+                                      color: AppColors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            
+                            // Nom et rôle
+                            Text(
+                              user.fullName,
+                              style: const TextStyle(
+                                fontFamily: 'Gilroy',
+                                fontSize: 24,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textPrimary,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 8),
+                            
+                            // Badge de rôle moderne
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Color(int.parse(RolePermissions.getRoleColor(user.role).replaceFirst('#', '0xFF'))).withOpacity(0.2),
+                                    Color(int.parse(RolePermissions.getRoleColor(user.role).replaceFirst('#', '0xFF'))).withOpacity(0.1),
                                   ],
                                 ),
-                                if (user.phone.isNotEmpty) ...[
-                                  const SizedBox(height: 2),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: Color(int.parse(RolePermissions.getRoleColor(user.role).replaceFirst('#', '0xFF'))).withOpacity(0.3),
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.workspace_premium,
+                                    size: 16,
+                                    color: Color(int.parse(RolePermissions.getRoleColor(user.role).replaceFirst('#', '0xFF'))),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    RolePermissions.getRoleDisplayName(user.role),
+                                    style: TextStyle(
+                                      fontFamily: 'Gilroy',
+                                      color: Color(int.parse(RolePermissions.getRoleColor(user.role).replaceFirst('#', '0xFF'))),
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            
+                            // Infos de contact avec icônes
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: AppColors.white.withOpacity(0.7),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Column(
+                                children: [
                                   Row(
                                     children: [
-                                      Icon(Icons.phone_outlined, size: 14, color: AppColors.textSecondary),
-                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primary.withOpacity(0.1),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: const Icon(
+                                          Icons.email_outlined,
+                                          size: 16,
+                                          color: AppColors.primary,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
                                       Expanded(
                                         child: Text(
-                                          user.phone,
+                                          user.email,
                                           style: const TextStyle(
                                             fontFamily: 'Gilroy',
-                                            fontSize: 13,
-                                            color: AppColors.textSecondary,
+                                            fontSize: 14,
+                                            color: AppColors.textPrimary,
                                             fontWeight: FontWeight.w500,
                                           ),
                                           overflow: TextOverflow.ellipsis,
@@ -159,130 +240,100 @@ class ProfileScreen extends StatelessWidget {
                                       ),
                                     ],
                                   ),
+                                  if (user.phone.isNotEmpty) ...[
+                                    const SizedBox(height: 12),
+                                    Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.primary.withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: const Icon(
+                                            Icons.phone_outlined,
+                                            size: 16,
+                                            color: AppColors.primary,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Text(
+                                            user.phone,
+                                            style: const TextStyle(
+                                              fontFamily: 'Gilroy',
+                                              fontSize: 14,
+                                              color: AppColors.textPrimary,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ],
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => const EditProfileScreen(),
-                                  ),
-                                );
-                              },
-                              icon: const Icon(Icons.person_outline, size: 18),
-                              label: const Text('Voir profil'),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: AppColors.primary,
-                                side: BorderSide(color: AppColors.primary.withOpacity(0.6)),
-                                padding: const EdgeInsets.symmetric(vertical: 10),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                            decoration: BoxDecoration(
-                              color: Color(int.parse(RolePermissions.getRoleColor(user.role).replaceFirst('#', '0xFF'))).withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Color(int.parse(RolePermissions.getRoleColor(user.role).replaceFirst('#', '0xFF'))).withOpacity(0.4),
-                                width: 1,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.person,
-                                  size: 14,
-                                  color: Color(int.parse(RolePermissions.getRoleColor(user.role).replaceFirst('#', '0xFF'))),
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  RolePermissions.getRoleDisplayName(user.role),
-                                  style: TextStyle(
-                                    fontFamily: 'Gilroy',
-                                    color: Color(int.parse(RolePermissions.getRoleColor(user.role).replaceFirst('#', '0xFF'))),
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                
-                const SizedBox(height: 24),
-                
-                // Logo Futela
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.shadow.withOpacity(0.1),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      // Logo
-                      const FutelaLogo(size: 50),
-                      const SizedBox(width: 16),
-                      
-                      // Informations
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Futela',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                color: AppColors.textPrimary,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Version 1.0.0',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppColors.textSecondary,
                               ),
                             ),
                           ],
                         ),
                       ),
                       
-                      // Indicateur
-                      Icon(
-                        Icons.verified,
-                        color: AppColors.success,
-                        size: 20,
+                      // Bouton d'édition du profil
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border(
+                            top: BorderSide(
+                              color: AppColors.border.withOpacity(0.3),
+                              width: 1,
+                            ),
+                          ),
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const EditProfileScreen(),
+                                ),
+                              );
+                            },
+                            borderRadius: const BorderRadius.only(
+                              bottomLeft: Radius.circular(24),
+                              bottomRight: Radius.circular(24),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.edit_outlined,
+                                    size: 18,
+                                    color: AppColors.primary,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    'Modifier mon profil',
+                                    style: TextStyle(
+                                      fontFamily: 'Gilroy',
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
                 
-                const SizedBox(height: 24),
+                const SizedBox(height: 20),
                 
                 // Menu options
                 _buildMenuSection(
@@ -426,6 +477,50 @@ class ProfileScreen extends StatelessWidget {
                 
                 const SizedBox(height: 16),
                 
+                // Section Commission (uniquement pour les commissionnaires)
+                if (RolePermissions.canAccessCommissionFeatures(user))
+                  _buildMenuSection(
+                    context,
+                    title: 'Commission',
+                    items: [
+                      _MenuItem(
+                        icon: Icons.dashboard_outlined,
+                        title: 'Tableau de bord commissionnaire',
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const CommissionnaireDashboard(),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                
+                // Section Codes de vérification (pour tous les utilisateurs)  
+                _buildMenuSection(
+                  context,
+                  title: 'Codes de visite',
+                  items: [
+                    _MenuItem(
+                      icon: Icons.qr_code_outlined,
+                      title: 'Mes codes de vérification',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const VisitorCodesScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+                
+                if (RolePermissions.canAccessCommissionFeatures(user))
+                  const SizedBox(height: 16),
+                
+                const SizedBox(height: 16),
+                
                 _buildMenuSection(
                   context,
                   title: 'Apparence',
@@ -509,40 +604,128 @@ class ProfileScreen extends StatelessWidget {
                 
                 const SizedBox(height: 32),
                 
-                // Bouton de déconnexion
-                CustomButton(
-                  text: 'Se déconnecter',
-                  isOutlined: true,
-                  fullWidth: true,
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Déconnexion'),
-                        content: const Text(
-                          'Êtes-vous sûr de vouloir vous déconnecter ?',
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: const Text('Annuler'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                              authProvider.logout();
-                              Navigator.of(context).pushReplacement(
-                                MaterialPageRoute(
-                                  builder: (context) => const LoginScreen(),
-                                ),
-                              );
-                            },
-                            child: const Text('Déconnexion'),
-                          ),
-                        ],
+                // Bouton de déconnexion moderne
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.error.withOpacity(0.15),
+                        blurRadius: 20,
+                        offset: const Offset(0, 4),
                       ),
-                    );
-                  },
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            title: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.error.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(
+                                    Icons.logout,
+                                    color: AppColors.error,
+                                    size: 24,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                const Text('Déconnexion'),
+                              ],
+                            ),
+                            content: const Text(
+                              'Êtes-vous sûr de vouloir vous déconnecter ?',
+                              style: TextStyle(
+                                fontFamily: 'Gilroy',
+                                fontSize: 15,
+                              ),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: const Text(
+                                  'Annuler',
+                                  style: TextStyle(
+                                    fontFamily: 'Gilroy',
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                              ElevatedButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                  authProvider.logout();
+                                  Navigator.of(context).pushReplacement(
+                                    MaterialPageRoute(
+                                      builder: (context) => const LoginScreen(),
+                                    ),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.error,
+                                  foregroundColor: AppColors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Déconnexion',
+                                  style: TextStyle(
+                                    fontFamily: 'Gilroy',
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        decoration: BoxDecoration(
+                          color: AppColors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: AppColors.error.withOpacity(0.3),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.logout_rounded,
+                              color: AppColors.error,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 10),
+                            const Text(
+                              'Se déconnecter',
+                              style: TextStyle(
+                                fontFamily: 'Gilroy',
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.error,
+                                letterSpacing: -0.2,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
                 
                 const SizedBox(height: 16),
@@ -554,6 +737,352 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildGuestProfile(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          // Guest header moderne
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppColors.primary.withOpacity(0.08),
+                  AppColors.primaryLight.withOpacity(0.05),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: AppColors.primary.withOpacity(0.15),
+                width: 1,
+              ),
+            ),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    children: [
+                      // Avatar invité avec effet
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withOpacity(0.2),
+                              blurRadius: 30,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppColors.white,
+                              width: 4,
+                            ),
+                          ),
+                          child: CircleAvatar(
+                            radius: 56,
+                            backgroundColor: AppColors.primary.withOpacity(0.15),
+                            child: Icon(
+                              Icons.person_outline_rounded,
+                              size: 56,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      
+                      Text(
+                        'Mode Invité',
+                        style: const TextStyle(
+                          fontFamily: 'Gilroy',
+                          fontSize: 28,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      
+                      Text(
+                        'Connectez-vous pour débloquer toutes les fonctionnalités',
+                        style: const TextStyle(
+                          fontFamily: 'Gilroy',
+                          fontSize: 15,
+                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.w500,
+                          height: 1.4,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 28),
+                      
+                      // Bouton de connexion moderne
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          gradient: LinearGradient(
+                            colors: [
+                              AppColors.primary,
+                              AppColors.primaryDark,
+                            ],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withOpacity(0.4),
+                              blurRadius: 20,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const LoginScreen(),
+                                ),
+                              );
+                            },
+                            borderRadius: BorderRadius.circular(16),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.login_rounded,
+                                    color: AppColors.white,
+                                    size: 22,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  const Text(
+                                    'Se connecter',
+                                    style: TextStyle(
+                                      fontFamily: 'Gilroy',
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.white,
+                                      letterSpacing: -0.2,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: 24),
+          
+          // Fonctionnalités disponibles pour les invités
+          _buildMenuSection(
+            context,
+            title: 'Apparence',
+            items: [
+              _MenuItem(
+                icon: Icons.dark_mode_outlined,
+                title: 'Thème (clair / sombre / système)',
+                onTap: () => _showThemeSheet(context),
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 16),
+          
+          _buildMenuSection(
+            context,
+            title: 'Informations',
+            items: [
+              _MenuItem(
+                icon: Icons.help_outline,
+                title: 'Comment demander une visite',
+                onTap: () {
+                  _showVisitGuide(context);
+                },
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 16),
+          
+          _buildMenuSection(
+            context,
+            title: 'Support',
+            items: [
+              _MenuItem(
+                icon: Icons.help_outline,
+                title: 'Centre d\'aide',
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const HelpCenterScreen(),
+                    ),
+                  );
+                },
+              ),
+              _MenuItem(
+                icon: Icons.contact_support_outlined,
+                title: 'Nous contacter',
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const ContactUsScreen(),
+                    ),
+                  );
+                },
+              ),
+              _MenuItem(
+                icon: Icons.info_outline,
+                title: 'À propos',
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const AboutScreen(),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+          
+          const SizedBox(height: 32),
+          
+          // Message d'encouragement moderne
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppColors.primary.withOpacity(0.06),
+                  AppColors.accent.withOpacity(0.04),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: AppColors.primary.withOpacity(0.15),
+                width: 1,
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.accent.withOpacity(0.2),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.star_rounded,
+                      color: AppColors.accent,
+                      size: 40,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Débloquez toutes les fonctionnalités',
+                    style: const TextStyle(
+                      fontFamily: 'Gilroy',
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                      height: 1.3,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Créez un compte pour sauvegarder vos favoris, demander des visites et gérer vos propriétés.',
+                    style: const TextStyle(
+                      fontFamily: 'Gilroy',
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
+                      height: 1.5,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: AppColors.primary.withOpacity(0.3),
+                        width: 2,
+                      ),
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const LoginScreen(),
+                            ),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(14),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.person_add_rounded,
+                                color: AppColors.primary,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 10),
+                              const Text(
+                                'Créer un compte',
+                                style: TextStyle(
+                                  fontFamily: 'Gilroy',
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.primary,
+                                  letterSpacing: -0.2,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
   Widget _buildMenuSection(
     BuildContext context, {
     required String title,
@@ -561,45 +1090,37 @@ class ProfileScreen extends StatelessWidget {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: AppColors.border.withOpacity(0.5),
+          color: AppColors.border.withOpacity(0.3),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadow.withOpacity(0.08),
-            blurRadius: 15,
-            offset: const Offset(0, 3),
+            color: AppColors.shadow.withOpacity(0.06),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.7),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(20),
-                topRight: Radius.circular(20),
-              ),
-              border: Border(
-                bottom: BorderSide(
-                  color: Theme.of(context).dividerColor,
-                  width: 1,
-                ),
-              ),
-            ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.primary.withOpacity(0.15),
+                        AppColors.primary.withOpacity(0.08),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     _getSectionIcon(title),
@@ -615,16 +1136,23 @@ class ProfileScreen extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontFamily: 'Gilroy',
-                      fontSize: 18,
+                      fontSize: 17,
                       fontWeight: FontWeight.w700,
                       color: AppColors.textPrimary,
+                      letterSpacing: -0.3,
                     ),
                   ),
                 ),
               ],
             ),
           ),
-          ...items.map((item) => _buildMenuItem(context, item)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Column(
+              children: items.map((item) => _buildMenuItem(context, item)).toList(),
+            ),
+          ),
+          const SizedBox(height: 8),
         ],
       ),
     );
@@ -633,17 +1161,21 @@ class ProfileScreen extends StatelessWidget {
   IconData _getSectionIcon(String title) {
     switch (title) {
       case 'Mon compte':
-        return Icons.person_outline;
+        return Icons.account_circle_outlined;
       case 'Mes propriétés':
-        return Icons.home_work_outlined;
+        return Icons.home_outlined;
       case 'Visites et Paiements':
-        return Icons.payment_outlined;
+        return Icons.account_balance_wallet_outlined;
+      case 'Commission':
+        return Icons.monetization_on_outlined;
+      case 'Codes de visite':
+        return Icons.qr_code_2_outlined;
       case 'Apparence':
         return Icons.palette_outlined;
       case 'Informations':
         return Icons.info_outline;
       case 'Support':
-        return Icons.support_agent_outlined;
+        return Icons.headset_mic_outlined;
       default:
         return Icons.menu_outlined;
     }
@@ -702,72 +1234,94 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _buildMenuItem(BuildContext context, _MenuItem item) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: AppColors.grey50.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.grey50.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(14),
       ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(
-            item.icon,
-            size: 20,
-            color: AppColors.primary,
-          ),
-        ),
-        title: Text(
-          item.title,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            fontFamily: 'Gilroy',
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (item.badgeCount != null && item.badgeCount! > 0) ...[
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  item.badgeCount! > 99 ? '99+' : '${item.badgeCount}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: item.onTap,
+          borderRadius: BorderRadius.circular(14),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
                     color: AppColors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    item.icon,
+                    size: 20,
+                    color: AppColors.primary,
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-            ],
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: AppColors.grey100,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: const Icon(
-                Icons.arrow_forward_ios,
-                size: 14,
-                color: AppColors.textTertiary,
-              ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    item.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontFamily: 'Gilroy',
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                if (item.badgeCount != null && item.badgeCount! > 0) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.primary,
+                          AppColors.primaryDark,
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      item.badgeCount! > 99 ? '99+' : '${item.badgeCount}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.white,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 16,
+                  color: AppColors.textTertiary.withOpacity(0.6),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-        onTap: item.onTap,
       ),
     );
   }
@@ -1072,7 +1626,7 @@ class _MenuItem {
   _MenuItem({
     required this.icon,
     required this.title,
-    this.badgeCount, // gardé pour réactiver Messagerie
+    this.badgeCount,
     required this.onTap,
   });
 }

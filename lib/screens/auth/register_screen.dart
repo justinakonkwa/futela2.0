@@ -1,12 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/app_colors.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/futela_logo.dart';
+import '../../widgets/social_login_buttons.dart';
 import '../main_navigation.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -25,7 +25,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  
+
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _acceptTerms = false;
@@ -44,7 +44,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     if (!_acceptTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -62,8 +62,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       password: _passwordController.text,
       firstName: _firstNameController.text.trim(),
       lastName: _lastNameController.text.trim(),
-      middleName: _middleNameController.text.trim().isEmpty 
-          ? null 
+      middleName: _middleNameController.text.trim().isEmpty
+          ? null
           : _middleNameController.text.trim(),
     );
 
@@ -81,37 +81,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-  Future<void> _handleGoogleSignUp() async {
-    if (!_acceptTerms) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Veuillez accepter les conditions pour continuer avec Google',
-          ),
-          backgroundColor: AppColors.error,
-        ),
-      );
-      return;
-    }
-
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final success = await authProvider.signInWithGoogle();
-
-    if (success && mounted) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const MainNavigation()),
-        (route) => false,
-      );
-    } else if (mounted && authProvider.error != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(authProvider.error!),
-          backgroundColor: AppColors.error,
-        ),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -120,8 +89,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(CupertinoIcons.back, color: AppColors.textPrimary),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          icon: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: const Icon(
+              CupertinoIcons.back,
+              color: AppColors.textPrimary,
+              size: 20,
+            ),
+          ),
         ),
       ),
       body: SafeArea(
@@ -140,7 +129,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           borderRadius: BorderRadius.circular(28),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primary.withOpacity(0.15),
+                              color: AppColors.primary.withValues(alpha: 0.15),
                               blurRadius: 24,
                               offset: const Offset(0, 10),
                             ),
@@ -155,23 +144,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       const SizedBox(height: 20),
                       Text(
                         'Créer un compte',
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                          letterSpacing: -0.5,
-                        ),
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary,
+                              letterSpacing: -0.5,
+                            ),
                       ),
                       const SizedBox(height: 6),
                       Text(
                         'Rejoignez Futela',
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
+                              color: AppColors.textSecondary,
+                            ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
                 CustomTextField(
                   controller: _firstNameController,
                   label: 'Prénom',
@@ -184,7 +176,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 CustomTextField(
                   controller: _lastNameController,
                   label: 'Nom',
@@ -197,7 +189,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 CustomTextField(
                   controller: _emailController,
                   label: 'Email',
@@ -208,13 +200,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     if (value == null || value.isEmpty) {
                       return 'Veuillez entrer votre email';
                     }
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                        .hasMatch(value)) {
                       return 'Veuillez entrer un email valide';
                     }
                     return null;
                   },
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 CustomTextField(
                   controller: _phoneController,
                   label: 'Téléphone',
@@ -231,7 +224,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 CustomTextField(
                   controller: _passwordController,
                   label: 'Mot de passe',
@@ -240,21 +233,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   prefixIconData: CupertinoIcons.lock_fill,
                   suffixIcon: CupertinoButton(
                     padding: EdgeInsets.zero,
-                    minSize: 0,
-                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                    minimumSize: Size.zero,
+                    onPressed: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
                     child: Icon(
-                      _obscurePassword ? CupertinoIcons.eye_slash_fill : CupertinoIcons.eye_fill,
+                      _obscurePassword
+                          ? CupertinoIcons.eye_slash_fill
+                          : CupertinoIcons.eye_fill,
                       size: 22,
                       color: AppColors.textTertiary,
                     ),
                   ),
                   validator: (value) {
-                    if (value == null || value.isEmpty) return 'Veuillez entrer votre mot de passe';
+                    if (value == null || value.isEmpty)
+                      return 'Veuillez entrer votre mot de passe';
                     if (value.length < 4) return 'Au moins 4 caractères';
                     return null;
                   },
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 CustomTextField(
                   controller: _confirmPasswordController,
                   label: 'Confirmer le mot de passe',
@@ -263,17 +260,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   prefixIconData: CupertinoIcons.lock_fill,
                   suffixIcon: CupertinoButton(
                     padding: EdgeInsets.zero,
-                    minSize: 0,
-                    onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                    minimumSize: Size.zero,
+                    onPressed: () => setState(() =>
+                        _obscureConfirmPassword = !_obscureConfirmPassword),
                     child: Icon(
-                      _obscureConfirmPassword ? CupertinoIcons.eye_slash_fill : CupertinoIcons.eye_fill,
+                      _obscureConfirmPassword
+                          ? CupertinoIcons.eye_slash_fill
+                          : CupertinoIcons.eye_fill,
                       size: 22,
                       color: AppColors.textTertiary,
                     ),
                   ),
                   validator: (value) {
-                    if (value == null || value.isEmpty) return 'Veuillez confirmer';
-                    if (value != _passwordController.text) return 'Les mots de passe ne correspondent pas';
+                    if (value == null || value.isEmpty)
+                      return 'Veuillez confirmer';
+                    if (value != _passwordController.text)
+                      return 'Les mots de passe ne correspondent pas';
                     return null;
                   },
                 ),
@@ -287,9 +289,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Icon(
-                          _acceptTerms ? CupertinoIcons.checkmark_square_fill : CupertinoIcons.square,
+                          _acceptTerms
+                              ? CupertinoIcons.checkmark_square_fill
+                              : CupertinoIcons.square,
                           size: 24,
-                          color: _acceptTerms ? AppColors.primary : AppColors.grey400,
+                          color: _acceptTerms
+                              ? AppColors.primary
+                              : AppColors.grey400,
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -297,9 +303,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             padding: const EdgeInsets.only(top: 2),
                             child: Text(
                               'J\'accepte les conditions d\'utilisation et la politique de confidentialité',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: AppColors.textSecondary,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: AppColors.textSecondary,
+                                  ),
                             ),
                           ),
                         ),
@@ -312,52 +321,43 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   builder: (context, authProvider, child) {
                     return CustomButton(
                       text: 'Créer mon compte',
-                      onPressed: authProvider.isLoading ? null : _handleRegister,
+                      onPressed:
+                          authProvider.isLoading ? null : _handleRegister,
                       isLoading: authProvider.isLoading,
                       height: 52,
                       fullWidth: true,
                     );
                   },
                 ),
+
                 const SizedBox(height: 20),
-                Row(
-                  children: [
-                    const Expanded(child: Divider(color: AppColors.grey300)),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        'ou',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: AppColors.textTertiary,
-                            ),
-                      ),
-                    ),
-                    const Expanded(child: Divider(color: AppColors.grey300)),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Consumer<AuthProvider>(
-                  builder: (context, authProvider, child) {
-                    return SizedBox(
-                      height: 52,
-                      child: OutlinedButton.icon(
-                        onPressed: authProvider.isLoading
-                            ? null
-                            : _handleGoogleSignUp,
-                        icon: Icon(
-                          PhosphorIcons.googleLogo(PhosphorIconsStyle.bold),
-                          size: 22,
-                          color: AppColors.textPrimary,
+                // Boutons de connexion sociale avec validation des conditions
+                SocialLoginButtons(
+                  validateBeforeAction: () {
+                    if (!_acceptTerms) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                              'Veuillez accepter les conditions pour continuer'),
+                          backgroundColor: AppColors.error,
                         ),
-                        label: const Text('S’inscrire avec Google'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.textPrimary,
-                          side: const BorderSide(color: AppColors.grey300),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                        ),
-                      ),
+                      );
+                      return false;
+                    }
+                    return true;
+                  },
+                  onGoogleSuccess: () {
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                          builder: (context) => const MainNavigation()),
+                      (route) => false,
+                    );
+                  },
+                  onAppleSuccess: () {
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                          builder: (context) => const MainNavigation()),
+                      (route) => false,
                     );
                   },
                 ),
@@ -368,8 +368,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Text(
                       'Déjà un compte ? ',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
+                            color: AppColors.textSecondary,
+                          ),
                     ),
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(),
@@ -381,9 +381,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: Text(
                         'Se connecter',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
                       ),
                     ),
                   ],

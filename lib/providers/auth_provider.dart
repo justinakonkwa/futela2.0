@@ -155,6 +155,7 @@ class AuthProvider with ChangeNotifier {
     }
 
     await _authService.signOutGoogleSilently();
+    await _authService.signOutApple();
 
     _user = null;
     _accessToken = null;
@@ -191,6 +192,39 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
+      _error = _cleanErrorMessage(e);
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Connexion via Apple Sign-In (POST /api/auth/apple).
+  Future<bool> signInWithApple() async {
+    print('🔄 [AuthProvider] Début signInWithApple');
+    
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      print('🔄 [AuthProvider] Appel AuthService.signInWithApple()');
+      final authResponse = await _authService.signInWithApple();
+      
+      print('🔄 [AuthProvider] Réponse reçue, sauvegarde des tokens...');
+      await _saveTokens(authResponse);
+      
+      print('🔄 [AuthProvider] Récupération du profil utilisateur...');
+      _user = await _authService.getCurrentUser();
+      
+      print('✅ [AuthProvider] Connexion Apple réussie');
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      print('❌ [AuthProvider] Erreur signInWithApple: $e');
+      print('❌ [AuthProvider] Type d\'erreur: ${e.runtimeType}');
+      
       _error = _cleanErrorMessage(e);
       _isLoading = false;
       notifyListeners();

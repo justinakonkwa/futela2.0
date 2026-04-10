@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../utils/app_colors.dart';
 import '../widgets/futela_logo.dart';
-import 'auth/login_screen.dart';
 import 'main_navigation.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -57,15 +56,11 @@ class _SplashScreenState extends State<SplashScreen>
       await Future.delayed(const Duration(seconds: 3));
 
       if (mounted) {
-        if (authProvider.isAuthenticated) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const MainNavigation()),
-          );
-        } else {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => const LoginScreen()),
-          );
-        }
+        // Toujours aller vers la navigation principale
+        // L'authentification sera demandée à la demande
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const MainNavigation()),
+        );
       }
     });
   }

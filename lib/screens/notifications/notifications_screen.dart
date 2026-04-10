@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shimmer/shimmer.dart';
 import '../../models/notification.dart';
 import '../../providers/notification_provider.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/error_formatter.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/futela_logo.dart';
 
@@ -66,7 +68,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       body: Consumer<NotificationProvider>(
         builder: (context, provider, _) {
           if (provider.isLoading && provider.notifications.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
+            return _buildShimmer();
           }
           if (provider.error != null && provider.notifications.isEmpty) {
             return Center(
@@ -75,18 +77,39 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: AppColors.error,
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.error.withValues(alpha: 0.1),
+                      ),
+                      child: const Icon(
+                        Icons.wifi_off_rounded,
+                        size: 48,
+                        color: AppColors.error,
+                      ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
+                    const Text(
+                      'Impossible de charger',
+                      style: TextStyle(
+                        fontFamily: 'Gilroy',
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
                     Text(
-                      provider.error!,
+                      ErrorFormatter.format(provider.error),
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
+                      style: const TextStyle(
+                        fontFamily: 'Gilroy',
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textSecondary,
+                        height: 1.5,
+                      ),
                     ),
                     const SizedBox(height: 24),
                     CustomButton(
@@ -121,6 +144,75 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildShimmer() {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: 6,
+      itemBuilder: (_, __) => Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Shimmer.fromColors(
+          baseColor: AppColors.grey200,
+          highlightColor: AppColors.grey100,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Icône
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.grey200,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              const SizedBox(width: 14),
+              // Contenu
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      height: 14,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: AppColors.grey200,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      height: 12,
+                      width: 200,
+                      decoration: BoxDecoration(
+                        color: AppColors.grey200,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      height: 10,
+                      width: 80,
+                      decoration: BoxDecoration(
+                        color: AppColors.grey200,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

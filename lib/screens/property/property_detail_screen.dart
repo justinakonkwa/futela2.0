@@ -14,6 +14,7 @@ import '../../providers/auth_provider.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/role_permissions.dart';
 import '../../utils/auth_helper.dart';
+import '../../utils/error_formatter.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/address_display.dart';
 import '../../widgets/property_share_widget.dart';
@@ -25,6 +26,7 @@ import '../../providers/favorite_provider.dart';
 import '../../providers/review_provider.dart';
 import '../property/property_reviews_screen.dart';
 import '../user/public_profile_screen.dart';
+import 'package:shimmer/shimmer.dart';
 
 class PropertyDetailScreen extends StatefulWidget {
   final String propertyId;
@@ -124,7 +126,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        propertyProvider.error!,
+                        ErrorFormatter.format(propertyProvider.error),
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           fontFamily: 'Gilroy',
@@ -665,9 +667,10 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                                   child: CachedNetworkImage(
                                     imageUrl: url,
                                     fit: BoxFit.cover,
-                                    placeholder: (context, _) => Container(
-                                      color: AppColors.grey100,
-                                      child: const Center(child: CircularProgressIndicator()),
+                                    placeholder: (context, _) => Shimmer.fromColors(
+                                      baseColor: AppColors.grey200,
+                                      highlightColor: AppColors.grey100,
+                                      child: Container(color: AppColors.grey200),
                                     ),
                                     errorWidget: (context, _, __) => Container(
                                       color: AppColors.grey100,
@@ -770,18 +773,10 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                                               CachedNetworkImage(
                                                 imageUrl: _imageUrls[index],
                                                 fit: BoxFit.cover,
-                                                placeholder: (context, _) => Container(
-                                                  color: AppColors.grey200,
-                                                  child: const Center(
-                                                    child: SizedBox(
-                                                      width: 22,
-                                                      height: 22,
-                                                      child: CircularProgressIndicator(
-                                                        strokeWidth: 2,
-                                                        color: Colors.white70,
-                                                      ),
-                                                    ),
-                                                  ),
+                                                placeholder: (context, _) => Shimmer.fromColors(
+                                                  baseColor: AppColors.grey300,
+                                                  highlightColor: AppColors.grey200,
+                                                  child: Container(color: AppColors.grey300),
                                                 ),
                                                 errorWidget: (context, _, __) => Container(
                                                   color: AppColors.grey200,

@@ -35,26 +35,33 @@ class Commission {
 
   factory Commission.fromJson(Map<String, dynamic> json) {
     return Commission(
-      id: json['id'],
-      commissionnaireId: json['commissionnaireId'],
-      visitId: json['visitId'],
-      propertyId: json['propertyId'],
-      visitorId: json['visitorId'],
-      amount: (json['amount'] as num).toDouble(),
-      currency: json['currency'],
-      status: CommissionStatus.fromString(json['status']),
-      verificationCode: json['verificationCode'],
-      codeExpiresAt: json['codeExpiresAt'] != null 
-          ? DateTime.parse(json['codeExpiresAt']) 
-          : null,
-      verifiedAt: json['verifiedAt'] != null 
-          ? DateTime.parse(json['verifiedAt']) 
-          : null,
-      failedAttempts: json['failedAttempts'] ?? 0,
-      isLocked: json['isLocked'] ?? false,
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
+      id: json['id']?.toString() ?? '',
+      commissionnaireId: json['commissionnaireId']?.toString() ?? '',
+      visitId: json['visitId']?.toString() ?? '',
+      propertyId: json['propertyId']?.toString() ?? '',
+      visitorId: json['visitorId']?.toString() ?? '',
+      amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
+      currency: json['currency']?.toString() ?? 'USD',
+      status: CommissionStatus.fromString(json['status']?.toString() ?? ''),
+      verificationCode: json['verificationCode']?.toString(),
+      codeExpiresAt: _parseDate(json['codeExpiresAt']),
+      verifiedAt: _parseDate(json['verifiedAt']),
+      failedAttempts: (json['failedAttempts'] as num?)?.toInt() ?? 0,
+      isLocked: json['isLocked'] as bool? ?? false,
+      createdAt: _parseDate(json['createdAt']) ?? DateTime.now(),
+      updatedAt: _parseDate(json['updatedAt']) ?? DateTime.now(),
     );
+  }
+
+  static DateTime? _parseDate(dynamic value) {
+    if (value == null) return null;
+    try {
+      // Nettoyer les espaces dans les dates : "2026-04-10T15: 10: 16+02: 00" → "2026-04-10T15:10:16+02:00"
+      final s = value.toString().replaceAll(' ', '');
+      return DateTime.parse(s);
+    } catch (_) {
+      return null;
+    }
   }
 
   Map<String, dynamic> toJson() {

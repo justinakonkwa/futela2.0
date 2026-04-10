@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shimmer/shimmer.dart';
 import '../../providers/commission_provider.dart';
 import '../../utils/app_colors.dart';
 import 'commission_verification_screen.dart';
@@ -186,16 +187,14 @@ class _CommissionnaireDashboardState extends State<CommissionnaireDashboard> {
   }
 
   Widget _buildWalletSkeleton() {
-    return Container(
-      height: 140,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.grey[300],
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: const Center(
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+    return Shimmer.fromColors(
+      baseColor: AppColors.grey200,
+      highlightColor: AppColors.grey100,
+      child: Container(
+        height: 140,
+        decoration: BoxDecoration(
+          color: AppColors.grey200,
+          borderRadius: BorderRadius.circular(16),
         ),
       ),
     );
@@ -443,12 +442,18 @@ class _CommissionnaireDashboardState extends State<CommissionnaireDashboard> {
   Widget _buildCommissionsSkeleton() {
     return Column(
       children: List.generate(3, (index) {
-        return Container(
-          margin: const EdgeInsets.only(bottom: 8),
-          height: 72,
-          decoration: BoxDecoration(
-            color: Colors.grey[300],
-            borderRadius: BorderRadius.circular(12),
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Shimmer.fromColors(
+            baseColor: AppColors.grey200,
+            highlightColor: AppColors.grey100,
+            child: Container(
+              height: 72,
+              decoration: BoxDecoration(
+                color: AppColors.grey200,
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
           ),
         );
       }),
@@ -457,32 +462,46 @@ class _CommissionnaireDashboardState extends State<CommissionnaireDashboard> {
 
   Widget _buildEmptyCommissions() {
     return Container(
-      padding: const EdgeInsets.all(32),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
       ),
-      child: const Column(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(
-            CupertinoIcons.doc_text,
-            size: 48,
-            color: AppColors.textTertiary,
-          ),
-          SizedBox(height: 16),
-          Text(
-            'Aucune commission',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: AppColors.textSecondary,
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.primary.withValues(alpha: 0.08),
+            ),
+            child: const Icon(
+              CupertinoIcons.doc_text,
+              size: 36,
+              color: AppColors.primary,
             ),
           ),
-          SizedBox(height: 8),
-          Text(
+          const SizedBox(height: 16),
+          const Text(
+            'Aucune commission',
+            style: TextStyle(
+              fontFamily: 'Gilroy',
+              fontWeight: FontWeight.w700,
+              fontSize: 16,
+              color: AppColors.textPrimary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          const Text(
             'Vos commissions apparaîtront ici',
             style: TextStyle(
-              fontSize: 12,
+              fontFamily: 'Gilroy',
+              fontSize: 13,
               color: AppColors.textTertiary,
             ),
             textAlign: TextAlign.center,

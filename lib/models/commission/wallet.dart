@@ -21,14 +21,28 @@ class CommissionnaireWallet {
 
   factory CommissionnaireWallet.fromJson(Map<String, dynamic> json) {
     return CommissionnaireWallet(
-      totalEarnings: (json['totalEarnings'] as num).toDouble(),
-      pendingCommissions: (json['pendingCommissions'] as num).toDouble(),
-      totalWithdrawn: (json['totalWithdrawn'] as num).toDouble(),
-      pendingWithdrawals: (json['pendingWithdrawals'] as num).toDouble(),
-      walletBalance: (json['walletBalance'] as num).toDouble(),
-      currency: json['currency'],
-      totalCommissions: json['totalCommissions'] ?? 0,
-      verifiedCommissions: json['verifiedCommissions'] ?? 0,
+      totalEarnings: (json['totalEarnings'] as num?)?.toDouble() ?? 0.0,
+      pendingCommissions: (json['pendingCommissions'] as num?)?.toDouble() ?? 0.0,
+      totalWithdrawn: (json['totalWithdrawn'] as num?)?.toDouble() ?? 0.0,
+      pendingWithdrawals: (json['pendingWithdrawals'] as num?)?.toDouble() ?? 0.0,
+      walletBalance: (json['walletBalance'] as num?)?.toDouble() ?? 0.0,
+      currency: json['currency']?.toString() ?? 'USD',
+      totalCommissions: (json['totalCommissions'] as num?)?.toInt() ?? 0,
+      verifiedCommissions: (json['verifiedCommissions'] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  /// Wallet vide par défaut quand l'endpoint n'est pas disponible
+  factory CommissionnaireWallet.empty() {
+    return CommissionnaireWallet(
+      totalEarnings: 0,
+      pendingCommissions: 0,
+      totalWithdrawn: 0,
+      pendingWithdrawals: 0,
+      walletBalance: 0,
+      currency: 'USD',
+      totalCommissions: 0,
+      verifiedCommissions: 0,
     );
   }
 

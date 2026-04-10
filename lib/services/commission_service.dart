@@ -11,12 +11,18 @@ class CommissionService {
 
   /// Récupérer le wallet du commissionnaire
   Future<CommissionnaireWallet> getWallet() async {
-    final response = await _dio.get('/api/commissionnaire/wallet');
-    
-    if (response.statusCode == 200) {
-      return CommissionnaireWallet.fromJson(response.data);
-    } else {
-      throw Exception('Erreur lors de la récupération du wallet: ${response.data}');
+    try {
+      final response = await _dio.get('/api/commissionnaire/wallet');
+      if (response.statusCode == 200) {
+        return CommissionnaireWallet.fromJson(response.data as Map<String, dynamic>);
+      }
+      return CommissionnaireWallet.empty();
+    } on DioException catch (e) {
+      // 404 = endpoint pas encore disponible → wallet vide
+      if (e.response?.statusCode == 404) {
+        return CommissionnaireWallet.empty();
+      }
+      throw Exception('Erreur lors de la récupération du wallet: ${e.message}');
     }
   }
 
@@ -30,21 +36,31 @@ class CommissionService {
       'page': page,
       'limit': limit,
     };
-    
-    if (status != null) {
-      queryParams['status'] = status;
-    }
+    if (status != null) queryParams['status'] = status;
 
-    final response = await _dio.get(
-      '/api/commissionnaire/commissions',
-      queryParameters: queryParams,
-    );
-    
-    if (response.statusCode == 200) {
-      final List<dynamic> data = response.data['data'] ?? response.data;
-      return data.map((json) => Commission.fromJson(json)).toList();
-    } else {
-      throw Exception('Erreur lors de la récupération des commissions: ${response.data}');
+    try {
+      final response = await _dio.get(
+        '/api/commissionnaire/commissions',
+        queryParameters: queryParams,
+      );
+      if (response.statusCode == 200) {
+        final data = response.data;
+        List<dynamic> list;
+        if (data is List) {
+          list = data;
+        } else if (data is Map) {
+          list = (data['member'] ?? data['data'] ?? data['items'] ?? []) as List<dynamic>;
+        } else {
+          list = [];
+        }
+        return list
+            .whereType<Map<String, dynamic>>()
+            .map((json) => Commission.fromJson(json))
+            .toList();
+      }
+      return [];
+    } on DioException catch (e) {
+      throw Exception('Erreur lors de la récupération des commissions: ${e.message}');
     }
   }
 

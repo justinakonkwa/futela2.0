@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:shimmer/shimmer.dart';
 import '../models/property.dart';
 import '../utils/app_colors.dart';
 import '../providers/location_provider.dart';
@@ -92,9 +93,10 @@ class _PropertyCardState extends State<PropertyCard> {
                                   return CachedNetworkImage(
                                     imageUrl: url,
                                     fit: BoxFit.cover,
-                                    placeholder: (context, _) => Container(
-                                      color: AppColors.grey100,
-                                      child: const Center(child: CircularProgressIndicator()),
+                                    placeholder: (context, _) => Shimmer.fromColors(
+                                      baseColor: AppColors.grey200,
+                                      highlightColor: AppColors.grey100,
+                                      child: Container(color: AppColors.grey200),
                                     ),
                                     errorWidget: (context, _, __) => Container(
                                       color: AppColors.grey100,

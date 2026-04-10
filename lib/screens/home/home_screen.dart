@@ -5,6 +5,7 @@ import '../../providers/location_provider.dart';
 import '../../providers/favorite_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/error_formatter.dart';
 import '../../utils/role_permissions.dart';
 import '../../utils/auth_helper.dart';
 import '../../widgets/property_card.dart';
@@ -347,7 +348,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               const SizedBox(height: 12),
                               Text(
-                                propertyProvider.error!,
+                                ErrorFormatter.format(propertyProvider.error),
                                 textAlign: TextAlign.center,
                                 style: const TextStyle(
                                   fontFamily: 'Gilroy',

@@ -165,42 +165,58 @@ class ProfileScreen extends StatelessWidget {
                             ),
                             const SizedBox(height: 8),
                             
-                            // Badge de rôle moderne
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [
-                                    Color(int.parse(RolePermissions.getRoleColor(user.role).replaceFirst('#', '0xFF'))).withOpacity(0.2),
-                                    Color(int.parse(RolePermissions.getRoleColor(user.role).replaceFirst('#', '0xFF'))).withOpacity(0.1),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: Color(int.parse(RolePermissions.getRoleColor(user.role).replaceFirst('#', '0xFF'))).withOpacity(0.3),
-                                  width: 1.5,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.workspace_premium,
-                                    size: 16,
-                                    color: Color(int.parse(RolePermissions.getRoleColor(user.role).replaceFirst('#', '0xFF'))),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    RolePermissions.getRoleDisplayName(user.role),
-                                    style: TextStyle(
-                                      fontFamily: 'Gilroy',
-                                      color: Color(int.parse(RolePermissions.getRoleColor(user.role).replaceFirst('#', '0xFF'))),
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 13,
+                            // Badges de rôles (tous les rôles de l'utilisateur)
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              alignment: WrapAlignment.center,
+                              children: RolePermissions.getAllRoleLabels(user).map((label) {
+                                // Trouver le rôle correspondant pour la couleur
+                                final matchingRole = user.roles.firstWhere(
+                                  (r) => RolePermissions.getRoleDisplayName(r) == label ||
+                                         RolePermissions.getPrimaryRoleLabel(user) == label,
+                                  orElse: () => user.roles.isNotEmpty ? user.roles.first : 'ROLE_USER',
+                                );
+                                final color = Color(int.parse(
+                                  RolePermissions.getRoleColor(matchingRole).replaceFirst('#', '0xFF'),
+                                ));
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        color.withValues(alpha: 0.2),
+                                        color.withValues(alpha: 0.1),
+                                      ],
+                                    ),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: color.withValues(alpha: 0.3),
+                                      width: 1.5,
                                     ),
                                   ),
-                                ],
-                              ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.workspace_premium_rounded,
+                                        size: 14,
+                                        color: color,
+                                      ),
+                                      const SizedBox(width: 5),
+                                      Text(
+                                        label,
+                                        style: TextStyle(
+                                          fontFamily: 'Gilroy',
+                                          color: color,
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }).toList(),
                             ),
                             const SizedBox(height: 16),
                             
@@ -479,11 +495,11 @@ class ProfileScreen extends StatelessWidget {
                 
                 const SizedBox(height: 16),
                 
-                // Section Commission (uniquement pour les commissionnaires)
+                // Section Commission + Codes de visite (fusionnées)
                 if (RolePermissions.canAccessCommissionFeatures(user))
                   _buildMenuSection(
                     context,
-                    title: 'Commission',
+                    title: 'Commission & Codes de visite',
                     items: [
                       _MenuItem(
                         icon: Icons.dashboard_outlined,
@@ -496,30 +512,39 @@ class ProfileScreen extends StatelessWidget {
                           );
                         },
                       ),
+                      _MenuItem(
+                        icon: Icons.qr_code_outlined,
+                        title: 'Mes codes de vérification',
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const VisitorCodesScreen(),
+                            ),
+                          );
+                        },
+                      ),
                     ],
                   ),
-                
-                // Section Codes de vérification (pour tous les utilisateurs)  
-                _buildMenuSection(
-                  context,
-                  title: 'Codes de visite',
-                  items: [
-                    _MenuItem(
-                      icon: Icons.qr_code_outlined,
-                      title: 'Mes codes de vérification',
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => const VisitorCodesScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-                
-                if (RolePermissions.canAccessCommissionFeatures(user))
-                  const SizedBox(height: 16),
+
+                // Codes de visite seuls pour les non-commissionnaires
+                if (!RolePermissions.canAccessCommissionFeatures(user))
+                  _buildMenuSection(
+                    context,
+                    title: 'Codes de visite',
+                    items: [
+                      _MenuItem(
+                        icon: Icons.qr_code_outlined,
+                        title: 'Mes codes de vérification',
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const VisitorCodesScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 
                 const SizedBox(height: 16),
                 

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/property_provider.dart';
 import '../../providers/location_provider.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/error_formatter.dart';
 import '../../widgets/property_card.dart';
 import '../../widgets/property_card_shimmer.dart';
 import '../../widgets/custom_text_field.dart';
@@ -383,7 +384,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            propertyProvider.error!,
+                            ErrorFormatter.format(propertyProvider.error),
                             textAlign: TextAlign.center,
                             maxLines: 5,
                             overflow: TextOverflow.ellipsis,

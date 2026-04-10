@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/review_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../utils/app_colors.dart';
+import '../../utils/error_formatter.dart';
 import '../../widgets/review_card.dart';
 import '../../widgets/review_card_shimmer.dart';
 
@@ -722,7 +723,7 @@ class _PropertyReviewsScreenState extends State<PropertyReviewsScreen> {
               ),
               const SizedBox(height: 24),
               Text(
-                provider.error!,
+                ErrorFormatter.format(provider.error),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontFamily: 'Gilroy',

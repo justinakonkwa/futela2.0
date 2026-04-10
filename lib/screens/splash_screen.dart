@@ -109,7 +109,7 @@ class _SplashScreenState extends State<SplashScreen>
                     Text(
                       'Votre maison de rêve vous attend',
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: AppColors.white.withOpacity(0.9),
+                        color: AppColors.white.withValues(alpha: 0.9),
                         fontWeight: FontWeight.w400,
                       ),
                     ),

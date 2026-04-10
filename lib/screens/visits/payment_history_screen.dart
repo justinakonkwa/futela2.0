@@ -4,8 +4,7 @@ import 'package:provider/provider.dart';
 import '../../models/finance/transaction.dart';
 import '../../providers/transaction_provider.dart';
 import '../../utils/app_colors.dart';
-import '../../widgets/property_card_shimmer.dart';
-import '../../widgets/custom_button.dart';
+import '../../widgets/transaction_card_shimmer.dart';
 import '../finance/transaction_detail_screen.dart';
 
 /// Historique des transactions (doc v2 : `GET /api/transactions`).
@@ -103,18 +102,25 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
             p.setTypeFilter(value);
             await p.loadTransactions(refresh: true);
           },
-          selectedColor: AppColors.primary.withOpacity(0.18),
+          selectedColor: AppColors.primary.withValues(alpha: 0.15),
+          backgroundColor: AppColors.white,
           checkmarkColor: AppColors.primary,
           labelStyle: TextStyle(
+            fontFamily: 'Gilroy',
             color: sel ? AppColors.primary : AppColors.textPrimary,
             fontWeight: sel ? FontWeight.w700 : FontWeight.w600,
             fontSize: 13,
           ),
           side: BorderSide(
             color: sel
-                ? AppColors.primary.withOpacity(0.45)
+                ? AppColors.primary.withValues(alpha: 0.5)
                 : AppColors.border,
+            width: sel ? 1.5 : 1,
           ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         ),
       );
     }
@@ -218,10 +224,45 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     final df = DateFormat('dd/MM/yyyy HH:mm');
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Historique des paiements'),
+        title: const Text(
+          'Historique des paiements',
+          style: TextStyle(
+            fontFamily: 'Gilroy',
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.3,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        backgroundColor: AppColors.white,
         elevation: 0,
+        leading: IconButton(
+          onPressed: () => Navigator.of(context).pop(),
+          icon: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.shadow.withValues(alpha: 0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: const Center(
+              child: Icon(
+                Icons.arrow_back_rounded,
+                size: 20,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ),
+        ),
       ),
       body: Consumer<TransactionProvider>(
         builder: (context, txProvider, _) {
@@ -254,36 +295,93 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
       return ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: 6,
-        itemBuilder: (_, __) => const Padding(
-          padding: EdgeInsets.only(bottom: 16),
-          child: PropertyCardShimmer(),
-        ),
+        itemBuilder: (_, __) => const TransactionCardShimmer(),
       );
     }
 
     if (txProvider.error != null && txProvider.transactions.isEmpty) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(32),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline,
-                  size: 56, color: AppColors.error.withOpacity(0.7)),
-              const SizedBox(height: 16),
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.error.withValues(alpha: 0.1),
+                      AppColors.error.withValues(alpha: 0.05),
+                    ],
+                  ),
+                ),
+                child: const Icon(
+                  Icons.error_outline_rounded,
+                  size: 40,
+                  color: AppColors.error,
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'Erreur de chargement',
+                style: TextStyle(
+                  fontFamily: 'Gilroy',
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.5,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 12),
               Text(
                 txProvider.error!,
                 textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium?.copyWith(
+                style: const TextStyle(
+                  fontFamily: 'Gilroy',
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
                   color: AppColors.textSecondary,
+                  height: 1.5,
                 ),
               ),
-              const SizedBox(height: 20),
-              CustomButton(
-                text: 'Réessayer',
-                onPressed: () => txProvider.loadTransactions(refresh: true),
-                backgroundColor: AppColors.primary,
-                textColor: Colors.white,
+              const SizedBox(height: 32),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [AppColors.primary, AppColors.primaryDark],
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => txProvider.loadTransactions(refresh: true),
+                    borderRadius: BorderRadius.circular(14),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                      child: const Text(
+                        'Réessayer',
+                        style: TextStyle(
+                          fontFamily: 'Gilroy',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: -0.2,
+                          color: AppColors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),

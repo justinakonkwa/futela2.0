@@ -217,168 +217,346 @@ class PropertyDetailShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          // Image principale shimmer
-          Shimmer.fromColors(
-            baseColor: AppColors.grey200,
-            highlightColor: AppColors.grey100,
-            child: Container(
-              height: 250,
-              width: double.infinity,
-              color: AppColors.grey200,
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: CustomScrollView(
+        slivers: [
+          // AppBar avec image shimmer
+          SliverAppBar(
+            expandedHeight: 300,
+            pinned: true,
+            backgroundColor: Colors.transparent,
+            leading: Container(
+              margin: const EdgeInsets.all(8),
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: const Center(
+                child: Icon(
+                  Icons.arrow_back_rounded,
+                  color: AppColors.textPrimary,
+                  size: 24,
+                ),
+              ),
+            ),
+            flexibleSpace: FlexibleSpaceBar(
+              background: Shimmer.fromColors(
+                baseColor: AppColors.grey200,
+                highlightColor: AppColors.grey100,
+                child: Container(
+                  color: AppColors.grey200,
+                ),
+              ),
             ),
           ),
-          
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Prix shimmer
-                Shimmer.fromColors(
-                  baseColor: AppColors.grey200,
-                  highlightColor: AppColors.grey100,
-                  child: Container(
-                    height: 32,
-                    width: 150,
+
+          // Contenu principal
+          SliverToBoxAdapter(
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header avec prix
+                  Container(
+                    margin: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: AppColors.grey200,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ),
-                
-                const SizedBox(height: 12),
-                
-                // Titre shimmer
-                Shimmer.fromColors(
-                  baseColor: AppColors.grey200,
-                  highlightColor: AppColors.grey100,
-                  child: Container(
-                    height: 24,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: AppColors.grey200,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ),
-                
-                const SizedBox(height: 8),
-                
-                // Titre ligne 2 shimmer
-                Shimmer.fromColors(
-                  baseColor: AppColors.grey200,
-                  highlightColor: AppColors.grey100,
-                  child: Container(
-                    height: 24,
-                    width: 250,
-                    decoration: BoxDecoration(
-                      color: AppColors.grey200,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ),
-                
-                const SizedBox(height: 16),
-                
-                // Adresse shimmer
-                Row(
-                  children: [
-                    Shimmer.fromColors(
-                      baseColor: AppColors.grey200,
-                      highlightColor: AppColors.grey100,
-                      child: Container(
-                        height: 16,
-                        width: 16,
-                        decoration: BoxDecoration(
-                          color: AppColors.grey200,
-                          borderRadius: BorderRadius.circular(2),
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.shadow.withValues(alpha: 0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
                         ),
-                      ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Shimmer.fromColors(
-                        baseColor: AppColors.grey200,
-                        highlightColor: AppColors.grey100,
-                        child: Container(
-                          height: 16,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: AppColors.grey200,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                
-                const SizedBox(height: 24),
-                
-                // Description shimmer
-                ...List.generate(4, (index) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Shimmer.fromColors(
-                      baseColor: AppColors.grey200,
-                      highlightColor: AppColors.grey100,
-                      child: Container(
-                        height: 16,
-                        width: index == 3 ? 150 : double.infinity,
-                        decoration: BoxDecoration(
-                          color: AppColors.grey200,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                    ),
-                  );
-                }),
-                
-                const SizedBox(height: 24),
-                
-                // Caractéristiques shimmer
-                ...List.generate(3, (index) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Shimmer.fromColors(
+                                    baseColor: AppColors.grey200,
+                                    highlightColor: AppColors.grey100,
+                                    child: Container(
+                                      height: 36,
+                                      width: 150,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.grey200,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Shimmer.fromColors(
+                                    baseColor: AppColors.grey200,
+                                    highlightColor: AppColors.grey100,
+                                    child: Container(
+                                      height: 16,
+                                      width: 80,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.grey200,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Shimmer.fromColors(
+                              baseColor: AppColors.grey200,
+                              highlightColor: AppColors.grey100,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.grey200,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: const SizedBox(
+                                  width: 80,
+                                  height: 20,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
                         Shimmer.fromColors(
                           baseColor: AppColors.grey200,
                           highlightColor: AppColors.grey100,
                           child: Container(
-                            height: 16,
-                            width: 16,
+                            height: 24,
+                            width: double.infinity,
                             decoration: BoxDecoration(
                               color: AppColors.grey200,
-                              borderRadius: BorderRadius.circular(2),
+                              borderRadius: BorderRadius.circular(8),
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(height: 8),
                         Shimmer.fromColors(
                           baseColor: AppColors.grey200,
                           highlightColor: AppColors.grey100,
                           child: Container(
-                            height: 16,
-                            width: 100,
+                            height: 24,
+                            width: 250,
                             decoration: BoxDecoration(
                               color: AppColors.grey200,
-                              borderRadius: BorderRadius.circular(4),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Shimmer.fromColors(
+                          baseColor: AppColors.grey200,
+                          highlightColor: AppColors.grey100,
+                          child: Container(
+                            height: 18,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: AppColors.grey200,
+                              borderRadius: BorderRadius.circular(8),
                             ),
                           ),
                         ),
                       ],
                     ),
-                  );
-                }),
-              ],
+                  ),
+
+                  // Caractéristiques
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 20),
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppColors.border.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Shimmer.fromColors(
+                              baseColor: AppColors.grey200,
+                              highlightColor: AppColors.grey100,
+                              child: Container(
+                                width: 36,
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  color: AppColors.grey200,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Shimmer.fromColors(
+                              baseColor: AppColors.grey200,
+                              highlightColor: AppColors.grey100,
+                              child: Container(
+                                height: 20,
+                                width: 150,
+                                decoration: BoxDecoration(
+                                  color: AppColors.grey200,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          children: List.generate(3, (index) {
+                            return Expanded(
+                              child: Padding(
+                                padding: EdgeInsets.only(
+                                  right: index < 2 ? 12 : 0,
+                                ),
+                                child: Shimmer.fromColors(
+                                  baseColor: AppColors.grey200,
+                                  highlightColor: AppColors.grey100,
+                                  child: Container(
+                                    height: 90,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.grey200,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Description
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 20),
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppColors.border.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Shimmer.fromColors(
+                              baseColor: AppColors.grey200,
+                              highlightColor: AppColors.grey100,
+                              child: Container(
+                                width: 36,
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  color: AppColors.grey200,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Shimmer.fromColors(
+                              baseColor: AppColors.grey200,
+                              highlightColor: AppColors.grey100,
+                              child: Container(
+                                height: 20,
+                                width: 120,
+                                decoration: BoxDecoration(
+                                  color: AppColors.grey200,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        ...List.generate(4, (index) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Shimmer.fromColors(
+                              baseColor: AppColors.grey200,
+                              highlightColor: AppColors.grey100,
+                              child: Container(
+                                height: 16,
+                                width: index == 3 ? 200 : double.infinity,
+                                decoration: BoxDecoration(
+                                  color: AppColors.grey200,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 100),
+                ],
+              ),
             ),
           ),
         ],
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.shadow.withValues(alpha: 0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: Shimmer.fromColors(
+            baseColor: AppColors.grey200,
+            highlightColor: AppColors.grey100,
+            child: Container(
+              height: 48,
+              decoration: BoxDecoration(
+                color: AppColors.grey200,
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

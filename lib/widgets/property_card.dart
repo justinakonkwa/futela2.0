@@ -175,7 +175,7 @@ class _PropertyCardState extends State<PropertyCard> {
                               child: Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color: AppColors.white.withOpacity(0.9),
+                                  color: AppColors.white.withValues(alpha: 0.9),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Icon(
@@ -264,6 +264,36 @@ class _PropertyCardState extends State<PropertyCard> {
                       ),
                       
                       const SizedBox(height: 4),
+                      
+                      // Note moyenne et nombre d'avis
+                      if (widget.property.reviewCount > 0)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.star_rounded,
+                                size: 16,
+                                color: AppColors.warning,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${widget.property.rating?.toStringAsFixed(1) ?? '0.0'}',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '(${widget.property.reviewCount} avis)',
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       
                       // Adresse
                       Row(

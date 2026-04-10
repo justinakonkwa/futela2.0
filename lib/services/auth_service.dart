@@ -282,17 +282,6 @@ class AuthService {
     await _dio.post('/api/auth/revoke-all');
   }
 
-  Future<List<Device>> getConnectedDevices() async {
-    final response = await _dio.get('/api/auth/devices');
-    if (response.statusCode == 200) {
-      return (response.data['devices'] as List)
-          .map((e) => Device.fromJson(e))
-          .toList();
-    } else {
-      throw Exception('Failed to get devices: ${response.data}');
-    }
-  }
-
   // --- Verification ---
 
   Future<void> sendEmailVerification() async {
@@ -315,5 +304,136 @@ class AuthService {
       'code': code,
     });
     return response.statusCode == 200;
+  }
+
+  // --- Device Management ---
+
+  /// GET /api/auth/devices - Obtenir la liste des appareils connectés
+  Future<List<Device>> getConnectedDevices() async {
+    print('🔐 GET CONNECTED DEVICES REQUEST');
+    print('URL: /api/auth/devices');
+
+    try {
+      final response = await _dio.get('/api/auth/devices');
+
+      print('🔐 GET CONNECTED DEVICES RESPONSE');
+      print('Status Code: ${response.statusCode}');
+      print('Response Data Type: ${response.data.runtimeType}');
+
+      if (response.statusCode == 200) {
+        List<dynamic> devicesList;
+
+        if (response.data is List) {
+          devicesList = response.data as List<dynamic>;
+        } else if (response.data is Map && response.data['devices'] is List) {
+          devicesList = response.data['devices'] as List<dynamic>;
+        } else {
+          print('❌ Unexpected response format');
+          throw Exception('Format de réponse inattendu');
+        }
+
+        print('📱 Found ${devicesList.length} connected devices');
+
+        final devices = devicesList.map((json) {
+          try {
+            return Device.fromJson(json as Map<String, dynamic>);
+          } catch (e) {
+            print('❌ Error parsing device: $e');
+            print('Device JSON: $json');
+            rethrow;
+          }
+        }).toList();
+
+        print('✅ Successfully parsed ${devices.length} devices');
+        return devices;
+      } else {
+        print('❌ Failed to get devices: ${response.statusCode}');
+        throw Exception('Échec de récupération des appareils');
+      }
+    } on DioException catch (e) {
+      print('❌ DioException getting devices: ${e.message}');
+      if (e.response?.statusCode == 401) {
+        throw Exception('Session expirée. Veuillez vous reconnecter.');
+      }
+      throw Exception('Erreur de connexion. Veuillez réessayer.');
+    } catch (e) {
+      print('❌ Error getting devices: $e');
+      rethrow;
+    }
+  }
+
+  /// POST /api/auth/delete-account - Supprimer définitivement le compte
+  Future<void> deleteAccount({required String password}) async {
+    print('🔐 DELETE ACCOUNT REQUEST');
+    print('URL: /api/auth/delete-account');
+
+    try {
+      final response = await _dio.post(
+        '/api/auth/delete-account',
+        data: {'password': password},
+      );
+
+      print('🔐 DELETE ACCOUNT RESPONSE');
+      print('Status Code: ${response.statusCode}');
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        print('✅ Account deleted successfully');
+        return;
+      } else {
+        print('❌ Failed to delete account: ${response.statusCode}');
+        throw Exception('Échec de suppression du compte');
+      }
+    } on DioException catch (e) {
+      print('❌ DioException deleting account: ${e.message}');
+      final statusCode = e.response?.statusCode;
+
+      if (statusCode == 400 || statusCode == 401) {
+        throw Exception('Mot de passe incorrect');
+      } else if (statusCode == 403) {
+        throw Exception('Action non autorisée');
+      } else if (statusCode == 404) {
+        throw Exception('Compte introuvable');
+      }
+
+      throw Exception('Erreur de connexion. Veuillez réessayer.');
+    } catch (e) {
+      print('❌ Error deleting account: $e');
+      rethrow;
+    }
+  }
+
+  /// POST /api/auth/devices/{id}/revoke - Révoquer une session d'appareil
+  Future<void> revokeDevice(String deviceId) async {
+    print('🔐 REVOKE DEVICE REQUEST');
+    print('URL: /api/auth/devices/$deviceId/revoke');
+
+    try {
+      final response = await _dio.post('/api/auth/devices/$deviceId/revoke');
+
+      print('🔐 REVOKE DEVICE RESPONSE');
+      print('Status Code: ${response.statusCode}');
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        print('✅ Device revoked successfully');
+        return;
+      } else {
+        print('❌ Failed to revoke device: ${response.statusCode}');
+        throw Exception('Échec de révocation de l\'appareil');
+      }
+    } on DioException catch (e) {
+      print('❌ DioException revoking device: ${e.message}');
+      final statusCode = e.response?.statusCode;
+
+      if (statusCode == 401) {
+        throw Exception('Session expirée. Veuillez vous reconnecter.');
+      } else if (statusCode == 404) {
+        throw Exception('Appareil introuvable');
+      }
+
+      throw Exception('Erreur de connexion. Veuillez réessayer.');
+    } catch (e) {
+      print('❌ Error revoking device: $e');
+      rethrow;
+    }
   }
 }

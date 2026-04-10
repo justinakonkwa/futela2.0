@@ -25,6 +25,8 @@ import '../support/about_screen.dart';
 // import '../../providers/messaging_provider.dart';
 import '../commission/commissionnaire_dashboard.dart';
 import '../commission/visitor_codes_screen.dart';
+import '../settings/connected_devices_screen.dart';
+import '../settings/delete_account_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -555,6 +557,37 @@ class ProfileScreen extends StatelessWidget {
                       title: 'Comment demander une visite',
                       onTap: () {
                         _showVisitGuide(context);
+                      },
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 16),
+                
+                _buildMenuSection(
+                  context,
+                  title: 'Sécurité',
+                  items: [
+                    _MenuItem(
+                      icon: Icons.devices_rounded,
+                      title: 'Appareils connectés',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const ConnectedDevicesScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    _MenuItem(
+                      icon: Icons.delete_forever_rounded,
+                      title: 'Supprimer le compte',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const DeleteAccountScreen(),
+                          ),
+                        );
                       },
                     ),
                   ],
@@ -1170,6 +1203,8 @@ class ProfileScreen extends StatelessWidget {
         return Icons.monetization_on_outlined;
       case 'Codes de visite':
         return Icons.qr_code_2_outlined;
+      case 'Sécurité':
+        return Icons.security_rounded;
       case 'Apparence':
         return Icons.palette_outlined;
       case 'Informations':

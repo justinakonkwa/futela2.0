@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/commission_provider.dart';
 import '../../utils/app_colors.dart';
+import '../../widgets/visitor_code_shimmer.dart';
 
 class VisitorCodesScreen extends StatefulWidget {
   const VisitorCodesScreen({super.key});
@@ -29,31 +30,37 @@ class _VisitorCodesScreenState extends State<VisitorCodesScreen> {
         title: const Text(
           'Mes codes de visite',
           style: TextStyle(
-            fontWeight: FontWeight.w600,
+            fontFamily: 'Gilroy',
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.3,
             color: AppColors.textPrimary,
           ),
         ),
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.white,
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),
           icon: Container(
-            padding: const EdgeInsets.all(8),
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
               color: AppColors.white,
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: AppColors.shadow.withValues(alpha: 0.1),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
               ],
             ),
-            child: const Icon(
-              CupertinoIcons.back,
-              color: AppColors.textPrimary,
-              size: 20,
+            child: const Center(
+              child: Icon(
+                Icons.arrow_back_rounded,
+                size: 20,
+                color: AppColors.textPrimary,
+              ),
             ),
           ),
         ),
@@ -99,17 +106,21 @@ class _VisitorCodesScreenState extends State<VisitorCodesScreen> {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: isExpired ? AppColors.error.withOpacity(0.3) : AppColors.border,
+          color: isExpired 
+              ? AppColors.error.withValues(alpha: 0.3) 
+              : AppColors.primary.withValues(alpha: 0.2),
+          width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 12,
+            color: isExpired
+                ? AppColors.error.withValues(alpha: 0.08)
+                : AppColors.primary.withValues(alpha: 0.12),
+            blurRadius: 16,
             offset: const Offset(0, 4),
           ),
         ],
@@ -117,146 +128,230 @@ class _VisitorCodesScreenState extends State<VisitorCodesScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Text(
-                  propertyTitle,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: isExpired 
-                      ? AppColors.error.withOpacity(0.1)
-                      : AppColors.success.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: isExpired 
-                        ? AppColors.error.withOpacity(0.3)
-                        : AppColors.success.withOpacity(0.3),
-                  ),
-                ),
-                child: Text(
-                  isExpired ? 'Expiré' : 'Actif',
-                  style: TextStyle(
-                    color: isExpired ? AppColors.error : AppColors.success,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          
-          // Code de vérification
+          // Header avec gradient
           Container(
-            width: double.infinity,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: isExpired 
-                    ? [Colors.grey[400]!, Colors.grey[500]!]
-                    : [AppColors.primary, const Color(0xFF4A90E2)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+                colors: isExpired
+                    ? [
+                        AppColors.error.withValues(alpha: 0.08),
+                        AppColors.error.withValues(alpha: 0.05),
+                      ]
+                    : [
+                        AppColors.primary.withValues(alpha: 0.08),
+                        AppColors.primaryLight.withValues(alpha: 0.05),
+                      ],
               ),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
             ),
-            child: Column(
+            child: Row(
               children: [
-                const Text(
-                  'Code de vérification',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.shadow.withValues(alpha: 0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    CupertinoIcons.qrcode,
+                    color: isExpired ? AppColors.error : AppColors.primary,
+                    size: 24,
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  code ?? '------',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 4,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        propertyTitle,
+                        style: const TextStyle(
+                          fontFamily: 'Gilroy',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textPrimary,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        isExpired ? 'Code expiré' : 'Code actif',
+                        style: TextStyle(
+                          fontFamily: 'Gilroy',
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: isExpired ? AppColors.error : AppColors.success,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  'Montrez ce code au commissionnaire',
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 12,
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isExpired 
+                        ? AppColors.error.withValues(alpha: 0.15)
+                        : AppColors.success.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: isExpired 
+                          ? AppColors.error.withValues(alpha: 0.3)
+                          : AppColors.success.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Text(
+                    isExpired ? 'Expiré' : 'Actif',
+                    style: TextStyle(
+                      fontFamily: 'Gilroy',
+                      color: isExpired ? AppColors.error : AppColors.success,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
           
-          const SizedBox(height: 16),
-          
-          // Informations de la visite
-          Row(
-            children: [
-              Expanded(
-                child: _buildInfoItem(
-                  icon: CupertinoIcons.money_dollar,
-                  label: 'Montant payé',
-                  value: '${amount.toStringAsFixed(2)} $currency',
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildInfoItem(
-                  icon: CupertinoIcons.clock,
-                  label: expiresAt != null ? 'Expire' : 'Statut',
-                  value: expiresAt != null 
-                      ? _formatExpiration(expiresAt)
-                      : 'Permanent',
-                ),
-              ),
-            ],
-          ),
-          
-          if (!isExpired) ...[
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.info.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.info.withOpacity(0.3)),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    CupertinoIcons.info_circle,
-                    color: AppColors.info,
-                    size: 16,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Présentez ce code au commissionnaire lors de votre visite pour qu\'il puisse valider sa commission.',
-                      style: TextStyle(
-                        color: AppColors.info,
-                        fontSize: 12,
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                // Code de vérification
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: isExpired 
+                          ? [AppColors.grey400, AppColors.grey500]
+                          : [AppColors.primary, AppColors.primaryDark],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: isExpired
+                            ? AppColors.shadow.withValues(alpha: 0.2)
+                            : AppColors.primary.withValues(alpha: 0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
                       ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      const Text(
+                        'Code de vérification',
+                        style: TextStyle(
+                          fontFamily: 'Gilroy',
+                          color: Colors.white70,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        code ?? '------',
+                        style: const TextStyle(
+                          fontFamily: 'Gilroy',
+                          color: Colors.white,
+                          fontSize: 36,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 6,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Montrez ce code au commissionnaire',
+                        style: TextStyle(
+                          fontFamily: 'Gilroy',
+                          color: Colors.white70,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 20),
+                
+                // Informations de la visite
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildInfoItem(
+                        icon: CupertinoIcons.money_dollar,
+                        label: 'Montant payé',
+                        value: '${amount.toStringAsFixed(2)} $currency',
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildInfoItem(
+                        icon: CupertinoIcons.clock,
+                        label: expiresAt != null ? 'Expire' : 'Statut',
+                        value: expiresAt != null 
+                            ? _formatExpiration(expiresAt)
+                            : 'Permanent',
+                      ),
+                    ),
+                  ],
+                ),
+                
+                if (!isExpired) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: AppColors.info.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppColors.info.withValues(alpha: 0.2),
+                      ),
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(
+                          CupertinoIcons.info_circle,
+                          color: AppColors.info,
+                          size: 18,
+                        ),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Présentez ce code au commissionnaire lors de votre visite pour qu\'il puisse valider sa commission.',
+                            style: TextStyle(
+                              fontFamily: 'Gilroy',
+                              color: AppColors.info,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
-              ),
+              ],
             ),
-          ],
+          ),
         ],
       ),
     );
@@ -305,51 +400,56 @@ class _VisitorCodesScreenState extends State<VisitorCodesScreen> {
     return ListView.builder(
       padding: const EdgeInsets.all(20),
       itemCount: 3,
-      itemBuilder: (context, index) {
-        return Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          height: 200,
-          decoration: BoxDecoration(
-            color: Colors.grey[300],
-            borderRadius: BorderRadius.circular(16),
-          ),
-        );
-      },
+      itemBuilder: (context, index) => const VisitorCodeShimmer(),
     );
   }
 
   Widget _buildEmptyState() {
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(20),
-      child: Container(
-        padding: const EdgeInsets.all(32),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
-        ),
+      padding: const EdgeInsets.all(32),
+      child: Center(
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              CupertinoIcons.qrcode,
-              size: 64,
-              color: AppColors.textTertiary,
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.primary.withValues(alpha: 0.1),
+                    AppColors.primaryLight.withValues(alpha: 0.05),
+                  ],
+                ),
+              ),
+              child: const Icon(
+                CupertinoIcons.qrcode,
+                size: 50,
+                color: AppColors.primary,
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             const Text(
               'Aucun code disponible',
               style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textSecondary,
+                fontFamily: 'Gilroy',
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                letterSpacing: -0.5,
+                color: AppColors.textPrimary,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             const Text(
               'Vos codes de vérification apparaîtront ici après avoir payé une visite.',
               style: TextStyle(
-                color: AppColors.textTertiary,
+                fontFamily: 'Gilroy',
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textSecondary,
+                height: 1.5,
               ),
               textAlign: TextAlign.center,
             ),

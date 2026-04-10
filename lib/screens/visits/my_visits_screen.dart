@@ -7,7 +7,6 @@ import '../../utils/app_colors.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/property_card_shimmer.dart';
 import '../../widgets/futela_logo.dart';
-import 'visit_detail_screen.dart';
 import 'visit_payment_pending_screen.dart';
 
 /// Liste `GET /api/me/visits` avec filtres `status` + pagination.
@@ -63,10 +62,45 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Mes visites'),
+        title: const Text(
+          'Mes visites',
+          style: TextStyle(
+            fontFamily: 'Gilroy',
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.3,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        backgroundColor: AppColors.white,
         elevation: 0,
+        leading: IconButton(
+          onPressed: () => Navigator.of(context).pop(),
+          icon: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.shadow.withValues(alpha: 0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: const Center(
+              child: Icon(
+                Icons.arrow_back_rounded,
+                size: 20,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ),
+        ),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -82,18 +116,25 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
                     label: Text(label),
                     selected: sel,
                     onSelected: (_) => _applyFilter(p, value),
-                    selectedColor: AppColors.primary.withOpacity(0.18),
+                    selectedColor: AppColors.primary.withValues(alpha: 0.15),
+                    backgroundColor: AppColors.white,
                     checkmarkColor: AppColors.primary,
                     labelStyle: TextStyle(
+                      fontFamily: 'Gilroy',
                       color: sel ? AppColors.primary : AppColors.textPrimary,
                       fontWeight: sel ? FontWeight.w700 : FontWeight.w600,
                       fontSize: 13,
                     ),
                     side: BorderSide(
                       color: sel
-                          ? AppColors.primary.withOpacity(0.45)
+                          ? AppColors.primary.withValues(alpha: 0.5)
                           : AppColors.border,
+                      width: sel ? 1.5 : 1,
                     ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   ),
                 );
               }
@@ -371,33 +412,51 @@ class _VisitCard extends StatelessWidget {
     ].whereType<String>().take(2).join(' · ');
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 14),
+      margin: const EdgeInsets.only(bottom: 16),
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: AppColors.border.withOpacity(0.7)),
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+          color: statusColor(visit.statusColor).withValues(alpha: 0.2),
+          width: 1.5,
+        ),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        borderRadius: BorderRadius.circular(20),
+        child: Column(
+          children: [
+            // Header avec gradient
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    statusColor(visit.statusColor).withValues(alpha: 0.08),
+                    statusColor(visit.statusColor).withValues(alpha: 0.05),
+                  ],
+                ),
+              ),
+              child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: statusColor(visit.statusColor).withOpacity(0.12),
+                      color: AppColors.white,
                       borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: statusColor(visit.statusColor).withValues(alpha: 0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: Icon(
-                      Icons.home_work_outlined,
+                      Icons.home_work_rounded,
                       color: statusColor(visit.statusColor),
-                      size: 22,
+                      size: 24,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -408,7 +467,9 @@ class _VisitCard extends StatelessWidget {
                         Text(
                           visit.propertyTitle ?? 'Propriété',
                           style: theme.textTheme.titleMedium?.copyWith(
+                            fontFamily: 'Gilroy',
                             fontWeight: FontWeight.w700,
+                            fontSize: 16,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -417,7 +478,7 @@ class _VisitCard extends StatelessWidget {
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.place_outlined,
                                 size: 14,
                                 color: AppColors.textSecondary,
@@ -427,166 +488,275 @@ class _VisitCard extends StatelessWidget {
                                 child: Text(
                                   locationLine,
                                   style: theme.textTheme.bodySmall?.copyWith(
+                                    fontFamily: 'Gilroy',
                                     color: AppColors.textSecondary,
+                                    fontSize: 13,
                                   ),
-                                  maxLines: 2,
+                                  maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
                           ),
                         ],
-                        const SizedBox(height: 4),
-                        Row(
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: statusColor(visit.statusColor).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: statusColor(visit.statusColor).withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Text(
+                      label,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        fontFamily: 'Gilroy',
+                        color: statusColor(visit.statusColor),
+                        fontWeight: FontWeight.w700,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            // Body
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Date et heure
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(
+                          Icons.schedule_rounded,
+                          size: 16,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(
-                              Icons.schedule,
-                              size: 14,
-                              color: AppColors.textSecondary,
+                            const Text(
+                              'Date de visite',
+                              style: TextStyle(
+                                fontFamily: 'Gilroy',
+                                fontSize: 11,
+                                color: AppColors.textTertiary,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: Text(
-                                dateStr,
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: AppColors.textSecondary,
-                                ),
+                            const SizedBox(height: 2),
+                            Text(
+                              dateStr,
+                              style: const TextStyle(
+                                fontFamily: 'Gilroy',
+                                fontSize: 14,
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ],
                         ),
-                        if (createdStr != null) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            'Demandée le $createdStr',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: AppColors.textTertiary,
-                            ),
+                      ),
+                    ],
+                  ),
+                  
+                  if (visit.paymentAmount != null) ...[
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.success.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                        ],
-                        const SizedBox(height: 4),
-                        Text(
-                          'Réf. ${visit.id.length > 8 ? '…${visit.id.substring(visit.id.length - 8)}' : visit.id}',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: AppColors.textTertiary,
-                            fontFamily: 'monospace',
+                          child: const Icon(
+                            Icons.payments_rounded,
+                            size: 16,
+                            color: AppColors.success,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Montant',
+                                style: TextStyle(
+                                  fontFamily: 'Gilroy',
+                                  fontSize: 11,
+                                  color: AppColors.textTertiary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '${visit.paymentAmount} ${visit.paymentCurrency ?? ''}'.trim(),
+                                style: const TextStyle(
+                                  fontFamily: 'Gilroy',
+                                  fontSize: 14,
+                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: visit.isPaid
+                                ? AppColors.success.withValues(alpha: 0.15)
+                                : AppColors.warning.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                visit.isPaid ? Icons.verified_rounded : Icons.pending_rounded,
+                                size: 14,
+                                color: visit.isPaid ? AppColors.success : AppColors.warning,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                visit.isPaid ? 'Payé' : 'En attente',
+                                style: TextStyle(
+                                  fontFamily: 'Gilroy',
+                                  color: visit.isPaid ? AppColors.success : AppColors.warning,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: statusColor(visit.statusColor)
-                              .withOpacity(0.12),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          label,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: statusColor(visit.statusColor),
-                            fontWeight: FontWeight.w700,
-                          ),
+                  ],
+                  
+                  if (visit.notes != null && visit.notes!.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.grey50.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: AppColors.border.withValues(alpha: 0.5),
                         ),
                       ),
-                      // const SizedBox(height: 8),
-                      // Icon(
-                      //   Icons.chevron_right,
-                      //   color: AppColors.textTertiary,
-                      // ),
-                    ],
-                  ),
-                ],
-              ),
-              if (visit.paymentAmount != null) ...[
-                const SizedBox(height: 10),
-                Row(
-                  children:  [
-                    const Icon(
-                      Icons.payments_outlined,
-                      size: 16,
-                      color: AppColors.textSecondary,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      '${visit.paymentAmount} ${visit.paymentCurrency ?? ''}'
-                          .trim(),
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            Icons.note_outlined,
+                            size: 16,
+                            color: AppColors.textSecondary,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              visit.notes!,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontFamily: 'Gilroy',
+                                color: AppColors.textSecondary,
+                                fontStyle: FontStyle.italic,
+                                fontSize: 13,
+                              ),
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
-                ),
-              ],
-              if (visit.notes != null && visit.notes!.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Text(
-                  visit.notes!,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.textSecondary,
-                    fontStyle: FontStyle.italic,
-                  ),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Icon(
-                    visit.isPaid ? Icons.verified : Icons.payments_outlined,
-                    size: 16,
-                    color: visit.isPaid
-                        ? AppColors.success
-                        : AppColors.textTertiary,
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      visit.isPaid
-                          ? 'Paiement confirmé'
-                          : 'Paiement en attente',
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        color: visit.isPaid
-                            ? AppColors.success
-                            : AppColors.textSecondary,
-                        fontWeight: FontWeight.w600,
+                  
+                  if (onOpenPayment != null) ...[
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [AppColors.primary, AppColors.primaryDark],
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withValues(alpha: 0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: onOpenPayment,
+                            borderRadius: BorderRadius.circular(12),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: const [
+                                  Icon(
+                                    Icons.phone_android_rounded,
+                                    size: 20,
+                                    color: AppColors.white,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'Suivi du paiement',
+                                    style: TextStyle(
+                                      fontFamily: 'Gilroy',
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                  // TextButton(
-                  //   onPressed: onTap,
-                  //   child: const Text('Détail'),
-                  // ),
+                  ],
+                  
+                  if (createdStr != null) ...[
+                    const SizedBox(height: 12),
+                    Text(
+                      'Demandée le $createdStr · Réf. ${visit.id.length > 8 ? '…${visit.id.substring(visit.id.length - 8)}' : visit.id}',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        fontFamily: 'Gilroy',
+                        color: AppColors.textTertiary,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
                 ],
               ),
-              if (onOpenPayment != null) ...[
-                const SizedBox(height: 6),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: onOpenPayment,
-                    icon: const Icon(Icons.phone_android, size: 20),
-                    label: const Text('Suivi du paiement'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                      side: BorderSide(
-                          color: AppColors.primary.withOpacity(0.6)),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

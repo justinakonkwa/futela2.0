@@ -42,9 +42,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _loadInitialData() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final propertyProvider = Provider.of<PropertyProvider>(context, listen: false);
-      final locationProvider = Provider.of<LocationProvider>(context, listen: false);
-      final favoriteProvider = Provider.of<FavoriteProvider>(context, listen: false);
+      final propertyProvider =
+          Provider.of<PropertyProvider>(context, listen: false);
+      final locationProvider =
+          Provider.of<LocationProvider>(context, listen: false);
+      final favoriteProvider =
+          Provider.of<FavoriteProvider>(context, listen: false);
 
       // Charger les catégories en premier
       propertyProvider.loadCategories().then((_) {
@@ -58,9 +61,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= 
+    if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      final propertyProvider = Provider.of<PropertyProvider>(context, listen: false);
+      final propertyProvider =
+          Provider.of<PropertyProvider>(context, listen: false);
       if (!propertyProvider.isLoading && propertyProvider.hasMoreHomeFeed) {
         propertyProvider.loadHomeProperties(categoryId: _selectedCategory);
       }
@@ -68,7 +72,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _refreshData() {
-    final propertyProvider = Provider.of<PropertyProvider>(context, listen: false);
+    final propertyProvider =
+        Provider.of<PropertyProvider>(context, listen: false);
     propertyProvider.loadHomeProperties(
         categoryId: _selectedCategory, refresh: true);
   }
@@ -111,9 +116,10 @@ class _HomeScreenState extends State<HomeScreen> {
                           children: [
                             Row(
                               children: [
-                                Expanded(
+                                const Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'Bonjour ! 👋',
@@ -125,10 +131,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                           letterSpacing: -0.5,
                                         ),
                                       ),
-                                      const SizedBox(height: 4),
+                                       SizedBox(height: 4),
                                       Text(
                                         'Trouvez votre maison de rêve',
-                                        style: const TextStyle(
+                                        style:  TextStyle(
                                           fontFamily: 'Gilroy',
                                           fontSize: 15,
                                           fontWeight: FontWeight.w500,
@@ -145,15 +151,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                     // Bouton pour créer une propriété
                                     Consumer<AuthProvider>(
                                       builder: (context, authProvider, child) {
-                                        if (authProvider.user != null && RolePermissions.canAddProperties(authProvider.user!)) {
+                                        if (authProvider.user != null &&
+                                            RolePermissions.canAddProperties(
+                                                authProvider.user!)) {
                                           return Container(
-                                            margin: const EdgeInsets.only(right: 8),
+                                            margin:
+                                                const EdgeInsets.only(right: 8),
                                             decoration: BoxDecoration(
                                               color: AppColors.white,
-                                              borderRadius: BorderRadius.circular(14),
+                                              borderRadius:
+                                                  BorderRadius.circular(14),
                                               boxShadow: [
                                                 BoxShadow(
-                                                  color: AppColors.primary.withOpacity(0.15),
+                                                  color: AppColors.primary
+                                                      .withOpacity(0.15),
                                                   blurRadius: 12,
                                                   offset: const Offset(0, 4),
                                                 ),
@@ -165,13 +176,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 onTap: () {
                                                   Navigator.of(context).push(
                                                     MaterialPageRoute(
-                                                      builder: (context) => const AddPropertyScreen(),
+                                                      builder: (context) =>
+                                                          const AddPropertyScreen(),
                                                     ),
                                                   );
                                                 },
-                                                borderRadius: BorderRadius.circular(14),
+                                                borderRadius:
+                                                    BorderRadius.circular(14),
                                                 child: Container(
-                                                  padding: const EdgeInsets.all(12),
+                                                  padding:
+                                                      const EdgeInsets.all(12),
                                                   child: const Icon(
                                                     Icons.add_rounded,
                                                     color: AppColors.primary,
@@ -192,7 +206,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                         borderRadius: BorderRadius.circular(14),
                                         boxShadow: [
                                           BoxShadow(
-                                            color: AppColors.primary.withOpacity(0.15),
+                                            color: AppColors.primary
+                                                .withOpacity(0.15),
                                             blurRadius: 12,
                                             offset: const Offset(0, 4),
                                           ),
@@ -204,11 +219,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                           onTap: () {
                                             Navigator.of(context).push(
                                               MaterialPageRoute(
-                                                builder: (context) => const NotificationsScreen(),
+                                                builder: (context) =>
+                                                    const NotificationsScreen(),
                                               ),
                                             );
                                           },
-                                          borderRadius: BorderRadius.circular(14),
+                                          borderRadius:
+                                              BorderRadius.circular(14),
                                           child: Container(
                                             padding: const EdgeInsets.all(12),
                                             child: const Icon(
@@ -260,10 +277,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       setState(() {
                         _selectedCategory = categoryName;
                       });
-                      
-                      final propertyProvider = Provider.of<PropertyProvider>(context, listen: false);
-                      
-                      print('🔥 HOME - Calling loadHomeProperties with categoryId: "$categoryName"');
+
+                      final propertyProvider =
+                          Provider.of<PropertyProvider>(context, listen: false);
+
+                      print(
+                          '🔥 HOME - Calling loadHomeProperties with categoryId: "$categoryName"');
                       propertyProvider.loadHomeProperties(
                         categoryId: categoryName,
                         refresh: true,
@@ -276,7 +295,8 @@ class _HomeScreenState extends State<HomeScreen> {
               // Liste des propriétés avec design amélioré
               Consumer<PropertyProvider>(
                 builder: (context, propertyProvider, child) {
-                  if (propertyProvider.isLoading && propertyProvider.homeProperties.isEmpty) {
+                  if (propertyProvider.isLoading &&
+                      propertyProvider.homeProperties.isEmpty) {
                     return SliverPadding(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       sliver: SliverList(
@@ -293,7 +313,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   }
 
-                  if (propertyProvider.error != null && propertyProvider.homeProperties.isEmpty) {
+                  if (propertyProvider.error != null &&
+                      propertyProvider.homeProperties.isEmpty) {
                     return SliverFillRemaining(
                       hasScrollBody: false,
                       child: Center(
@@ -315,7 +336,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               const SizedBox(height: 24),
-                              Text(
+                              const Text(
                                 'Erreur de chargement',
                                 style: const TextStyle(
                                   fontFamily: 'Gilroy',
@@ -360,8 +381,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     onTap: _refreshData,
                                     borderRadius: BorderRadius.circular(16),
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
-                                      child: Row(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 16, horizontal: 32),
+                                      child: const Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: const [
                                           Icon(
@@ -395,112 +417,125 @@ class _HomeScreenState extends State<HomeScreen> {
                   if (propertyProvider.homeProperties.isEmpty) {
                     return SliverFillRemaining(
                       hasScrollBody: false,
-                      child: Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(32),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(24),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      AppColors.primary.withOpacity(0.15),
-                                      AppColors.primaryLight.withOpacity(0.08),
-                                    ],
-                                  ),
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: AppColors.primary.withOpacity(0.2),
-                                      blurRadius: 30,
-                                      offset: const Offset(0, 10),
-                                    ),
-                                  ],
-                                ),
-                                child: const FutelaLogo(size: 80),
-                              ),
-                              const SizedBox(height: 28),
-                              Text(
-                                'Aucune propriété trouvée',
-                                style: const TextStyle(
-                                  fontFamily: 'Gilroy',
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                'Soyez le premier à ajouter une propriété !',
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontFamily: 'Gilroy',
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                  color: AppColors.textSecondary,
-                                  height: 1.5,
-                                ),
-                              ),
-                              const SizedBox(height: 32),
-                              Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(16),
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      AppColors.primary,
-                                      AppColors.primaryDark,
-                                    ],
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: AppColors.primary.withOpacity(0.3),
-                                      blurRadius: 20,
-                                      offset: const Offset(0, 8),
-                                    ),
-                                  ],
-                                ),
-                                child: Material(
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                    onTap: () {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (context) => const AddPropertyScreen(),
+                      child: Consumer<AuthProvider>(
+                        builder: (context, authProvider, child) {
+                          final canAddProperty = authProvider.user != null && 
+                              RolePermissions.canAddProperties(authProvider.user!);
+                          
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(32),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(24),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          AppColors.primary.withOpacity(0.15),
+                                          AppColors.primaryLight.withOpacity(0.08),
+                                        ],
+                                      ),
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: AppColors.primary.withOpacity(0.2),
+                                          blurRadius: 30,
+                                          offset: const Offset(0, 10),
                                         ),
-                                      );
-                                    },
-                                    borderRadius: BorderRadius.circular(16),
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: const [
-                                          Icon(
-                                            Icons.add_home_rounded,
-                                            color: AppColors.white,
-                                            size: 22,
-                                          ),
-                                          SizedBox(width: 10),
-                                          Text(
-                                            'Ajouter une propriété',
-                                            style: TextStyle(
-                                              fontFamily: 'Gilroy',
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w700,
-                                              color: AppColors.white,
-                                            ),
+                                      ],
+                                    ),
+                                    child: const FutelaLogo(size: 80),
+                                  ),
+                                  const SizedBox(height: 28),
+                                  const Text(
+                                    'Aucune propriété trouvée',
+                                    style: TextStyle(
+                                      fontFamily: 'Gilroy',
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    canAddProperty
+                                        ? 'Soyez le premier à ajouter une propriété !'
+                                        : 'Aucune propriété disponible pour le moment',
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontFamily: 'Gilroy',
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppColors.textSecondary,
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                  if (canAddProperty) ...[
+                                    const SizedBox(height: 32),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(16),
+                                        gradient: const LinearGradient(
+                                          colors: [
+                                            AppColors.primary,
+                                            AppColors.primaryDark,
+                                          ],
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: AppColors.primary.withOpacity(0.3),
+                                            blurRadius: 20,
+                                            offset: const Offset(0, 8),
                                           ),
                                         ],
                                       ),
+                                      child: Material(
+                                        color: Colors.transparent,
+                                        child: InkWell(
+                                          onTap: () {
+                                            Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    const AddPropertyScreen(),
+                                              ),
+                                            );
+                                          },
+                                          borderRadius: BorderRadius.circular(16),
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 16, horizontal: 32),
+                                            child: const Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  Icons.add_home_rounded,
+                                                  color: AppColors.white,
+                                                  size: 22,
+                                                ),
+                                                SizedBox(width: 10),
+                                                Text(
+                                                  'Ajouter une propriété',
+                                                  style: TextStyle(
+                                                    fontFamily: 'Gilroy',
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: AppColors.white,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ),
+                                  ],
+                                ],
                               ),
-                            ],
-                          ),
-                        ),
+                            ),
+                          );
+                        },
                       ),
                     );
                   }
@@ -510,7 +545,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     sliver: SliverList(
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {
-                          final property = propertyProvider.homeProperties[index];
+                          final property =
+                              propertyProvider.homeProperties[index];
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 16),
                             child: Consumer<FavoriteProvider>(
@@ -520,7 +556,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                   onTap: () {
                                     Navigator.of(context).push(
                                       MaterialPageRoute(
-                                        builder: (context) => PropertyDetailScreen(
+                                        builder: (context) =>
+                                            PropertyDetailScreen(
                                           propertyId: property.id,
                                         ),
                                       ),
@@ -529,9 +566,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                   onFavorite: () {
                                     if (AuthHelper.requireAuth(
                                       context,
-                                      message: 'Connectez-vous pour ajouter des propriétés à vos favoris',
+                                      message:
+                                          'Connectez-vous pour ajouter des propriétés à vos favoris',
                                     )) {
-                                      favoriteProvider.toggleFavorite(property.id);
+                                      favoriteProvider
+                                          .toggleFavorite(property.id);
                                     }
                                   },
                                   showFavorite: true,
@@ -550,7 +589,8 @@ class _HomeScreenState extends State<HomeScreen> {
               // Indicateur de chargement en bas avec design amélioré
               Consumer<PropertyProvider>(
                 builder: (context, propertyProvider, child) {
-                  if (propertyProvider.isLoading && propertyProvider.homeProperties.isNotEmpty) {
+                  if (propertyProvider.isLoading &&
+                      propertyProvider.homeProperties.isNotEmpty) {
                     return SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.all(24),
@@ -570,7 +610,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             child: const CircularProgressIndicator(
                               strokeWidth: 3,
-                              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  AppColors.primary),
                             ),
                           ),
                         ),
@@ -586,7 +627,8 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: Consumer<AuthProvider>(
         builder: (context, authProvider, child) {
-          if (authProvider.user != null && RolePermissions.canAddProperties(authProvider.user!)) {
+          if (authProvider.user != null &&
+              RolePermissions.canAddProperties(authProvider.user!)) {
             return Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(18),

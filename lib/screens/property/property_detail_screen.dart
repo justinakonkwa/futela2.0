@@ -22,9 +22,8 @@ import '../../widgets/image_gallery_viewer.dart';
 import '../visits/request_visit_screen.dart';
 import 'add_property_screen.dart';
 import '../../providers/favorite_provider.dart';
-import '../../providers/messaging_provider.dart';
-import '../messaging/chat_screen.dart';
-import '../../widgets/custom_text_field.dart';
+import '../../providers/review_provider.dart';
+import '../property/property_reviews_screen.dart';
 
 class PropertyDetailScreen extends StatefulWidget {
   final String propertyId;
@@ -153,7 +152,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                             borderRadius: BorderRadius.circular(16),
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
-                              child: Row(
+                              child:const  Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: const [
                                   Icon(
@@ -972,6 +971,9 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                       // Détails de la propriété
                       _buildPropertyDetails(context, property),
 
+                      // Section Avis
+                      _buildReviewsSection(context, property),
+
                       // Description
                       if (property.description.isNotEmpty)
                         _buildDescription(context, property),
@@ -1007,39 +1009,61 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: CustomButton(
-                      text: 'Contacter',
-                      icon: Icon(Icons.chat_bubble_outline, size: 20, color: AppColors.primary),
-                      isOutlined: true,
-                      onPressed: () => _onContactPressed(context),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: CustomButton(
-                      text: 'Demander visite',
-                      onPressed: () {
-                        // Vérifier l'authentification avant de permettre la demande de visite
-                        if (AuthHelper.requireAuth(
-                          context,
-                          message: 'Connectez-vous pour demander une visite',
-                        )) {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => RequestVisitScreen(
-                                propertyId: widget.propertyId,
-                              ),
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                  ),
-                ],
+              // Bouton Demander visite en pleine largeur
+              CustomButton(
+                width: double.maxFinite,
+                text: 'Demander visite',
+                onPressed: () {
+                  // Vérifier l'authentification avant de permettre la demande de visite
+                  if (AuthHelper.requireAuth(
+                    context,
+                    message: 'Connectez-vous pour demander une visite',
+                  )) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => RequestVisitScreen(
+                          propertyId: widget.propertyId,
+                        ),
+                      ),
+                    );
+                  }
+                },
               ),
+              
+              // Bouton Contacter commenté
+              // Row(
+              //   children: [
+              //     Expanded(
+              //       child: CustomButton(
+              //         text: 'Contacter',
+              //         icon: Icon(Icons.chat_bubble_outline, size: 20, color: AppColors.primary),
+              //         isOutlined: true,
+              //         onPressed: () => _onContactPressed(context),
+              //       ),
+              //     ),
+              //     const SizedBox(width: 12),
+              //     Expanded(
+              //       child: CustomButton(
+              //         text: 'Demander visite',
+              //         onPressed: () {
+              //           // Vérifier l'authentification avant de permettre la demande de visite
+              //           if (AuthHelper.requireAuth(
+              //             context,
+              //             message: 'Connectez-vous pour demander une visite',
+              //           )) {
+              //             Navigator.of(context).push(
+              //               MaterialPageRoute(
+              //                 builder: (context) => RequestVisitScreen(
+              //                   propertyId: widget.propertyId,
+              //                 ),
+              //               ),
+              //             );
+              //           }
+              //         },
+              //       ),
+              //     ),
+              //   ],
+              // ),
             ],
           ),
         ),
@@ -1047,178 +1071,179 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
     );
   }
 
-  void _onContactPressed(BuildContext context) {
-    final auth = context.read<AuthProvider>();
-    final messaging = context.read<MessagingProvider>();
-    if (auth.user != null) {
-      _startConversationAsUser(context, messaging, auth.user!.id);
-    } else {
-      _showContactOwnerSheet(context, messaging);
-    }
-  }
+  // Méthodes de contact commentées (bouton Contacter désactivé)
+  // void _onContactPressed(BuildContext context) {
+  //   final auth = context.read<AuthProvider>();
+  //   final messaging = context.read<MessagingProvider>();
+  //   if (auth.user != null) {
+  //     _startConversationAsUser(context, messaging, auth.user!.id);
+  //   } else {
+  //     _showContactOwnerSheet(context, messaging);
+  //   }
+  // }
 
-  Future<void> _startConversationAsUser(
-    BuildContext context,
-    MessagingProvider messaging,
-    String userId,
-  ) async {
-    final conversation = await messaging.startConversationOnProperty(
-      widget.propertyId,
-      message: null,
-    );
-    if (!context.mounted) return;
-    if (conversation != null) {
-      messaging.setCurrentConversation(conversation);
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => ChatScreen(
-            conversationId: conversation.id,
-            conversation: conversation,
-          ),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            messaging.error ?? 'Impossible de démarrer la conversation',
-          ),
-          backgroundColor: AppColors.error,
-        ),
-      );
-    }
-  }
+  // Future<void> _startConversationAsUser(
+  //   BuildContext context,
+  //   MessagingProvider messaging,
+  //   String userId,
+  // ) async {
+  //   final conversation = await messaging.startConversationOnProperty(
+  //     widget.propertyId,
+  //     message: null,
+  //   );
+  //   if (!context.mounted) return;
+  //   if (conversation != null) {
+  //     messaging.setCurrentConversation(conversation);
+  //     Navigator.of(context).push(
+  //       MaterialPageRoute(
+  //         builder: (context) => ChatScreen(
+  //           conversationId: conversation.id,
+  //           conversation: conversation,
+  //         ),
+  //       ),
+  //     );
+  //   } else {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(
+  //         content: Text(
+  //           messaging.error ?? 'Impossible de démarrer la conversation',
+  //         ),
+  //         backgroundColor: AppColors.error,
+  //       ),
+  //     );
+  //   }
+  // }
 
-  void _showContactOwnerSheet(BuildContext context, MessagingProvider messaging) {
-    final nameController = TextEditingController();
-    final emailController = TextEditingController();
-    final phoneController = TextEditingController();
-    final messageController = TextEditingController();
+  // void _showContactOwnerSheet(BuildContext context, MessagingProvider messaging) {
+  //   final nameController = TextEditingController();
+  //   final emailController = TextEditingController();
+  //   final phoneController = TextEditingController();
+  //   final messageController = TextEditingController();
 
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'Contacter le propriétaire',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                CustomTextField(
-                  controller: nameController,
-                  label: 'Nom',
-                  hint: 'Votre nom',
-                  prefixIconData: Icons.person_outline,
-                ),
-                const SizedBox(height: 12),
-                CustomTextField(
-                  controller: emailController,
-                  label: 'Email',
-                  hint: 'votre@email.com',
-                  keyboardType: TextInputType.emailAddress,
-                  prefixIconData: Icons.email_outlined,
-                ),
-                const SizedBox(height: 12),
-                CustomTextField(
-                  controller: phoneController,
-                  label: 'Téléphone (optionnel)',
-                  hint: '+243...',
-                  keyboardType: TextInputType.phone,
-                  prefixIconData: Icons.phone_outlined,
-                ),
-                const SizedBox(height: 12),
-                CustomTextField(
-                  controller: messageController,
-                  label: 'Message',
-                  hint: 'Votre message au propriétaire',
-                  maxLines: 3,
-                  prefixIconData: Icons.message_outlined,
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Expanded(
-                      child: CustomButton(
-                        text: 'Annuler',
-                        isOutlined: true,
-                        onPressed: () => Navigator.of(context).pop(),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: CustomButton(
-                        text: 'Envoyer',
-                        onPressed: () async {
-                          final name = nameController.text.trim();
-                          final email = emailController.text.trim();
-                          final message = messageController.text.trim();
-                          final phone = phoneController.text.trim();
-                          if (name.isEmpty || email.isEmpty || message.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                    'Veuillez remplir le nom, l\'email et le message'),
-                                backgroundColor: AppColors.error,
-                              ),
-                            );
-                            return;
-                          }
-                          final ok = await messaging.contactOwner(
-                            widget.propertyId,
-                            name: name,
-                            email: email,
-                            message: message,
-                            phone: phone.isEmpty ? null : phone,
-                          );
-                          if (!context.mounted) return;
-                          Navigator.of(context).pop();
-                          if (ok) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                    'Votre message a été envoyé au propriétaire'),
-                                backgroundColor: AppColors.success,
-                              ),
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                    messaging.error ??
-                                        'Erreur lors de l\'envoi'),
-                                backgroundColor: AppColors.error,
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  //   showModalBottomSheet<void>(
+  //     context: context,
+  //     isScrollControlled: true,
+  //     backgroundColor: Colors.transparent,
+  //     builder: (context) => Padding(
+  //       padding: EdgeInsets.only(
+  //         bottom: MediaQuery.of(context).viewInsets.bottom,
+  //       ),
+  //       child: Container(
+  //         padding: const EdgeInsets.all(24),
+  //         decoration: BoxDecoration(
+  //           color: Theme.of(context).scaffoldBackgroundColor,
+  //           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+  //         ),
+  //         child: SingleChildScrollView(
+  //           child: Column(
+  //             mainAxisSize: MainAxisSize.min,
+  //             crossAxisAlignment: CrossAxisAlignment.stretch,
+  //             children: [
+  //               Text(
+  //                 'Contacter le propriétaire',
+  //                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
+  //                   fontWeight: FontWeight.w700,
+  //                 ),
+  //               ),
+  //               const SizedBox(height: 16),
+  //               CustomTextField(
+  //                 controller: nameController,
+  //                 label: 'Nom',
+  //                 hint: 'Votre nom',
+  //                 prefixIconData: Icons.person_outline,
+  //               ),
+  //               const SizedBox(height: 12),
+  //               CustomTextField(
+  //                 controller: emailController,
+  //                 label: 'Email',
+  //                 hint: 'votre@email.com',
+  //                 keyboardType: TextInputType.emailAddress,
+  //                 prefixIconData: Icons.email_outlined,
+  //               ),
+  //               const SizedBox(height: 12),
+  //               CustomTextField(
+  //                 controller: phoneController,
+  //                 label: 'Téléphone (optionnel)',
+  //                 hint: '+243...',
+  //                 keyboardType: TextInputType.phone,
+  //                 prefixIconData: Icons.phone_outlined,
+  //               ),
+  //               const SizedBox(height: 12),
+  //               CustomTextField(
+  //                 controller: messageController,
+  //                 label: 'Message',
+  //                 hint: 'Votre message au propriétaire',
+  //                 maxLines: 3,
+  //                 prefixIconData: Icons.message_outlined,
+  //               ),
+  //               const SizedBox(height: 24),
+  //               Row(
+  //                 children: [
+  //                   Expanded(
+  //                     child: CustomButton(
+  //                       text: 'Annuler',
+  //                       isOutlined: true,
+  //                       onPressed: () => Navigator.of(context).pop(),
+  //                     ),
+  //                   ),
+  //                   const SizedBox(width: 12),
+  //                   Expanded(
+  //                     child: CustomButton(
+  //                       text: 'Envoyer',
+  //                       onPressed: () async {
+  //                         final name = nameController.text.trim();
+  //                         final email = emailController.text.trim();
+  //                         final message = messageController.text.trim();
+  //                         final phone = phoneController.text.trim();
+  //                         if (name.isEmpty || email.isEmpty || message.isEmpty) {
+  //                           ScaffoldMessenger.of(context).showSnackBar(
+  //                             const SnackBar(
+  //                               content: Text(
+  //                                   'Veuillez remplir le nom, l\'email et le message'),
+  //                               backgroundColor: AppColors.error,
+  //                             ),
+  //                           );
+  //                           return;
+  //                         }
+  //                         final ok = await messaging.contactOwner(
+  //                           widget.propertyId,
+  //                           name: name,
+  //                           email: email,
+  //                           message: message,
+  //                           phone: phone.isEmpty ? null : phone,
+  //                         );
+  //                         if (!context.mounted) return;
+  //                         Navigator.of(context).pop();
+  //                         if (ok) {
+  //                           ScaffoldMessenger.of(context).showSnackBar(
+  //                             const SnackBar(
+  //                               content: Text(
+  //                                   'Votre message a été envoyé au propriétaire'),
+  //                               backgroundColor: AppColors.success,
+  //                             ),
+  //                           );
+  //                         } else {
+  //                           ScaffoldMessenger.of(context).showSnackBar(
+  //                             SnackBar(
+  //                               content: Text(
+  //                                   messaging.error ??
+  //                                       'Erreur lors de l\'envoi'),
+  //                               backgroundColor: AppColors.error,
+  //                             ),
+  //                           );
+  //                         }
+  //                       },
+  //                     ),
+  //                   ),
+  //                 ],
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget _buildPropertyDetails(BuildContext context, Property property) {
     return Container(
@@ -1644,6 +1669,214 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
     );
   }
 
+  Widget _buildReviewsSection(BuildContext context, Property property) {
+    return Consumer<ReviewProvider>(
+      builder: (context, reviewProvider, _) {
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.warning.withValues(alpha: 0.08),
+                AppColors.warning.withValues(alpha: 0.03),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: AppColors.warning.withValues(alpha: 0.25),
+              width: 1.5,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [AppColors.warning, Color(0xFFFFA726)],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.warning.withValues(alpha: 0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.star_rounded,
+                      color: AppColors.white,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Avis des visiteurs',
+                          style: TextStyle(
+                            fontFamily: 'Gilroy',
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        if (property.reviewCount > 0) ...[
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.star_rounded,
+                                size: 16,
+                                color: AppColors.warning,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${property.rating?.toStringAsFixed(1) ?? '0.0'}',
+                                style: const TextStyle(
+                                  fontFamily: 'Gilroy',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.textPrimary,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '(${property.reviewCount} avis)',
+                                style: const TextStyle(
+                                  fontFamily: 'Gilroy',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+              // Les 2 derniers avis - Affichage simple sans chargement automatique
+              if (property.reviewCount > 0) ...[
+                const SizedBox(height: 16),
+                Center(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      gradient: const LinearGradient(
+                        colors: [AppColors.primary, AppColors.primaryDark],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => PropertyReviewsScreen(
+                                propertyId: property.id,
+                                propertyTitle: property.title,
+                              ),
+                            ),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text(
+                                'Voir les avis',
+                                style: TextStyle(
+                                  fontFamily: 'Gilroy',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.white,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '(${property.reviewCount})',
+                                style: const TextStyle(
+                                  fontFamily: 'Gilroy',
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.white,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              const Icon(
+                                Icons.arrow_forward_rounded,
+                                color: AppColors.white,
+                                size: 18,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ] else ...[
+                const SizedBox(height: 16),
+                Center(
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: AppColors.warning.withValues(alpha: 0.1),
+                        ),
+                        child: const Icon(
+                          Icons.rate_review_rounded,
+                          size: 32,
+                          color: AppColors.warning,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Aucun avis pour le moment',
+                        style: TextStyle(
+                          fontFamily: 'Gilroy',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildDescription(BuildContext context, property) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -1987,4 +2220,33 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
       }
     }
   }
+
+  // Méthode _formatReviewDate commentée (non utilisée actuellement)
+  // String _formatReviewDate(DateTime date) {
+  //   final now = DateTime.now();
+  //   final difference = now.difference(date);
+
+  //   if (difference.inDays == 0) {
+  //     if (difference.inHours == 0) {
+  //       if (difference.inMinutes == 0) {
+  //         return 'À l\'instant';
+  //       }
+  //       return 'Il y a ${difference.inMinutes} min';
+  //     }
+  //     return 'Il y a ${difference.inHours}h';
+  //   } else if (difference.inDays == 1) {
+  //     return 'Hier';
+  //   } else if (difference.inDays < 7) {
+  //     return 'Il y a ${difference.inDays} jours';
+  //   } else if (difference.inDays < 30) {
+  //     final weeks = (difference.inDays / 7).floor();
+  //     return 'Il y a $weeks semaine${weeks > 1 ? 's' : ''}';
+  //   } else if (difference.inDays < 365) {
+  //     final months = (difference.inDays / 30).floor();
+  //     return 'Il y a $months mois';
+  //   } else {
+  //     final years = (difference.inDays / 365).floor();
+  //     return 'Il y a $years an${years > 1 ? 's' : ''}';
+  //   }
+  // }
 }

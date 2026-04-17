@@ -93,8 +93,8 @@ class FutelaApp extends StatelessWidget {
             title: 'Futela',
             debugShowCheckedModeBanner: false,
             theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.lightTheme, // Force le thème clair même en mode sombre
-            themeMode: ThemeMode.light, // Force toujours le mode clair
+            darkTheme: AppTheme.darkTheme,
+            themeMode: themeProvider.themeMode,
             // Requis pour DatePickerDialog, showDatePicker, etc.
             localizationsDelegates: const [
               GlobalMaterialLocalizations.delegate,

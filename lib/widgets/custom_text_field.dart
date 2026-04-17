@@ -62,7 +62,7 @@ class CustomTextField extends StatelessWidget {
           Text(
             label!,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: AppColors.textSecondary,
+              color: Theme.of(context).textTheme.bodySmall?.color,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.2,
             ),
@@ -105,7 +105,9 @@ class CustomTextField extends StatelessWidget {
             suffixIconConstraints: const BoxConstraints(minWidth: 44, minHeight: 44),
             filled: true,
             fillColor: enabled
-                ? AppColors.grey50
+                ? Theme.of(context).brightness == Brightness.dark
+                    ? Theme.of(context).colorScheme.surfaceContainerHighest
+                    : AppColors.grey50
                 : Theme.of(context).colorScheme.surfaceContainerHighest,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(_radius),
@@ -113,7 +115,12 @@ class CustomTextField extends StatelessWidget {
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(_radius),
-              borderSide: BorderSide(color: AppColors.grey200, width: 1),
+              borderSide: BorderSide(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Theme.of(context).colorScheme.outline.withOpacity(0.3)
+                    : AppColors.grey200,
+                width: 1,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(_radius),
@@ -129,11 +136,15 @@ class CustomTextField extends StatelessWidget {
             ),
             disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(_radius),
-              borderSide: BorderSide(color: AppColors.grey200),
+              borderSide: BorderSide(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Theme.of(context).colorScheme.outline.withOpacity(0.3)
+                    : AppColors.grey200,
+              ),
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
             hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: AppColors.textTertiary,
+              color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.6),
               fontWeight: FontWeight.w400,
             ),
             errorStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -141,7 +152,7 @@ class CustomTextField extends StatelessWidget {
               fontWeight: FontWeight.w500,
             ),
             counterStyle: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: AppColors.textTertiary,
+              color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.6),
             ),
           ),
         ),

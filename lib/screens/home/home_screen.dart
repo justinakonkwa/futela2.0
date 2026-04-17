@@ -95,7 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 expandedHeight: 160,
                 floating: true,
                 pinned: true,
-                backgroundColor: AppColors.white,
+                backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
                 elevation: 0,
                 flexibleSpace: FlexibleSpaceBar(
                   background: Container(
@@ -117,29 +117,29 @@ class _HomeScreenState extends State<HomeScreen> {
                           children: [
                             Row(
                               children: [
-                                const Expanded(
+                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'Bonjour ! 👋',
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontFamily: 'Gilroy',
                                           fontSize: 28,
                                           fontWeight: FontWeight.w700,
-                                          color: AppColors.textPrimary,
+                                          color: Theme.of(context).textTheme.displayLarge?.color,
                                           letterSpacing: -0.5,
                                         ),
                                       ),
-                                       SizedBox(height: 4),
+                                      const SizedBox(height: 4),
                                       Text(
                                         'Trouvez votre maison de rêve',
-                                        style:  TextStyle(
+                                        style: TextStyle(
                                           fontFamily: 'Gilroy',
                                           fontSize: 15,
                                           fontWeight: FontWeight.w500,
-                                          color: AppColors.textSecondary,
+                                          color: Theme.of(context).textTheme.bodySmall?.color,
                                           height: 1.4,
                                         ),
                                       ),
@@ -159,7 +159,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             margin:
                                                 const EdgeInsets.only(right: 8),
                                             decoration: BoxDecoration(
-                                              color: AppColors.white,
+                                              color: Theme.of(context).cardColor,
                                               borderRadius:
                                                   BorderRadius.circular(14),
                                               boxShadow: [
@@ -203,7 +203,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     // Icône de notification
                                     Container(
                                       decoration: BoxDecoration(
-                                        color: AppColors.white,
+                                        color: Theme.of(context).cardColor,
                                         borderRadius: BorderRadius.circular(14),
                                         boxShadow: [
                                           BoxShadow(
@@ -337,24 +337,24 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               const SizedBox(height: 24),
-                              const Text(
+                              Text(
                                 'Erreur de chargement',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontFamily: 'Gilroy',
                                   fontSize: 22,
                                   fontWeight: FontWeight.w700,
-                                  color: AppColors.textPrimary,
+                                  color: Theme.of(context).textTheme.displayLarge?.color,
                                 ),
                               ),
                               const SizedBox(height: 12),
                               Text(
                                 ErrorFormatter.format(propertyProvider.error),
                                 textAlign: TextAlign.center,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontFamily: 'Gilroy',
                                   fontSize: 15,
                                   fontWeight: FontWeight.w500,
-                                  color: AppColors.textSecondary,
+                                  color: Theme.of(context).textTheme.bodySmall?.color,
                                   height: 1.5,
                                 ),
                               ),
@@ -450,13 +450,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                     child: const FutelaLogo(size: 80),
                                   ),
                                   const SizedBox(height: 28),
-                                  const Text(
+                                  Text(
                                     'Aucune propriété trouvée',
                                     style: TextStyle(
                                       fontFamily: 'Gilroy',
                                       fontSize: 24,
                                       fontWeight: FontWeight.w700,
-                                      color: AppColors.textPrimary,
+                                      color: Theme.of(context).textTheme.displayLarge?.color,
                                     ),
                                   ),
                                   const SizedBox(height: 12),
@@ -465,11 +465,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ? 'Soyez le premier à ajouter une propriété !'
                                         : 'Aucune propriété disponible pour le moment',
                                     textAlign: TextAlign.center,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontFamily: 'Gilroy',
                                       fontSize: 15,
                                       fontWeight: FontWeight.w500,
-                                      color: AppColors.textSecondary,
+                                      color: Theme.of(context).textTheme.bodySmall?.color,
                                       height: 1.5,
                                     ),
                                   ),

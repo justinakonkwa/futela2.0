@@ -87,7 +87,7 @@ class CommissionProvider with ChangeNotifier {
     try {
       final newCommissions = await _commissionService.getCommissions(
         page: _currentPage,
-        limit: 20,
+        itemsPerPage: 20,
       );
 
       if (newCommissions.isEmpty) {
@@ -134,7 +134,7 @@ class CommissionProvider with ChangeNotifier {
       _verificationError = null;
       return true;
     } catch (e) {
-      _verificationError = e.toString();
+      _verificationError = e.toString().replaceFirst('Exception: ', '');
       debugPrint('Erreur vérification commission: $e');
       return false;
     } finally {
@@ -143,39 +143,40 @@ class CommissionProvider with ChangeNotifier {
     }
   }
 
-  /// Trouver et vérifier une commission par téléphone
-  Future<bool> verifyCommissionByPhone(String phoneNumber, String code) async {
-    _isVerifying = true;
-    _verificationError = null;
+  // État de recherche par téléphone (étape 1)
+  Commission? _foundCommission;
+  bool _isSearchingByPhone = false;
+  String? _searchError;
+
+  Commission? get foundCommission => _foundCommission;
+  bool get isSearchingByPhone => _isSearchingByPhone;
+  String? get searchError => _searchError;
+
+  /// Étape 1 : Trouver une commission par téléphone du visiteur
+  Future<bool> findCommissionByPhone(String phoneNumber) async {
+    _isSearchingByPhone = true;
+    _searchError = null;
+    _foundCommission = null;
     notifyListeners();
 
     try {
-      final verifiedCommission = await _commissionService.findCommissionByPhone(
-        phoneNumber,
-        code,
-      );
-
-      // Ajouter ou mettre à jour la commission dans la liste
-      final index = _commissions.indexWhere((c) => c.id == verifiedCommission.id);
-      if (index != -1) {
-        _commissions[index] = verifiedCommission;
-      } else {
-        _commissions.insert(0, verifiedCommission);
-      }
-
-      // Recharger le wallet
-      await loadWallet();
-
-      _verificationError = null;
+      _foundCommission = await _commissionService.findCommissionByPhone(phoneNumber);
       return true;
     } catch (e) {
-      _verificationError = e.toString();
-      debugPrint('Erreur vérification par téléphone: $e');
+      _searchError = e.toString().replaceFirst('Exception: ', '');
+      debugPrint('Erreur recherche par téléphone: $e');
       return false;
     } finally {
-      _isVerifying = false;
+      _isSearchingByPhone = false;
       notifyListeners();
     }
+  }
+
+  void clearFoundCommission() {
+    _foundCommission = null;
+    _searchError = null;
+    _verificationError = null;
+    notifyListeners();
   }
 
   /// Charger les retraits

@@ -25,6 +25,7 @@ import '../support/about_screen.dart';
 // import '../../providers/messaging_provider.dart';
 import '../commission/commissionnaire_dashboard.dart';
 import '../commission/visitor_codes_screen.dart';
+import '../commission/delegate_property_screen.dart';
 import '../settings/connected_devices_screen.dart';
 import '../settings/delete_account_screen.dart';
 
@@ -155,11 +156,11 @@ class ProfileScreen extends StatelessWidget {
                             // Nom et rôle
                             Text(
                               user.fullName,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: 'Gilroy',
                                 fontSize: 24,
                                 fontWeight: FontWeight.w700,
-                                color: AppColors.textPrimary,
+                                color: Theme.of(context).textTheme.displayLarge?.color,
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -224,7 +225,9 @@ class ProfileScreen extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: AppColors.white.withOpacity(0.7),
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Theme.of(context).scaffoldBackgroundColor.withOpacity(0.5)
+                                    : AppColors.white.withOpacity(0.7),
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: Column(
@@ -247,10 +250,10 @@ class ProfileScreen extends StatelessWidget {
                                       Expanded(
                                         child: Text(
                                           user.email,
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             fontFamily: 'Gilroy',
                                             fontSize: 14,
-                                            color: AppColors.textPrimary,
+                                            color: Theme.of(context).textTheme.bodyLarge?.color,
                                             fontWeight: FontWeight.w500,
                                           ),
                                           overflow: TextOverflow.ellipsis,
@@ -278,10 +281,10 @@ class ProfileScreen extends StatelessWidget {
                                         Expanded(
                                           child: Text(
                                             user.phone,
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontFamily: 'Gilroy',
                                               fontSize: 14,
-                                              color: AppColors.textPrimary,
+                                              color: Theme.of(context).textTheme.bodyLarge?.color,
                                               fontWeight: FontWeight.w500,
                                             ),
                                             overflow: TextOverflow.ellipsis,
@@ -495,12 +498,25 @@ class ProfileScreen extends StatelessWidget {
                 
                 const SizedBox(height: 16),
                 
-                // Section Commission + Codes de visite (fusionnées)
-                if (RolePermissions.canAccessCommissionFeatures(user))
-                  _buildMenuSection(
-                    context,
-                    title: 'Commission & Codes de visite',
-                    items: [
+                // Section Commission + Codes de visite
+                // Pour les commissionnaires/admins : uniquement les codes de visite
+                // (le dashboard est accessible via l'onglet "Gestion" dans la navbar)
+                _buildMenuSection(
+                  context,
+                  title: 'Codes de visite',
+                  items: [
+                    _MenuItem(
+                      icon: Icons.qr_code_outlined,
+                      title: 'Mes codes de vérification',
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => const VisitorCodesScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    if (RolePermissions.canAccessCommissionFeatures(user))
                       _MenuItem(
                         icon: Icons.dashboard_outlined,
                         title: 'Tableau de bord commissionnaire',
@@ -512,39 +528,8 @@ class ProfileScreen extends StatelessWidget {
                           );
                         },
                       ),
-                      _MenuItem(
-                        icon: Icons.qr_code_outlined,
-                        title: 'Mes codes de vérification',
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const VisitorCodesScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-
-                // Codes de visite seuls pour les non-commissionnaires
-                if (!RolePermissions.canAccessCommissionFeatures(user))
-                  _buildMenuSection(
-                    context,
-                    title: 'Codes de visite',
-                    items: [
-                      _MenuItem(
-                        icon: Icons.qr_code_outlined,
-                        title: 'Mes codes de vérification',
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => const VisitorCodesScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
+                  ],
+                ),
                 
                 const SizedBox(height: 16),
                 
@@ -796,6 +781,8 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildGuestProfile(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -803,19 +790,19 @@ class ProfileScreen extends StatelessWidget {
           // Guest header moderne
           Container(
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppColors.primary.withOpacity(0.08),
-                  AppColors.primaryLight.withOpacity(0.05),
-                ],
-              ),
+              color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                color: AppColors.primary.withOpacity(0.15),
+                color: AppColors.primary.withOpacity(isDark ? 0.3 : 0.15),
                 width: 1,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(isDark ? 0.15 : 0.08),
+                  blurRadius: 20,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Column(
               children: [
@@ -859,21 +846,21 @@ class ProfileScreen extends StatelessWidget {
                       
                       Text(
                         'Mode Invité',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Gilroy',
                           fontSize: 28,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
+                          color: Theme.of(context).textTheme.displayLarge?.color,
                         ),
                       ),
                       const SizedBox(height: 12),
                       
                       Text(
                         'Connectez-vous pour débloquer toutes les fonctionnalités',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Gilroy',
                           fontSize: 15,
-                          color: AppColors.textSecondary,
+                          color: Theme.of(context).textTheme.bodySmall?.color,
                           fontWeight: FontWeight.w500,
                           height: 1.4,
                         ),
@@ -1022,19 +1009,19 @@ class ProfileScreen extends StatelessWidget {
           // Message d'encouragement moderne
           Container(
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppColors.primary.withOpacity(0.06),
-                  AppColors.accent.withOpacity(0.04),
-                ],
-              ),
+              color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: AppColors.primary.withOpacity(0.15),
+                color: AppColors.primary.withOpacity(isDark ? 0.3 : 0.15),
                 width: 1,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(isDark ? 0.15 : 0.08),
+                  blurRadius: 20,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: Padding(
               padding: const EdgeInsets.all(24),
@@ -1043,7 +1030,7 @@ class ProfileScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.white,
+                      color: AppColors.accent.withOpacity(0.15),
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
@@ -1062,11 +1049,11 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(height: 20),
                   Text(
                     'Débloquez toutes les fonctionnalités',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Gilroy',
                       fontSize: 20,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
+                      color: Theme.of(context).textTheme.displayLarge?.color,
                       height: 1.3,
                     ),
                     textAlign: TextAlign.center,
@@ -1074,10 +1061,10 @@ class ProfileScreen extends StatelessWidget {
                   const SizedBox(height: 12),
                   Text(
                     'Créez un compte pour sauvegarder vos favoris, demander des visites et gérer vos propriétés.',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Gilroy',
                       fontSize: 14,
-                      color: AppColors.textSecondary,
+                      color: Theme.of(context).textTheme.bodySmall?.color,
                       fontWeight: FontWeight.w500,
                       height: 1.5,
                     ),
@@ -1146,17 +1133,21 @@ class ProfileScreen extends StatelessWidget {
     required String title,
     required List<_MenuItem> items,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: AppColors.border.withOpacity(0.3),
+          color: isDark 
+              ? AppColors.primary.withOpacity(0.2)
+              : AppColors.border.withOpacity(0.3),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadow.withOpacity(0.06),
+            color: AppColors.shadow.withOpacity(isDark ? 0.15 : 0.06),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -1192,11 +1183,11 @@ class ProfileScreen extends StatelessWidget {
                     title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Gilroy',
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
+                      color: Theme.of(context).textTheme.displayLarge?.color,
                       letterSpacing: -0.3,
                     ),
                   ),
@@ -1293,10 +1284,14 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _buildMenuItem(BuildContext context, _MenuItem item) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: AppColors.grey50.withOpacity(0.4),
+        color: isDark 
+            ? Theme.of(context).scaffoldBackgroundColor.withOpacity(0.5)
+            : AppColors.grey50.withOpacity(0.4),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Material(
@@ -1311,7 +1306,9 @@ class ProfileScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppColors.white,
+                    color: isDark 
+                        ? AppColors.primary.withOpacity(0.15)
+                        : AppColors.white,
                     borderRadius: BorderRadius.circular(10),
                     boxShadow: [
                       BoxShadow(
@@ -1333,11 +1330,11 @@ class ProfileScreen extends StatelessWidget {
                     item.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Gilroy',
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
                       letterSpacing: -0.2,
                     ),
                   ),

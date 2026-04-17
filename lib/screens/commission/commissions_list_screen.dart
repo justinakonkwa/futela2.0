@@ -44,11 +44,11 @@ class _CommissionsListScreenState extends State<CommissionsListScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Mes Commissions',
           style: TextStyle(
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: Theme.of(context).textTheme.displayLarge?.color,
           ),
         ),
         backgroundColor: Colors.transparent,
@@ -58,7 +58,7 @@ class _CommissionsListScreenState extends State<CommissionsListScreen> {
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
@@ -68,9 +68,9 @@ class _CommissionsListScreenState extends State<CommissionsListScreen> {
                 ),
               ],
             ),
-            child: const Icon(
+            child: Icon(
               CupertinoIcons.back,
-              color: AppColors.textPrimary,
+              color: Theme.of(context).textTheme.displayLarge?.color,
               size: 20,
             ),
           ),
@@ -116,9 +116,13 @@ class _CommissionsListScreenState extends State<CommissionsListScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white.withOpacity(0.1)
+              : AppColors.border,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -154,10 +158,10 @@ class _CommissionsListScreenState extends State<CommissionsListScreen> {
                     children: [
                       Text(
                         '${commission.amount.toStringAsFixed(2)} ${commission.currency}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
+                          color: Theme.of(context).textTheme.displayLarge?.color,
                         ),
                       ),
                       Text(
@@ -207,7 +211,7 @@ class _CommissionsListScreenState extends State<CommissionsListScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.background,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -254,14 +258,14 @@ class _CommissionsListScreenState extends State<CommissionsListScreen> {
         Icon(
           icon,
           size: 16,
-          color: AppColors.textSecondary,
+          color: Theme.of(context).textTheme.bodySmall?.color,
         ),
         const SizedBox(width: 8),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
-            color: AppColors.textSecondary,
+            color: Theme.of(context).textTheme.bodySmall?.color,
           ),
         ),
         const Spacer(),
@@ -269,7 +273,7 @@ class _CommissionsListScreenState extends State<CommissionsListScreen> {
           value,
           style: TextStyle(
             fontSize: 12,
-            color: valueColor ?? AppColors.textPrimary,
+            color: valueColor ?? Theme.of(context).textTheme.displayLarge?.color,
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -288,13 +292,13 @@ class _CommissionsListScreenState extends State<CommissionsListScreen> {
       ),
       child: Row(
         children: [
-          Icon(
+          const Icon(
             CupertinoIcons.clock,
             color: AppColors.warning,
             size: 16,
           ),
           const SizedBox(width: 8),
-          Expanded(
+          const Expanded(
             child: Text(
               'En attente de vérification avec le code OTP',
               style: TextStyle(
@@ -307,7 +311,7 @@ class _CommissionsListScreenState extends State<CommissionsListScreen> {
           if (commission.codeExpiresAt != null)
             Text(
               'Expire ${_formatTimeRemaining(commission.codeExpiresAt!)}',
-              style: TextStyle(
+              style: const TextStyle(
                 color: AppColors.warning,
                 fontSize: 10,
               ),
@@ -318,6 +322,9 @@ class _CommissionsListScreenState extends State<CommissionsListScreen> {
   }
 
   Widget _buildLoadingSkeleton() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final shimmerColor = isDark ? Colors.grey[800]! : Colors.grey[300]!;
+    
     return ListView.builder(
       padding: const EdgeInsets.all(20),
       itemCount: 8,
@@ -326,7 +333,7 @@ class _CommissionsListScreenState extends State<CommissionsListScreen> {
           margin: const EdgeInsets.only(bottom: 12),
           height: 120,
           decoration: BoxDecoration(
-            color: Colors.grey[300],
+            color: shimmerColor,
             borderRadius: BorderRadius.circular(12),
           ),
         );
@@ -352,31 +359,35 @@ class _CommissionsListScreenState extends State<CommissionsListScreen> {
       child: Container(
         padding: const EdgeInsets.all(32),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white.withOpacity(0.1)
+                : AppColors.border,
+          ),
         ),
         child: Column(
           children: [
             Icon(
               CupertinoIcons.money_dollar_circle,
               size: 64,
-              color: AppColors.textTertiary,
+              color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.6),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Aucune commission',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textSecondary,
+                color: Theme.of(context).textTheme.bodySmall?.color,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Vos commissions apparaîtront ici une fois que des visiteurs auront payé des visites sur vos propriétés déléguées.',
               style: TextStyle(
-                color: AppColors.textTertiary,
+                color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.6),
               ),
               textAlign: TextAlign.center,
             ),

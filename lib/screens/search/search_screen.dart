@@ -181,10 +181,10 @@ class _SearchScreenState extends State<SearchScreen> {
             fontSize: 20,
             fontWeight: FontWeight.w700,
             letterSpacing: -0.3,
-            color: AppColors.textPrimary,
+            color: Theme.of(context).textTheme.displayLarge?.color,
           ),
         ),
-        backgroundColor: AppColors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(72),
@@ -197,7 +197,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   child: Container(
                     height: 52,
                     decoration: BoxDecoration(
-                      color: AppColors.white,
+                      color: Theme.of(context).cardColor,
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
@@ -218,7 +218,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         fontFamily: 'Gilroy',
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.textPrimary,
+                        color: Theme.of(context).textTheme.bodyLarge?.color,
                       ),
                       decoration: InputDecoration(
                         hintText: 'Rechercher une propriété...',
@@ -258,7 +258,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: AppColors.white,
+                    color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: [
                       BoxShadow(
@@ -277,7 +277,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         child: Icon(
                           Icons.tune_rounded,
                           size: 24,
-                          color: AppColors.textPrimary,
+                          color: Theme.of(context).iconTheme.color,
                         ),
                       ),
                     ),
@@ -305,7 +305,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       letterSpacing: -0.2,
-                      color: AppColors.textSecondary,
+                      color: Theme.of(context).textTheme.bodySmall?.color,
                     ),
                   ),
                 ),
@@ -378,7 +378,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               fontSize: 22,
                               fontWeight: FontWeight.w700,
                               letterSpacing: -0.5,
-                              color: AppColors.textPrimary,
+                              color: Theme.of(context).textTheme.displayLarge?.color,
                             ),
                             textAlign: TextAlign.center,
                           ),
@@ -392,7 +392,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               fontFamily: 'Gilroy',
                               fontSize: 15,
                               fontWeight: FontWeight.w500,
-                              color: AppColors.textSecondary,
+                              color: Theme.of(context).textTheme.bodySmall?.color,
                               height: 1.5,
                             ),
                           ),
@@ -476,7 +476,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               fontSize: 22,
                               fontWeight: FontWeight.w700,
                               letterSpacing: -0.5,
-                              color: AppColors.textPrimary,
+                              color: Theme.of(context).textTheme.displayLarge?.color,
                             ),
                             textAlign: TextAlign.center,
                           ),
@@ -488,7 +488,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               fontFamily: 'Gilroy',
                               fontSize: 15,
                               fontWeight: FontWeight.w500,
-                              color: AppColors.textSecondary,
+                              color: Theme.of(context).textTheme.bodySmall?.color,
                               height: 1.5,
                             ),
                           ),
@@ -648,7 +648,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     end: Alignment.bottomRight,
                   )
                 : null,
-            color: isSelected ? null : AppColors.white,
+            color: isSelected ? null : Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
@@ -667,7 +667,7 @@ class _SearchScreenState extends State<SearchScreen> {
               fontSize: 14,
               fontWeight: FontWeight.w600,
               letterSpacing: -0.2,
-              color: isSelected ? AppColors.white : AppColors.textPrimary,
+              color: isSelected ? AppColors.white : Theme.of(context).textTheme.bodyLarge?.color,
             ),
           ),
         ),
@@ -809,10 +809,12 @@ class _AdvancedFiltersBottomSheetState extends State<_AdvancedFiltersBottomSheet
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       height: MediaQuery.of(context).size.height * 0.8,
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: Theme.of(context).scaffoldBackgroundColor,
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(24),
           topRight: Radius.circular(24),
@@ -843,13 +845,15 @@ class _AdvancedFiltersBottomSheetState extends State<_AdvancedFiltersBottomSheet
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
                     letterSpacing: -0.5,
-                    color: AppColors.textPrimary,
+                    color: Theme.of(context).textTheme.displayLarge?.color,
                   ),
                 ),
                 const Spacer(),
                 Container(
                   decoration: BoxDecoration(
-                    color: AppColors.grey50,
+                    color: isDark 
+                        ? Theme.of(context).cardColor
+                        : AppColors.grey50,
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Material(
@@ -1022,12 +1026,13 @@ class _AdvancedFiltersBottomSheetState extends State<_AdvancedFiltersBottomSheet
       title,
       style: Theme.of(context).textTheme.titleMedium?.copyWith(
         fontWeight: FontWeight.w600,
-        color: AppColors.textPrimary,
+        color: Theme.of(context).textTheme.bodyLarge?.color,
       ),
     );
   }
 
   Widget _buildTypeChip(String type, String label) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isSelected = _selectedType == type;
     return GestureDetector(
       onTap: () {
@@ -1038,17 +1043,23 @@ class _AdvancedFiltersBottomSheetState extends State<_AdvancedFiltersBottomSheet
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : AppColors.grey50,
+          color: isSelected 
+              ? AppColors.primary 
+              : (isDark ? Theme.of(context).cardColor : AppColors.grey50),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.border,
+            color: isSelected 
+                ? AppColors.primary 
+                : (isDark ? AppColors.primary.withOpacity(0.3) : AppColors.border),
           ),
         ),
         child: Text(
           label,
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: isSelected ? AppColors.white : AppColors.textPrimary,
+            color: isSelected 
+                ? AppColors.white 
+                : Theme.of(context).textTheme.displayLarge?.color,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -1057,6 +1068,8 @@ class _AdvancedFiltersBottomSheetState extends State<_AdvancedFiltersBottomSheet
   }
 
   Widget _buildLocationFilters() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Consumer2<PropertyProvider, LocationProvider>(
       builder: (context, propertyProvider, locationProvider, child) {
         return Column(
@@ -1064,10 +1077,33 @@ class _AdvancedFiltersBottomSheetState extends State<_AdvancedFiltersBottomSheet
             // Province
             DropdownButtonFormField<String>(
               value: _selectedProvince,
-              decoration: const InputDecoration(
+              dropdownColor: Theme.of(context).cardColor,
+              decoration: InputDecoration(
                 labelText: 'Province',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.location_city),
+                labelStyle: TextStyle(
+                  color: Theme.of(context).textTheme.bodySmall?.color,
+                ),
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: isDark 
+                        ? AppColors.primary.withOpacity(0.3)
+                        : AppColors.border,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: isDark 
+                        ? AppColors.primary.withOpacity(0.3)
+                        : AppColors.border,
+                  ),
+                ),
+                prefixIcon: Icon(
+                  Icons.location_city,
+                  color: AppColors.primary,
+                ),
+              ),
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyLarge?.color,
               ),
               items: propertyProvider.provinces.map((province) {
                 return DropdownMenuItem(
@@ -1092,10 +1128,33 @@ class _AdvancedFiltersBottomSheetState extends State<_AdvancedFiltersBottomSheet
             // Ville
             DropdownButtonFormField<String>(
               value: _selectedCity,
-              decoration: const InputDecoration(
+              dropdownColor: Theme.of(context).cardColor,
+              decoration: InputDecoration(
                 labelText: 'Ville',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.location_city),
+                labelStyle: TextStyle(
+                  color: Theme.of(context).textTheme.bodySmall?.color,
+                ),
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: isDark 
+                        ? AppColors.primary.withOpacity(0.3)
+                        : AppColors.border,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: isDark 
+                        ? AppColors.primary.withOpacity(0.3)
+                        : AppColors.border,
+                  ),
+                ),
+                prefixIcon: Icon(
+                  Icons.location_city,
+                  color: AppColors.primary,
+                ),
+              ),
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyLarge?.color,
               ),
               items: propertyProvider.cities.map((city) {
                 return DropdownMenuItem(
@@ -1119,10 +1178,33 @@ class _AdvancedFiltersBottomSheetState extends State<_AdvancedFiltersBottomSheet
             // Commune
             DropdownButtonFormField<String>(
               value: _selectedTown,
-              decoration: const InputDecoration(
+              dropdownColor: Theme.of(context).cardColor,
+              decoration: InputDecoration(
                 labelText: 'Commune',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.location_on),
+                labelStyle: TextStyle(
+                  color: Theme.of(context).textTheme.bodySmall?.color,
+                ),
+                border: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: isDark 
+                        ? AppColors.primary.withOpacity(0.3)
+                        : AppColors.border,
+                  ),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: isDark 
+                        ? AppColors.primary.withOpacity(0.3)
+                        : AppColors.border,
+                  ),
+                ),
+                prefixIcon: Icon(
+                  Icons.location_on,
+                  color: AppColors.primary,
+                ),
+              ),
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyLarge?.color,
               ),
               items: propertyProvider.towns.map((town) {
                 return DropdownMenuItem(
@@ -1277,7 +1359,7 @@ class _AdvancedFiltersBottomSheetState extends State<_AdvancedFiltersBottomSheet
             child: Text(
               label,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.textPrimary,
+                color: Theme.of(context).textTheme.displayLarge?.color,
               ),
             ),
           ),

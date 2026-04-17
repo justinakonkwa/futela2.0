@@ -846,4 +846,67 @@ class PropertyService {
       throw Exception('Failed to check availability');
     }
   }
+
+  // ─── Délégation ────────────────────────────────────────────────────────────
+
+  /// POST /api/properties/{id}/delegate
+  /// Délègue une propriété à un commissionnaire
+  Future<void> delegateProperty(
+    String propertyId, {
+    required String commissionnaireId,
+    double commissionRate = 10,
+  }) async {
+    try {
+      final response = await _dio.post(
+        '/api/properties/$propertyId/delegate',
+        data: {
+          'commissionnaireId': commissionnaireId,
+          'commissionRate': commissionRate,
+        },
+      );
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        final msg = _extractMsg(response.data);
+        throw Exception(msg);
+      }
+    } on DioException catch (e) {
+      throw Exception(_extractMsg(e.response?.data));
+    }
+  }
+
+  /// GET /api/users?role=commissionnaire  (liste des commissionnaires disponibles)
+  Future<List<Map<String, dynamic>>> getCommissionnaires() async {
+    try {
+      final response = await _dio.get(
+        '/api/users',
+        queryParameters: {'role': 'commissionnaire'},
+      );
+      if (response.statusCode == 200) {
+        final data = response.data;
+        List<dynamic> list;
+        if (data is List) {
+          list = data;
+        } else if (data is Map) {
+          list = (data['member'] ?? data['data'] ?? data['items'] ?? []) as List<dynamic>;
+        } else {
+          list = [];
+        }
+        return list.whereType<Map<String, dynamic>>().toList();
+      }
+      return [];
+    } on DioException catch (_) {
+      return [];
+    }
+  }
+
+  String _extractMsg(dynamic data) {
+    if (data == null) return 'Une erreur est survenue';
+    if (data is Map) {
+      final m = data as Map<String, dynamic>;
+      return m['detail']?.toString() ??
+          m['message']?.toString() ??
+          m['error']?.toString() ??
+          'Une erreur est survenue';
+    }
+    return data.toString();
+  }
 }

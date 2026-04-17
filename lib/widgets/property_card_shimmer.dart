@@ -7,9 +7,14 @@ class PropertyCardShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseColor = isDark ? Colors.grey[800]! : AppColors.grey200;
+    final highlightColor = isDark ? Colors.grey[700]! : AppColors.grey100;
+    
     return Card(
       margin: const EdgeInsets.all(8),
       elevation: 2,
+      color: Theme.of(context).cardColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
@@ -18,13 +23,13 @@ class PropertyCardShimmer extends StatelessWidget {
         children: [
           // Image shimmer
           Shimmer.fromColors(
-            baseColor: AppColors.grey200,
-            highlightColor: AppColors.grey100,
+            baseColor: baseColor,
+            highlightColor: highlightColor,
             child: Container(
               height: 180,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: AppColors.grey200,
+                color: baseColor,
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(12),
                   topRight: Radius.circular(12),
@@ -41,13 +46,13 @@ class PropertyCardShimmer extends StatelessWidget {
               children: [
                 // Prix shimmer
                 Shimmer.fromColors(
-                  baseColor: AppColors.grey200,
-                  highlightColor: AppColors.grey100,
+                  baseColor: baseColor,
+                  highlightColor: highlightColor,
                   child: Container(
                     height: 20,
                     width: 120,
                     decoration: BoxDecoration(
-                      color: AppColors.grey200,
+                      color: baseColor,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -57,13 +62,13 @@ class PropertyCardShimmer extends StatelessWidget {
                 
                 // Titre shimmer
                 Shimmer.fromColors(
-                  baseColor: AppColors.grey200,
-                  highlightColor: AppColors.grey100,
+                  baseColor: baseColor,
+                  highlightColor: highlightColor,
                   child: Container(
                     height: 16,
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: AppColors.grey200,
+                      color: baseColor,
                       borderRadius: BorderRadius.circular(4),
                     ),
                   ),
@@ -76,13 +81,13 @@ class PropertyCardShimmer extends StatelessWidget {
                 Row(
                   children: [
                     Shimmer.fromColors(
-                      baseColor: AppColors.grey200,
-                      highlightColor: AppColors.grey100,
+                      baseColor: baseColor,
+                      highlightColor: highlightColor,
                       child: Container(
                         height: 14,
                         width: 14,
                         decoration: BoxDecoration(
-                          color: AppColors.grey200,
+                          color: baseColor,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -90,13 +95,13 @@ class PropertyCardShimmer extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Shimmer.fromColors(
-                        baseColor: AppColors.grey200,
-                        highlightColor: AppColors.grey100,
+                        baseColor: baseColor,
+                        highlightColor: highlightColor,
                         child: Container(
                           height: 14,
                           width: double.infinity,
                           decoration: BoxDecoration(
-                            color: AppColors.grey200,
+                            color: baseColor,
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),
@@ -112,13 +117,13 @@ class PropertyCardShimmer extends StatelessWidget {
                   children: [
                     // Chambres
                     Shimmer.fromColors(
-                      baseColor: AppColors.grey200,
-                      highlightColor: AppColors.grey100,
+                      baseColor: baseColor,
+                      highlightColor: highlightColor,
                       child: Container(
                         height: 12,
                         width: 60,
                         decoration: BoxDecoration(
-                          color: AppColors.grey200,
+                          color: baseColor,
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
@@ -127,13 +132,13 @@ class PropertyCardShimmer extends StatelessWidget {
                     
                     // Salles de bain
                     Shimmer.fromColors(
-                      baseColor: AppColors.grey200,
-                      highlightColor: AppColors.grey100,
+                      baseColor: baseColor,
+                      highlightColor: highlightColor,
                       child: Container(
                         height: 12,
                         width: 80,
                         decoration: BoxDecoration(
-                          color: AppColors.grey200,
+                          color: baseColor,
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
@@ -142,13 +147,13 @@ class PropertyCardShimmer extends StatelessWidget {
                     
                     // Surface
                     Shimmer.fromColors(
-                      baseColor: AppColors.grey200,
-                      highlightColor: AppColors.grey100,
+                      baseColor: baseColor,
+                      highlightColor: highlightColor,
                       child: Container(
                         height: 12,
                         width: 50,
                         decoration: BoxDecoration(
-                          color: AppColors.grey200,
+                          color: baseColor,
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
@@ -217,8 +222,12 @@ class PropertyDetailShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseColor = isDark ? Colors.grey[800]! : AppColors.grey200;
+    final highlightColor = isDark ? Colors.grey[700]! : AppColors.grey100;
+    
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: CustomScrollView(
         slivers: [
           // AppBar avec image shimmer
@@ -231,7 +240,7 @@ class PropertyDetailShimmer extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: Theme.of(context).cardColor,
                 borderRadius: BorderRadius.circular(14),
                 boxShadow: [
                   BoxShadow(
@@ -241,20 +250,20 @@ class PropertyDetailShimmer extends StatelessWidget {
                   ),
                 ],
               ),
-              child: const Center(
+              child: Center(
                 child: Icon(
                   Icons.arrow_back_rounded,
-                  color: AppColors.textPrimary,
+                  color: Theme.of(context).textTheme.displayLarge?.color,
                   size: 24,
                 ),
               ),
             ),
             flexibleSpace: FlexibleSpaceBar(
               background: Shimmer.fromColors(
-                baseColor: AppColors.grey200,
-                highlightColor: AppColors.grey100,
+                baseColor: baseColor,
+                highlightColor: highlightColor,
                 child: Container(
-                  color: AppColors.grey200,
+                  color: baseColor,
                 ),
               ),
             ),
@@ -264,7 +273,7 @@ class PropertyDetailShimmer extends StatelessWidget {
           SliverToBoxAdapter(
             child: Container(
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: Theme.of(context).cardColor,
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(20),
                   topRight: Radius.circular(20),
@@ -278,7 +287,7 @@ class PropertyDetailShimmer extends StatelessWidget {
                     margin: const EdgeInsets.all(20),
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: AppColors.white,
+                      color: Theme.of(context).cardColor,
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
@@ -298,26 +307,26 @@ class PropertyDetailShimmer extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Shimmer.fromColors(
-                                    baseColor: AppColors.grey200,
-                                    highlightColor: AppColors.grey100,
+                                    baseColor: baseColor,
+                                    highlightColor: highlightColor,
                                     child: Container(
                                       height: 36,
                                       width: 150,
                                       decoration: BoxDecoration(
-                                        color: AppColors.grey200,
+                                        color: baseColor,
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                     ),
                                   ),
                                   const SizedBox(height: 8),
                                   Shimmer.fromColors(
-                                    baseColor: AppColors.grey200,
-                                    highlightColor: AppColors.grey100,
+                                    baseColor: baseColor,
+                                    highlightColor: highlightColor,
                                     child: Container(
                                       height: 16,
                                       width: 80,
                                       decoration: BoxDecoration(
-                                        color: AppColors.grey200,
+                                        color: baseColor,
                                         borderRadius: BorderRadius.circular(8),
                                       ),
                                     ),
@@ -326,15 +335,15 @@ class PropertyDetailShimmer extends StatelessWidget {
                               ),
                             ),
                             Shimmer.fromColors(
-                              baseColor: AppColors.grey200,
-                              highlightColor: AppColors.grey100,
+                              baseColor: baseColor,
+                              highlightColor: highlightColor,
                               child: Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 16,
                                   vertical: 8,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: AppColors.grey200,
+                                  color: baseColor,
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: const SizedBox(
@@ -347,39 +356,39 @@ class PropertyDetailShimmer extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
                         Shimmer.fromColors(
-                          baseColor: AppColors.grey200,
-                          highlightColor: AppColors.grey100,
+                          baseColor: baseColor,
+                          highlightColor: highlightColor,
                           child: Container(
                             height: 24,
                             width: double.infinity,
                             decoration: BoxDecoration(
-                              color: AppColors.grey200,
+                              color: baseColor,
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
                         ),
                         const SizedBox(height: 8),
                         Shimmer.fromColors(
-                          baseColor: AppColors.grey200,
-                          highlightColor: AppColors.grey100,
+                          baseColor: baseColor,
+                          highlightColor: highlightColor,
                           child: Container(
                             height: 24,
                             width: 250,
                             decoration: BoxDecoration(
-                              color: AppColors.grey200,
+                              color: baseColor,
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
                         ),
                         const SizedBox(height: 12),
                         Shimmer.fromColors(
-                          baseColor: AppColors.grey200,
-                          highlightColor: AppColors.grey100,
+                          baseColor: baseColor,
+                          highlightColor: highlightColor,
                           child: Container(
                             height: 18,
                             width: double.infinity,
                             decoration: BoxDecoration(
-                              color: AppColors.grey200,
+                              color: baseColor,
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
@@ -393,10 +402,12 @@ class PropertyDetailShimmer extends StatelessWidget {
                     margin: const EdgeInsets.symmetric(horizontal: 20),
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: AppColors.white,
+                      color: Theme.of(context).cardColor,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: AppColors.border.withValues(alpha: 0.5),
+                        color: isDark 
+                            ? Theme.of(context).colorScheme.outline.withOpacity(0.3)
+                            : AppColors.border.withValues(alpha: 0.5),
                       ),
                     ),
                     child: Column(
@@ -405,26 +416,26 @@ class PropertyDetailShimmer extends StatelessWidget {
                         Row(
                           children: [
                             Shimmer.fromColors(
-                              baseColor: AppColors.grey200,
-                              highlightColor: AppColors.grey100,
+                              baseColor: baseColor,
+                              highlightColor: highlightColor,
                               child: Container(
                                 width: 36,
                                 height: 36,
                                 decoration: BoxDecoration(
-                                  color: AppColors.grey200,
+                                  color: baseColor,
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
                             ),
                             const SizedBox(width: 12),
                             Shimmer.fromColors(
-                              baseColor: AppColors.grey200,
-                              highlightColor: AppColors.grey100,
+                              baseColor: baseColor,
+                              highlightColor: highlightColor,
                               child: Container(
                                 height: 20,
                                 width: 150,
                                 decoration: BoxDecoration(
-                                  color: AppColors.grey200,
+                                  color: baseColor,
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
@@ -440,12 +451,12 @@ class PropertyDetailShimmer extends StatelessWidget {
                                   right: index < 2 ? 12 : 0,
                                 ),
                                 child: Shimmer.fromColors(
-                                  baseColor: AppColors.grey200,
-                                  highlightColor: AppColors.grey100,
+                                  baseColor: baseColor,
+                                  highlightColor: highlightColor,
                                   child: Container(
                                     height: 90,
                                     decoration: BoxDecoration(
-                                      color: AppColors.grey200,
+                                      color: baseColor,
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                   ),
@@ -465,10 +476,12 @@ class PropertyDetailShimmer extends StatelessWidget {
                     margin: const EdgeInsets.symmetric(horizontal: 20),
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: AppColors.white,
+                      color: Theme.of(context).cardColor,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: AppColors.border.withValues(alpha: 0.5),
+                        color: isDark 
+                            ? Theme.of(context).colorScheme.outline.withOpacity(0.3)
+                            : AppColors.border.withValues(alpha: 0.5),
                       ),
                     ),
                     child: Column(
@@ -477,26 +490,26 @@ class PropertyDetailShimmer extends StatelessWidget {
                         Row(
                           children: [
                             Shimmer.fromColors(
-                              baseColor: AppColors.grey200,
-                              highlightColor: AppColors.grey100,
+                              baseColor: baseColor,
+                              highlightColor: highlightColor,
                               child: Container(
                                 width: 36,
                                 height: 36,
                                 decoration: BoxDecoration(
-                                  color: AppColors.grey200,
+                                  color: baseColor,
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
                             ),
                             const SizedBox(width: 12),
                             Shimmer.fromColors(
-                              baseColor: AppColors.grey200,
-                              highlightColor: AppColors.grey100,
+                              baseColor: baseColor,
+                              highlightColor: highlightColor,
                               child: Container(
                                 height: 20,
                                 width: 120,
                                 decoration: BoxDecoration(
-                                  color: AppColors.grey200,
+                                  color: baseColor,
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
@@ -508,13 +521,13 @@ class PropertyDetailShimmer extends StatelessWidget {
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 8),
                             child: Shimmer.fromColors(
-                              baseColor: AppColors.grey200,
-                              highlightColor: AppColors.grey100,
+                              baseColor: baseColor,
+                              highlightColor: highlightColor,
                               child: Container(
                                 height: 16,
                                 width: index == 3 ? 200 : double.infinity,
                                 decoration: BoxDecoration(
-                                  color: AppColors.grey200,
+                                  color: baseColor,
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
@@ -535,7 +548,7 @@ class PropertyDetailShimmer extends StatelessWidget {
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: Theme.of(context).cardColor,
           boxShadow: [
             BoxShadow(
               color: AppColors.shadow.withValues(alpha: 0.1),
@@ -546,12 +559,12 @@ class PropertyDetailShimmer extends StatelessWidget {
         ),
         child: SafeArea(
           child: Shimmer.fromColors(
-            baseColor: AppColors.grey200,
-            highlightColor: AppColors.grey100,
+            baseColor: baseColor,
+            highlightColor: highlightColor,
             child: Container(
               height: 48,
               decoration: BoxDecoration(
-                color: AppColors.grey200,
+                color: baseColor,
                 borderRadius: BorderRadius.circular(12),
               ),
             ),

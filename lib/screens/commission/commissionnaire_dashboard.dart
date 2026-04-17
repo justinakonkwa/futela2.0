@@ -38,11 +38,11 @@ class _CommissionnaireDashboardState extends State<CommissionnaireDashboard> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Commissionnaire',
           style: TextStyle(
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: Theme.of(context).textTheme.displayLarge?.color,
           ),
         ),
         backgroundColor: Colors.transparent,
@@ -150,7 +150,7 @@ class _CommissionnaireDashboardState extends State<CommissionnaireDashboard> {
                   Expanded(
                     child: _buildWalletStat(
                       'En attente',
-                      '${wallet.pendingCommissions.toStringAsFixed(2)} ${wallet.currency}',
+                      '${wallet.pendingCommissions} commission${wallet.pendingCommissions > 1 ? 's' : ''}',
                     ),
                   ),
                 ],
@@ -187,13 +187,14 @@ class _CommissionnaireDashboardState extends State<CommissionnaireDashboard> {
   }
 
   Widget _buildWalletSkeleton() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
-      baseColor: AppColors.grey200,
-      highlightColor: AppColors.grey100,
+      baseColor: isDark ? Colors.grey[800]! : AppColors.grey200,
+      highlightColor: isDark ? Colors.grey[700]! : AppColors.grey100,
       child: Container(
         height: 140,
         decoration: BoxDecoration(
-          color: AppColors.grey200,
+          color: isDark ? Colors.grey[800]! : AppColors.grey200,
           borderRadius: BorderRadius.circular(16),
         ),
       ),
@@ -223,12 +224,12 @@ class _CommissionnaireDashboardState extends State<CommissionnaireDashboard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Actions rapides',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: Theme.of(context).textTheme.displayLarge?.color,
           ),
         ),
         const SizedBox(height: 12),
@@ -281,16 +282,21 @@ class _CommissionnaireDashboardState extends State<CommissionnaireDashboard> {
     VoidCallback? onTap,
   }) {
     final isEnabled = onTap != null;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isEnabled ? AppColors.white : Colors.grey[100],
+          color: isEnabled 
+              ? Theme.of(context).cardColor
+              : (isDark ? Colors.grey[850] : Colors.grey[100]),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isEnabled ? AppColors.border : Colors.grey[300]!,
+            color: isEnabled 
+                ? (isDark ? Colors.white.withOpacity(0.1) : AppColors.border)
+                : (isDark ? Colors.grey[700]! : Colors.grey[300]!),
           ),
           boxShadow: isEnabled ? [
             BoxShadow(
@@ -305,14 +311,18 @@ class _CommissionnaireDashboardState extends State<CommissionnaireDashboard> {
             Icon(
               icon,
               size: 32,
-              color: isEnabled ? AppColors.primary : Colors.grey[400],
+              color: isEnabled 
+                  ? AppColors.primary 
+                  : (isDark ? Colors.grey[600] : Colors.grey[400]),
             ),
             const SizedBox(height: 8),
             Text(
               title,
               style: TextStyle(
                 fontWeight: FontWeight.w600,
-                color: isEnabled ? AppColors.textPrimary : Colors.grey[500],
+                color: isEnabled 
+                    ? Theme.of(context).textTheme.displayLarge?.color
+                    : (isDark ? Colors.grey[600] : Colors.grey[500]),
               ),
             ),
             const SizedBox(height: 4),
@@ -320,7 +330,9 @@ class _CommissionnaireDashboardState extends State<CommissionnaireDashboard> {
               subtitle,
               style: TextStyle(
                 fontSize: 12,
-                color: isEnabled ? AppColors.textSecondary : Colors.grey[400],
+                color: isEnabled 
+                    ? Theme.of(context).textTheme.bodySmall?.color
+                    : (isDark ? Colors.grey[700] : Colors.grey[400]),
               ),
               textAlign: TextAlign.center,
             ),
@@ -337,12 +349,12 @@ class _CommissionnaireDashboardState extends State<CommissionnaireDashboard> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
+            Text(
               'Commissions récentes',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: Theme.of(context).textTheme.displayLarge?.color,
               ),
             ),
             TextButton(
@@ -386,9 +398,13 @@ class _CommissionnaireDashboardState extends State<CommissionnaireDashboard> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white.withOpacity(0.1)
+              : AppColors.border,
+        ),
       ),
       child: Row(
         children: [
@@ -412,9 +428,9 @@ class _CommissionnaireDashboardState extends State<CommissionnaireDashboard> {
               children: [
                 Text(
                   '${commission.amount.toStringAsFixed(2)} ${commission.currency}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                    color: Theme.of(context).textTheme.displayLarge?.color,
                   ),
                 ),
                 Text(
@@ -429,9 +445,9 @@ class _CommissionnaireDashboardState extends State<CommissionnaireDashboard> {
           ),
           Text(
             _formatDate(commission.createdAt),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
-              color: AppColors.textSecondary,
+              color: Theme.of(context).textTheme.bodySmall?.color,
             ),
           ),
         ],
@@ -440,17 +456,18 @@ class _CommissionnaireDashboardState extends State<CommissionnaireDashboard> {
   }
 
   Widget _buildCommissionsSkeleton() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       children: List.generate(3, (index) {
         return Padding(
           padding: const EdgeInsets.only(bottom: 8),
           child: Shimmer.fromColors(
-            baseColor: AppColors.grey200,
-            highlightColor: AppColors.grey100,
+            baseColor: isDark ? Colors.grey[800]! : AppColors.grey200,
+            highlightColor: isDark ? Colors.grey[700]! : AppColors.grey100,
             child: Container(
               height: 72,
               decoration: BoxDecoration(
-                color: AppColors.grey200,
+                color: isDark ? Colors.grey[800]! : AppColors.grey200,
                 borderRadius: BorderRadius.circular(12),
               ),
             ),
@@ -465,9 +482,13 @@ class _CommissionnaireDashboardState extends State<CommissionnaireDashboard> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white.withOpacity(0.1)
+              : AppColors.border,
+        ),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -486,23 +507,23 @@ class _CommissionnaireDashboardState extends State<CommissionnaireDashboard> {
             ),
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Aucune commission',
             style: TextStyle(
               fontFamily: 'Gilroy',
               fontWeight: FontWeight.w700,
               fontSize: 16,
-              color: AppColors.textPrimary,
+              color: Theme.of(context).textTheme.displayLarge?.color,
             ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Vos commissions apparaîtront ici',
             style: TextStyle(
               fontFamily: 'Gilroy',
               fontSize: 13,
-              color: AppColors.textTertiary,
+              color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.6),
             ),
             textAlign: TextAlign.center,
           ),

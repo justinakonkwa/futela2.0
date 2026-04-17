@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -7,9 +8,10 @@ import '../../widgets/custom_text_field.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/futela_logo.dart';
 import '../../widgets/social_login_buttons.dart';
+import '../../widgets/error_dialog.dart';
 import 'register_screen.dart';
 import 'forgot_password_screen.dart';
-import '../main_navigation.dart';
+import '../auth/profile_completion_wrapper.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -42,15 +44,44 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (success && mounted) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const MainNavigation()),
+        MaterialPageRoute(builder: (context) => const ProfileCompletionWrapper()),
       );
     } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(authProvider.error ?? 'Erreur de connexion'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      final errorMessage = authProvider.error ?? 'Erreur de connexion';
+
+      // Détection du type d'erreur
+      if (errorMessage.contains('connection') ||
+          errorMessage.contains('connexion') ||
+          errorMessage.contains('network') ||
+          errorMessage.contains('réseau') ||
+          errorMessage.contains('Failed host lookup')) {
+        // Erreur de connexion réseau
+        await ErrorDialog.showNetworkError(context);
+      } else if (errorMessage.contains('timeout') ||
+          errorMessage.contains('took longer') ||
+          errorMessage.contains('délai') ||
+          errorMessage.contains('aborted')) {
+        // Erreur de timeout
+        await ErrorDialog.showTimeoutError(context);
+      } else if (errorMessage.contains('credentials') ||
+          errorMessage.contains('identifiants') ||
+          errorMessage.contains('Invalid') ||
+          errorMessage.contains('password') ||
+          errorMessage.contains('email') ||
+          errorMessage.contains('401') ||
+          errorMessage.contains('Unauthorized')) {
+        // Erreur d'authentification
+        await ErrorDialog.showAuthError(
+          context,
+          message: 'Email ou mot de passe incorrect. Veuillez réessayer.',
+        );
+      } else {
+        // Erreur générique
+        await ErrorDialog.showGenericError(
+          context,
+          message: errorMessage,
+        );
+      }
     }
   }
 
@@ -68,7 +99,7 @@ class _LoginScreenState extends State<LoginScreen> {
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
@@ -78,9 +109,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ],
             ),
-            child: const Icon(
+            child: Icon(
               CupertinoIcons.back,
-              color: AppColors.textPrimary,
+              color: Theme.of(context).textTheme.displayLarge?.color,
               size: 20,
             ),
           ),
@@ -110,9 +141,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           ],
                         ),
                         child: const FutelaLogo(
-                          size: 88,
+                          size: 72,
                           backgroundColor: AppColors.white,
-                          borderRadius: BorderRadius.all(Radius.circular(28)),
+                          borderRadius: BorderRadius.all(Radius.circular(20)),
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -123,7 +154,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             .headlineMedium
                             ?.copyWith(
                               fontWeight: FontWeight.w700,
-                              color: AppColors.textPrimary,
+                              color: Theme.of(context)
+                                  .textTheme
+                                  .displayLarge
+                                  ?.color,
                               letterSpacing: -0.5,
                             ),
                       ),
@@ -131,7 +165,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       Text(
                         'Connectez-vous pour continuer',
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: AppColors.textSecondary,
+                              color:
+                                  Theme.of(context).textTheme.bodySmall?.color,
                             ),
                       ),
                     ],
@@ -139,7 +174,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 28),
                 CustomTextField(
-                  
                   controller: _loginController,
                   label: 'Email ou Téléphone',
                   hint: 'votre@email.com ou +243...',
@@ -172,7 +206,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           ? CupertinoIcons.eye_slash_fill
                           : CupertinoIcons.eye_fill,
                       size: 22,
-                      color: AppColors.textTertiary,
+                      color: Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.color
+                          ?.withOpacity(0.6),
                     ),
                   ),
                   validator: (value) {
@@ -222,40 +260,51 @@ class _LoginScreenState extends State<LoginScreen> {
                     );
                   },
                 ),
-                
+
                 const SizedBox(height: 20),
                 const SocialLoginButtons(),
-                const SizedBox(height: 20),
-                SizedBox(
-                  height: 52,
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                            builder: (context) => const RegisterScreen()),
-                      );
-                    },
-                    icon: const Icon(CupertinoIcons.person_add_solid,
-                        size: 20, color: AppColors.primary),
-                    label: const Text('Créer un compte'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primary,
-                      side: const BorderSide(color: AppColors.primary),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Vous n\'avez pas de compte ? ',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context).textTheme.bodySmall?.color,
+                          ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                              builder: (context) => const RegisterScreen()),
+                        );
+                      },
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 4),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: Text(
+                        'Créer un compte',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
-                const SizedBox(height: 24),
-                Text(
-                  'En continuant, vous acceptez nos conditions d\'utilisation et notre politique de confidentialité.',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textTertiary,
-                        height: 1.4,
-                      ),
-                ),
+                // const SizedBox(height: 20),
+                // Text(
+                //   'En continuant, vous acceptez nos conditions d\'utilisation et notre politique de confidentialité.',
+                //   textAlign: TextAlign.center,
+                //   style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                //         color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.6),
+                //         height: 1.4,
+                //       ),
+                // ),
+
                 const SizedBox(height: 24),
               ],
             ),

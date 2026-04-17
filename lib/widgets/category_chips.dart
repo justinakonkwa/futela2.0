@@ -71,7 +71,7 @@ class _CategoryChipsState extends State<CategoryChips> {
                   padding: const EdgeInsets.only(right: 10),
                   child: _buildCategoryChip(
                     context,
-                    label: category.name,
+                    label: _translateCategory(category.name),
                     isSelected: _selectedCategory == category.name,
                     onTap: () {
                       setState(() => _selectedCategory = category.name);
@@ -85,6 +85,24 @@ class _CategoryChipsState extends State<CategoryChips> {
         );
       },
     );
+  }
+
+  String _translateCategory(String name) {
+    switch (name.toLowerCase().trim()) {
+      case 'apartment': return 'Appartement';
+      case 'house': return 'Maison';
+      case 'land': return 'Terrain';
+      case 'event_hall':
+      case 'eventhall':
+      case 'event hall': return 'Salle de fête';
+      case 'car': return 'Véhicule';
+      case 'villa': return 'Villa';
+      case 'studio': return 'Studio';
+      case 'office': return 'Bureau';
+      case 'commercial': return 'Commercial';
+      case 'warehouse': return 'Entrepôt';
+      default: return name;
+    }
   }
 
   Widget _buildCategoryChip(
@@ -113,20 +131,20 @@ class _CategoryChipsState extends State<CategoryChips> {
             color: isSelected ? null : AppColors.white,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: isSelected ? Colors.transparent : AppColors.border.withOpacity(0.3),
+              color: isSelected ? Colors.transparent : AppColors.border.withValues(alpha: 0.3),
               width: 1,
             ),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: AppColors.primary.withOpacity(0.3),
+                      color: AppColors.primary.withValues(alpha: 0.3),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
                   ]
                 : [
                     BoxShadow(
-                      color: AppColors.shadow.withOpacity(0.06),
+                      color: AppColors.shadow.withValues(alpha: 0.06),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),

@@ -61,6 +61,44 @@ class AuthService {
     }
   }
 
+  /// Inscription commissionnaire avec tous les champs
+  Future<AuthResponse> registerCommissionnaire({
+    required String password,
+    required String firstName,
+    required String lastName,
+    String? email,
+    String? phoneNumber,
+    required String role,
+    required String idDocumentType,
+    required String idDocumentNumber,
+    String? businessName,
+    String? businessAddress,
+    String? taxId,
+  }) async {
+    final data = {
+      'password': password,
+      'firstName': firstName,
+      'lastName': lastName,
+      'email': email,
+      'phoneNumber': phoneNumber,
+      'role': role,
+      'idDocumentType': idDocumentType,
+      'idDocumentNumber': idDocumentNumber,
+    };
+
+    if (businessName != null) data['businessName'] = businessName;
+    if (businessAddress != null) data['businessAddress'] = businessAddress;
+    if (taxId != null) data['taxId'] = taxId;
+
+    final response = await _dio.post('/api/auth/register', data: data);
+
+    if (response.statusCode == 201) {
+      return AuthResponse.fromJson(response.data);
+    } else {
+      throw Exception('Registration failed: ${response.data}');
+    }
+  }
+
   /// Connexion Google : affiche le flux Google Sign-In, récupère l'idToken, appelle POST /api/auth/google.
   Future<AuthResponse> signInWithGoogle() async {
     final googleSignIn = _googleSignInInstance;

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../models/commission/commission.dart';
 import '../models/commission/withdrawal.dart';
 import '../models/commission/wallet.dart';
@@ -9,34 +10,39 @@ class CommissionService {
 
   CommissionService() : _dio = ApiClient().dio;
 
-  /// Récupérer le wallet du commissionnaire
+  // ─── Wallet ────────────────────────────────────────────────────────────────
+
+  /// GET /api/commissionnaire/wallet/summary
+  /// Résumé: totalEarnings, pendingCommissions (count int), verifiedCount, walletBalance, currency
   Future<CommissionnaireWallet> getWallet() async {
     try {
-      final response = await _dio.get('/api/commissionnaire/wallet');
+      final response = await _dio.get('/api/commissionnaire/wallet/summary');
       if (response.statusCode == 200) {
         return CommissionnaireWallet.fromJson(response.data as Map<String, dynamic>);
       }
       return CommissionnaireWallet.empty();
     } on DioException catch (e) {
-      // 404 = endpoint pas encore disponible → wallet vide
-      if (e.response?.statusCode == 404) {
-        return CommissionnaireWallet.empty();
-      }
-      throw Exception('Erreur lors de la récupération du wallet: ${e.message}');
+      if (e.response?.statusCode == 404) return CommissionnaireWallet.empty();
+      throw Exception('Erreur wallet: ${_extractErrorMessage(e.response?.data)}');
     }
   }
 
-  /// Récupérer les commissions du commissionnaire
+  // ─── Commissions ───────────────────────────────────────────────────────────
+
+  /// GET /api/commissionnaire/commissions
+  /// Params: page, itemsPerPage, verificationStatus
   Future<List<Commission>> getCommissions({
     int page = 1,
-    int limit = 20,
-    String? status,
+    int itemsPerPage = 20,
+    String? verificationStatus,
   }) async {
     final queryParams = <String, dynamic>{
       'page': page,
-      'limit': limit,
+      'itemsPerPage': itemsPerPage,
     };
-    if (status != null) queryParams['status'] = status;
+    if (verificationStatus != null) {
+      queryParams['verificationStatus'] = verificationStatus;
+    }
 
     try {
       final response = await _dio.get(
@@ -60,105 +66,177 @@ class CommissionService {
       }
       return [];
     } on DioException catch (e) {
-      throw Exception('Erreur lors de la récupération des commissions: ${e.message}');
+      throw Exception('Erreur commissions: ${_extractErrorMessage(e.response?.data)}');
     }
   }
 
-  /// Vérifier une commission avec le code OTP
+  /// POST /api/commissionnaire/commissions/find-by-phone
+  /// Body: { phone: "0812345678" }  ← format local sans +243
+  /// Retourne la commission en attente (code_sent) pour ce visiteur
+  Future<Commission> findCommissionByPhone(String phoneNumber) async {
+    // Normaliser : enlever +243 ou 243 en tête et garder le format local 0XXXXXXXXX
+    final normalized = _normalizePhone(phoneNumber);
+    debugPrint('find-by-phone → envoi phone: "$normalized"');
+
+    try {
+      final response = await _dio.post(
+        '/api/commissionnaire/commissions/find-by-phone',
+        data: {'phone': normalized},
+      );
+      debugPrint('find-by-phone ← ${response.statusCode}: ${response.data}');
+
+      if (response.statusCode == 200) {
+        return Commission.fromJson(response.data as Map<String, dynamic>);
+      }
+      throw Exception(_extractErrorMessage(response.data));
+    } on DioException catch (e) {
+      debugPrint('find-by-phone DioError ${e.response?.statusCode}: ${e.response?.data}');
+      throw Exception(_extractErrorMessage(e.response?.data));
+    }
+  }
+
+  /// POST /api/commissionnaire/commissions/{id}/verify
+  /// Body: { code: "123456" }
+  /// Max 5 tentatives, puis locked. Idempotent si déjà verified.
   Future<Commission> verifyCommission(String commissionId, String code) async {
-    final response = await _dio.post(
-      '/api/commissionnaire/commissions/$commissionId/verify',
-      data: {'code': code},
-    );
-    
-    if (response.statusCode == 200) {
-      return Commission.fromJson(response.data);
-    } else {
-      throw Exception('Code de vérification incorrect');
+    try {
+      final response = await _dio.post(
+        '/api/commissionnaire/commissions/$commissionId/verify',
+        data: {'code': code},
+      );
+      debugPrint('verify ← ${response.statusCode}: ${response.data}');
+
+      if (response.statusCode == 200) {
+        return Commission.fromJson(response.data as Map<String, dynamic>);
+      }
+      throw Exception(_extractErrorMessage(response.data));
+    } on DioException catch (e) {
+      debugPrint('verify DioError ${e.response?.statusCode}: ${e.response?.data}');
+      throw Exception(_extractErrorMessage(e.response?.data));
     }
   }
 
-  /// Trouver une commission par numéro de téléphone du visiteur
-  Future<Commission> findCommissionByPhone(String phoneNumber, String code) async {
-    final response = await _dio.post(
-      '/api/commissionnaire/commissions/find-by-phone',
-      data: {
-        'phone': phoneNumber,
-        'code': code,
-      },
-    );
-    
-    if (response.statusCode == 200) {
-      return Commission.fromJson(response.data);
-    } else {
-      throw Exception('Commission non trouvée ou code incorrect');
+  // ─── Visiteur ──────────────────────────────────────────────────────────────
+
+  /// GET /api/me/verification-codes
+  /// Codes OTP actifs pour le visiteur connecté
+  Future<List<Map<String, dynamic>>> getVerificationCodes() async {
+    try {
+      final response = await _dio.get('/api/me/verification-codes');
+      debugPrint('verification-codes ← ${response.statusCode}: ${response.data}');
+      if (response.statusCode == 200) {
+        final data = response.data;
+        if (data is List) {
+          return data.whereType<Map<String, dynamic>>().toList();
+        }
+      }
+      return [];
+    } on DioException catch (e) {
+      throw Exception('Erreur codes: ${_extractErrorMessage(e.response?.data)}');
     }
   }
 
-  /// Récupérer les retraits du commissionnaire
-  Future<List<Withdrawal>> getWithdrawals({
-    int page = 1,
-    int limit = 20,
-  }) async {
-    final response = await _dio.get(
-      '/api/commissionnaire/withdrawals',
-      queryParameters: {
-        'page': page,
-        'limit': limit,
-      },
-    );
-    
-    if (response.statusCode == 200) {
-      final List<dynamic> data = response.data['data'] ?? response.data;
-      return data.map((json) => Withdrawal.fromJson(json)).toList();
-    } else {
-      throw Exception('Erreur lors de la récupération des retraits: ${response.data}');
+  // ─── Retraits ──────────────────────────────────────────────────────────────
+
+  Future<List<Withdrawal>> getWithdrawals({int page = 1, int itemsPerPage = 20}) async {
+    try {
+      final response = await _dio.get(
+        '/api/commissionnaire/withdrawals',
+        queryParameters: {'page': page, 'itemsPerPage': itemsPerPage},
+      );
+      if (response.statusCode == 200) {
+        final data = response.data;
+        List<dynamic> list;
+        if (data is List) {
+          list = data;
+        } else if (data is Map) {
+          list = (data['data'] ?? data['member'] ?? data['items'] ?? []) as List<dynamic>;
+        } else {
+          list = [];
+        }
+        return list.whereType<Map<String, dynamic>>()
+            .map((json) => Withdrawal.fromJson(json))
+            .toList();
+      }
+      return [];
+    } on DioException catch (e) {
+      throw Exception('Erreur retraits: ${_extractErrorMessage(e.response?.data)}');
     }
   }
 
-  /// Demander un retrait
   Future<Withdrawal> requestWithdrawal({
     required double amount,
     required String phoneNumber,
   }) async {
-    final response = await _dio.post(
-      '/api/commissionnaire/withdrawals',
-      data: {
-        'amount': amount,
-        'phoneNumber': phoneNumber,
-      },
-    );
-    
-    if (response.statusCode == 201) {
-      return Withdrawal.fromJson(response.data);
-    } else {
-      final message = _extractErrorMessage(response.data);
-      throw Exception(message);
+    try {
+      final response = await _dio.post(
+        '/api/commissionnaire/withdrawals',
+        data: {'amount': amount, 'phoneNumber': phoneNumber},
+      );
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        return Withdrawal.fromJson(response.data as Map<String, dynamic>);
+      }
+      throw Exception(_extractErrorMessage(response.data));
+    } on DioException catch (e) {
+      throw Exception(_extractErrorMessage(e.response?.data));
     }
   }
 
-  /// Récupérer les codes de vérification pour le visiteur
-  Future<List<Map<String, dynamic>>> getVerificationCodes() async {
-    final response = await _dio.get('/api/me/verification-codes');
-    
-    if (response.statusCode == 200) {
-      return List<Map<String, dynamic>>.from(response.data);
-    } else {
-      throw Exception('Erreur lors de la récupération des codes: ${response.data}');
+  // ─── Helpers ───────────────────────────────────────────────────────────────
+
+  /// Normalise le numéro au format local: 0812345678
+  /// Accepte: +243812345678, 243812345678, 0812345678, 812345678
+  String _normalizePhone(String phone) {
+    String p = phone.trim().replaceAll(' ', '').replaceAll('-', '');
+    if (p.startsWith('+243')) {
+      p = '0${p.substring(4)}';
+    } else if (p.startsWith('243') && p.length >= 12) {
+      p = '0${p.substring(3)}';
+    } else if (!p.startsWith('0') && p.length == 9) {
+      p = '0$p';
     }
+    return p;
   }
 
-  /// Extraire le message d'erreur de la réponse API
+  /// Extrait le message d'erreur lisible depuis la réponse API
   String _extractErrorMessage(dynamic data) {
+    if (data == null) return 'Une erreur est survenue';
+    if (data is String && data.isNotEmpty) return data;
     if (data is Map) {
       final map = data as Map<String, dynamic>;
-      final error = map['error'];
-      if (error is Map) {
-        final msg = error['message']?.toString();
-        if (msg != null && msg.isNotEmpty) return msg;
-      }
+
+      // { "detail": "..." }
+      final detail = map['detail']?.toString();
+      if (detail != null && detail.isNotEmpty) return detail;
+
+      // { "message": "..." }
       final msg = map['message']?.toString();
       if (msg != null && msg.isNotEmpty) return msg;
+
+      // { "error": { "message": "..." } } ou { "error": "..." }
+      final error = map['error'];
+      if (error is Map) {
+        final errMsg = error['message']?.toString();
+        if (errMsg != null && errMsg.isNotEmpty) return errMsg;
+      } else if (error is String && error.isNotEmpty) {
+        return error;
+      }
+
+      // { "violations": [{ "message": "..." }] }
+      final violations = map['violations'];
+      if (violations is List && violations.isNotEmpty) {
+        final first = violations.first;
+        if (first is Map) {
+          final v = first['message']?.toString();
+          if (v != null && v.isNotEmpty) return v;
+        }
+      }
+
+      // { "errors": ["..."] }
+      final errors = map['errors'];
+      if (errors is List && errors.isNotEmpty) {
+        return errors.first.toString();
+      }
     }
     return 'Une erreur est survenue';
   }

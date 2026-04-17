@@ -166,7 +166,7 @@ class _VisitPaymentPendingScreenState extends State<VisitPaymentPendingScreen> {
                     Text(
                       'Montant à valider',
                       style: theme.textTheme.labelLarge?.copyWith(
-                        color: AppColors.textSecondary,
+                        color: theme.textTheme.bodySmall?.color,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -175,7 +175,7 @@ class _VisitPaymentPendingScreenState extends State<VisitPaymentPendingScreen> {
                       _amountLine,
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w800,
-                        color: AppColors.textPrimary,
+                        color: theme.textTheme.displayLarge?.color,
                       ),
                     ),
                   ],
@@ -243,7 +243,7 @@ class _VisitPaymentPendingScreenState extends State<VisitPaymentPendingScreen> {
                       borderRadius: BorderRadius.circular(4),
                       child: LinearProgressIndicator(
                         minHeight: 4,
-                        backgroundColor: AppColors.grey200,
+                        backgroundColor: theme.dividerColor.withOpacity(0.35),
                         valueColor: AlwaysStoppedAnimation<Color>(
                           AppColors.primary,
                         ),
@@ -256,7 +256,7 @@ class _VisitPaymentPendingScreenState extends State<VisitPaymentPendingScreen> {
                 'Vérification automatique pendant 2 minutes maximum (toutes les 5 secondes).',
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppColors.textSecondary,
+                  color: theme.textTheme.bodySmall?.color,
                 ),
               ),
             ],
@@ -311,11 +311,12 @@ class _StepTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final inactiveColor = theme.textTheme.bodySmall?.color ?? AppColors.textTertiary;
     final color = done
         ? AppColors.success
         : active
             ? AppColors.primary
-            : AppColors.textTertiary;
+            : inactiveColor;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -353,7 +354,7 @@ class _StepTile extends StatelessWidget {
               Text(
                 subtitle,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppColors.textSecondary,
+                  color: theme.textTheme.bodySmall?.color,
                   height: 1.35,
                 ),
               ),

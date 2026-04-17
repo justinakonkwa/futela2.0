@@ -34,7 +34,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     try {
       await ApiService.requestPasswordReset(_emailController.text.trim());
-      
+
       setState(() {
         _isLoading = false;
         _emailSent = true;
@@ -72,7 +72,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(CupertinoIcons.back, color: AppColors.textPrimary),
+          icon: Icon(CupertinoIcons.back,
+              color: Theme.of(context).textTheme.displayLarge?.color),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
@@ -100,19 +101,27 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           ],
                         ),
                         child: const FutelaLogo(
-                          size: 80,
+                          size: 72,
                           backgroundColor: AppColors.white,
-                          borderRadius: BorderRadius.all(Radius.circular(28)),
+                          borderRadius: BorderRadius.all(Radius.circular(20)),
                         ),
                       ),
                       const SizedBox(height: 20),
                       Text(
-                        _emailSent ? 'Vérifiez votre email' : 'Mot de passe oublié',
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                          letterSpacing: -0.5,
-                        ),
+                        _emailSent
+                            ? 'Vérifiez votre email'
+                            : 'Mot de passe oublié',
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: Theme.of(context)
+                                  .textTheme
+                                  .displayLarge
+                                  ?.color,
+                              letterSpacing: -0.5,
+                            ),
                       ),
                       const SizedBox(height: 8),
                       Text(
@@ -121,8 +130,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             : 'Entrez votre email pour recevoir le lien',
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
+                              color:
+                                  Theme.of(context).textTheme.bodySmall?.color,
+                            ),
                       ),
                     ],
                   ),
@@ -139,7 +149,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       if (value == null || value.isEmpty) {
                         return 'Veuillez entrer votre email';
                       }
-                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                          .hasMatch(value)) {
                         return 'Email invalide';
                       }
                       return null;
@@ -174,18 +185,23 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         const SizedBox(height: 16),
                         Text(
                           'Email envoyé !',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.success,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.success,
+                                  ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'Vérifiez votre boîte de réception et suivez les instructions.',
                           textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.color,
+                                  ),
                         ),
                       ],
                     ),
@@ -200,7 +216,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           _emailController.clear();
                         });
                       },
-                      icon: const Icon(CupertinoIcons.arrow_clockwise, size: 20, color: AppColors.primary),
+                      icon: const Icon(CupertinoIcons.arrow_clockwise,
+                          size: 20, color: AppColors.primary),
                       label: const Text('Renvoyer l\'email'),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.primary,
@@ -219,8 +236,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     Text(
                       'Vous vous souvenez ? ',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
+                            color: Theme.of(context).textTheme.bodySmall?.color,
+                          ),
                     ),
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(),
@@ -232,9 +249,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       child: Text(
                         'Se connecter',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
                       ),
                     ),
                   ],
@@ -243,16 +260,25 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: AppColors.grey50,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Theme.of(context).colorScheme.surfaceContainerHighest
+                        : AppColors.grey50,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.grey200),
+                    border: Border.all(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Theme.of(context)
+                              .colorScheme
+                              .outline
+                              .withOpacity(0.3)
+                          : AppColors.grey200,
+                    ),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(
                         CupertinoIcons.info_circle_fill,
-                        color: AppColors.textSecondary,
+                        color: Theme.of(context).textTheme.bodySmall?.color,
                         size: 22,
                       ),
                       const SizedBox(width: 12),
@@ -262,17 +288,29 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           children: [
                             Text(
                               'Conseil',
-                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textPrimary,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .displayLarge
+                                        ?.color,
+                                  ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               'Si vous ne recevez pas l\'email, vérifiez les spams ou contactez le support.',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: AppColors.textSecondary,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.color,
+                                  ),
                             ),
                           ],
                         ),

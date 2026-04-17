@@ -58,8 +58,15 @@ class RolePermissions {
   static bool isAdmin(User user) =>
       _hasAnyRole(user, [admin, superAdmin]);
 
-  static bool canAccessCommissionFeatures(User user) =>
-      _hasAnyRole(user, [commissionnaire, admin, superAdmin]);
+  static bool canAccessCommissionFeatures(User user) {
+    if (!_hasAnyRole(user, [commissionnaire, admin, superAdmin])) return false;
+    // Pour les commissionnaires, vérifier que le compte est approuvé
+    if (_hasAnyRole(user, [commissionnaire]) &&
+        !_hasAnyRole(user, [admin, superAdmin])) {
+      return user.approvalStatus == 'approved';
+    }
+    return true;
+  }
 
   // ─── Affichage ──────────────────────────────────────────────────────────────
 

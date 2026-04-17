@@ -40,7 +40,7 @@ abstract final class PaymentResultDialog {
                 textAlign: TextAlign.center,
                 style: Theme.of(ctx).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
+                      color: Theme.of(ctx).textTheme.displayLarge?.color,
                     ),
               ),
               const SizedBox(height: 12),
@@ -48,7 +48,7 @@ abstract final class PaymentResultDialog {
                 body,
                 textAlign: TextAlign.center,
                 style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
+                      color: Theme.of(ctx).textTheme.bodySmall?.color,
                       height: 1.45,
                     ),
               ),
@@ -113,7 +113,7 @@ abstract final class PaymentResultDialog {
                 textAlign: TextAlign.center,
                 style: Theme.of(ctx).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
+                      color: Theme.of(ctx).textTheme.displayLarge?.color,
                     ),
               ),
               const SizedBox(height: 12),
@@ -121,7 +121,7 @@ abstract final class PaymentResultDialog {
                 message,
                 textAlign: TextAlign.center,
                 style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
-                      color: AppColors.textSecondary,
+                      color: Theme.of(ctx).textTheme.bodySmall?.color,
                       height: 1.45,
                     ),
               ),
@@ -131,8 +131,12 @@ abstract final class PaymentResultDialog {
                 child: OutlinedButton(
                   onPressed: () => Navigator.of(ctx).pop(),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.textPrimary,
-                    side: BorderSide(color: AppColors.border.withOpacity(0.9)),
+                    foregroundColor: Theme.of(ctx).textTheme.displayLarge?.color,
+                    side: BorderSide(
+                      color: Theme.of(ctx).brightness == Brightness.dark
+                          ? Colors.grey[700]!
+                          : AppColors.border.withOpacity(0.9),
+                    ),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),

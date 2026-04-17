@@ -13,6 +13,19 @@ class User {
   final bool isAvailable;
   final String? companyId;
   final String? companyName;
+  
+  // Champs pour commissionnaires
+  final bool profileCompleted;
+  final String? approvalStatus;
+  final String? approvalStatusLabel;
+  final String? approvalStatusColor;
+  final String? idDocumentType;
+  final String? idDocumentNumber;
+  final String? idDocumentPhotoUrl;
+  final String? selfiePhotoUrl;
+  final String? businessName;
+  final String? businessAddress;
+  final String? taxId;
 
   User({
     required this.id,
@@ -29,6 +42,17 @@ class User {
     this.isAvailable = false,
     this.companyId,
     this.companyName,
+    this.profileCompleted = false,
+    this.approvalStatus,
+    this.approvalStatusLabel,
+    this.approvalStatusColor,
+    this.idDocumentType,
+    this.idDocumentNumber,
+    this.idDocumentPhotoUrl,
+    this.selfiePhotoUrl,
+    this.businessName,
+    this.businessAddress,
+    this.taxId,
   });
 
   /// Parses ISO8601 date string, tolerating spaces in time part (e.g. "08: 00: 00").
@@ -50,7 +74,7 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) {
     final phoneRaw = json['phone'] ?? json['phoneNumber'];
-    final phone = phoneRaw != null ? phoneRaw.toString().trim() : null;
+    final phone = phoneRaw?.toString().trim();
     final phoneStr = (phone != null && phone.isNotEmpty) ? phone : null;
     final isVerified = json['isVerified'] == true;
     return User(
@@ -68,6 +92,17 @@ class User {
       isAvailable: json['isAvailable'] == true,
       companyId: json['companyId'] as String?,
       companyName: json['companyName'] as String?,
+      profileCompleted: json['profileCompleted'] == true,
+      approvalStatus: json['approvalStatus'] as String?,
+      approvalStatusLabel: json['approvalStatusLabel'] as String?,
+      approvalStatusColor: json['approvalStatusColor'] as String?,
+      idDocumentType: json['idDocumentType'] as String?,
+      idDocumentNumber: json['idDocumentNumber'] as String?,
+      idDocumentPhotoUrl: json['idDocumentPhotoUrl'] as String?,
+      selfiePhotoUrl: json['selfiePhotoUrl'] as String?,
+      businessName: json['businessName'] as String?,
+      businessAddress: json['businessAddress'] as String?,
+      taxId: json['taxId'] as String?,
     );
   }
 

@@ -1,8 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/auth/user.dart';
 import '../models/auth/auth_response.dart';
+import '../models/auth/profile_completion_request.dart';
 import '../services/auth_service.dart';
+import '../services/profile_service.dart';
 import '../services/api_client.dart';
 
 class AuthProvider with ChangeNotifier {
@@ -13,6 +16,7 @@ class AuthProvider with ChangeNotifier {
   String? _error;
 
   final AuthService _authService = AuthService();
+  final ProfileService _profileService = ProfileService();
 
   User? get user => _user;
   String? get accessToken => _accessToken;
@@ -240,13 +244,23 @@ class AuthProvider with ChangeNotifier {
     required String lastName,
     String? middleName,
   }) async {
-    return this.register(
+    return register(
       password: password,
       firstName: firstName,
       lastName: lastName,
       email: email,
       phoneNumber: phone,
     );
+  }
+
+  /// Rafraîchit le profil de l'utilisateur connecté
+  Future<void> refreshCurrentUser() async {
+    try {
+      _user = await _authService.getCurrentUser();
+      notifyListeners();
+    } catch (e) {
+      // Silencieux
+    }
   }
 
   Future<bool> updateProfile(Map<String, dynamic> userData) async {
@@ -265,9 +279,145 @@ class AuthProvider with ChangeNotifier {
     print('Update password not implemented yet');
     _isLoading = true;
     notifyListeners();
-    await Future.delayed(Duration(seconds: 1));
+    await Future.delayed(const Duration(seconds: 1));
     _isLoading = false;
     notifyListeners();
     return true;
+  }
+
+  /// Compléter le profil après inscription OAuth
+  Future<bool> completeProfile({
+    required String firstName,
+    required String lastName,
+    required String phone,
+    required String role,
+    String? idDocumentType,
+    String? idDocumentNumber,
+    String? businessName,
+    String? businessAddress,
+    String? taxId,
+    File? idDocumentFile,
+    File? selfieFile,
+  }) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      // 1. Compléter le profil
+      final request = ProfileCompletionRequest(
+        firstName: firstName,
+        lastName: lastName,
+        phone: phone,
+        role: role,
+        idDocumentType: idDocumentType,
+        idDocumentNumber: idDocumentNumber,
+        businessName: businessName,
+        businessAddress: businessAddress,
+        taxId: taxId,
+      );
+
+      _user = await _profileService.completeProfile(request);
+
+      // 2. Upload des documents si fournis
+      if (idDocumentFile != null) {
+        try {
+          await _profileService.uploadIdDocument(idDocumentFile);
+        } catch (e) {
+          print('Erreur upload document: $e');
+          // On continue même si l'upload échoue
+        }
+      }
+
+      if (selfieFile != null) {
+        try {
+          await _profileService.uploadSelfie(selfieFile);
+        } catch (e) {
+          print('Erreur upload selfie: $e');
+          // On continue même si l'upload échoue
+        }
+      }
+
+      // 3. Rafraîchir le profil utilisateur
+      try {
+        _user = await _authService.getCurrentUser();
+      } catch (e) {
+        print('Erreur refresh profil: $e');
+        // On continue avec les données qu'on a
+      }
+
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = _cleanErrorMessage(e);
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Inscription commissionnaire avec tous les champs
+  Future<bool> registerCommissionnaire({
+    required String phone,
+    required String email,
+    required String password,
+    required String firstName,
+    required String lastName,
+    required String idDocumentType,
+    required String idDocumentNumber,
+    String? businessName,
+    String? businessAddress,
+    String? taxId,
+    required File idDocumentFile,
+    required File selfieFile,
+  }) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      // 1. Inscription de base avec rôle commissionnaire
+      final authResponse = await _authService.registerCommissionnaire(
+        password: password,
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        phoneNumber: phone,
+        role: 'ROLE_COMMISSIONNAIRE',
+        idDocumentType: idDocumentType,
+        idDocumentNumber: idDocumentNumber,
+        businessName: businessName,
+        businessAddress: businessAddress,
+        taxId: taxId,
+      );
+
+      await _saveTokens(authResponse);
+
+      // 2. Upload des documents
+      try {
+        await _profileService.uploadIdDocument(idDocumentFile);
+      } catch (e) {
+        print('Erreur upload document: $e');
+      }
+
+      try {
+        await _profileService.uploadSelfie(selfieFile);
+      } catch (e) {
+        print('Erreur upload selfie: $e');
+      }
+
+      // 3. Récupérer le profil complet
+      _user = await _authService.getCurrentUser();
+
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = _cleanErrorMessage(e);
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
   }
 }

@@ -44,7 +44,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             letterSpacing: -0.3,
           ),
         ),
-        backgroundColor: AppColors.white,
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         elevation: 0,
         actions: [
           Consumer2<AuthProvider, FavoriteProvider>(
@@ -56,7 +56,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               return Container(
                 margin: const EdgeInsets.only(right: 16),
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(14),
                   boxShadow: [
                     BoxShadow(
@@ -185,11 +185,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     const SizedBox(height: 32),
                     Text(
                       'Connexion requise',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Gilroy',
                         fontSize: 28,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
+                        color: Theme.of(context).textTheme.displayLarge?.color,
                         letterSpacing: -0.5,
                       ),
                     ),
@@ -197,11 +197,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     Text(
                       'Connectez-vous pour sauvegarder vos propriétés favorites et y accéder depuis n\'importe quel appareil',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Gilroy',
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.textSecondary,
+                        color: Theme.of(context).textTheme.bodySmall?.color,
                         height: 1.5,
                       ),
                     ),
@@ -346,22 +346,22 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     const SizedBox(height: 24),
                     Text(
                       'Erreur de chargement',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Gilroy',
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
+                        color: Theme.of(context).textTheme.displayLarge?.color,
                       ),
                     ),
                     const SizedBox(height: 12),
                     Text(
                       favoriteProvider.error!,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Gilroy',
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.textSecondary,
+                        color: Theme.of(context).textTheme.bodySmall?.color,
                         height: 1.5,
                       ),
                     ),
@@ -457,11 +457,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     const SizedBox(height: 32),
                     Text(
                       'Aucun favori',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Gilroy',
                         fontSize: 28,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
+                        color: Theme.of(context).textTheme.displayLarge?.color,
                         letterSpacing: -0.5,
                       ),
                     ),
@@ -469,11 +469,11 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                     Text(
                       'Les propriétés que vous ajoutez aux favoris apparaîtront ici',
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Gilroy',
                         fontSize: 15,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.textSecondary,
+                        color: Theme.of(context).textTheme.bodySmall?.color,
                         height: 1.5,
                       ),
                     ),

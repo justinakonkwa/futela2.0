@@ -27,17 +27,17 @@ class _VisitorCodesScreenState extends State<VisitorCodesScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Mes codes de visite',
           style: TextStyle(
             fontFamily: 'Gilroy',
             fontSize: 20,
             fontWeight: FontWeight.w700,
             letterSpacing: -0.3,
-            color: AppColors.textPrimary,
+            color: Theme.of(context).textTheme.displayLarge?.color,
           ),
         ),
-        backgroundColor: AppColors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),
@@ -45,7 +45,7 @@ class _VisitorCodesScreenState extends State<VisitorCodesScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
@@ -55,11 +55,11 @@ class _VisitorCodesScreenState extends State<VisitorCodesScreen> {
                 ),
               ],
             ),
-            child: const Center(
+            child: Center(
               child: Icon(
                 Icons.arrow_back_rounded,
                 size: 20,
-                color: AppColors.textPrimary,
+                color: Theme.of(context).textTheme.displayLarge?.color,
               ),
             ),
           ),
@@ -103,16 +103,17 @@ class _VisitorCodesScreenState extends State<VisitorCodesScreen> {
         ? DateTime.parse(codeData['expiresAt']) 
         : null;
     final isExpired = expiresAt != null && DateTime.now().isAfter(expiresAt);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isExpired 
               ? AppColors.error.withValues(alpha: 0.3) 
-              : AppColors.primary.withValues(alpha: 0.2),
+              : AppColors.primary.withValues(alpha: isDark ? 0.3 : 0.2),
           width: 1.5,
         ),
         boxShadow: [
@@ -153,7 +154,7 @@ class _VisitorCodesScreenState extends State<VisitorCodesScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppColors.white,
+                    color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
@@ -176,11 +177,11 @@ class _VisitorCodesScreenState extends State<VisitorCodesScreen> {
                     children: [
                       Text(
                         propertyTitle,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Gilroy',
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
+                          color: Theme.of(context).textTheme.displayLarge?.color,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -367,7 +368,7 @@ class _VisitorCodesScreenState extends State<VisitorCodesScreen> {
         Icon(
           icon,
           size: 16,
-          color: AppColors.textSecondary,
+          color: Theme.of(context).textTheme.bodySmall?.color,
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -376,17 +377,17 @@ class _VisitorCodesScreenState extends State<VisitorCodesScreen> {
             children: [
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: AppColors.textSecondary,
+                  color: Theme.of(context).textTheme.bodySmall?.color,
                 ),
               ),
               Text(
                 value,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                  color: Theme.of(context).textTheme.displayLarge?.color,
                 ),
               ),
             ],
@@ -431,24 +432,24 @@ class _VisitorCodesScreenState extends State<VisitorCodesScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'Aucun code disponible',
               style: TextStyle(
                 fontFamily: 'Gilroy',
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
                 letterSpacing: -0.5,
-                color: AppColors.textPrimary,
+                color: Theme.of(context).textTheme.displayLarge?.color,
               ),
             ),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               'Vos codes de vérification apparaîtront ici après avoir payé une visite.',
               style: TextStyle(
                 fontFamily: 'Gilroy',
                 fontSize: 15,
                 fontWeight: FontWeight.w500,
-                color: AppColors.textSecondary,
+                color: Theme.of(context).textTheme.bodySmall?.color,
                 height: 1.5,
               ),
               textAlign: TextAlign.center,

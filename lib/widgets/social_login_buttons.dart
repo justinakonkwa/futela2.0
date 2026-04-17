@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../utils/app_colors.dart';
-import '../screens/main_navigation.dart';
+import '../screens/auth/profile_completion_wrapper.dart';
 
 class SocialLoginButtons extends StatelessWidget {
   final VoidCallback? onGoogleSuccess;
@@ -78,7 +78,7 @@ class SocialLoginButtons extends StatelessWidget {
                                   Navigator.of(context).pushReplacement(
                                     MaterialPageRoute(
                                       builder: (context) =>
-                                          const MainNavigation(),
+                                          const ProfileCompletionWrapper(),
                                     ),
                                   );
                                 }
@@ -137,7 +137,7 @@ class SocialLoginButtons extends StatelessWidget {
                                     Navigator.of(context).pushReplacement(
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                            const MainNavigation(),
+                                            const ProfileCompletionWrapper(),
                                       ),
                                     );
                                   }

@@ -18,7 +18,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.naara.futela"
+    namespace = "com.futelaapp.mobile"
     // Certaines dépendances exigent SDK 36
     compileSdk = 36
     // Force an explicit NDK version compatible with recent plugins
@@ -35,7 +35,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.naara.futela"
+        applicationId = "com.futelaapp.mobile"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

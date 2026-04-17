@@ -120,7 +120,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             color: AppColors.textPrimary,
           ),
         ),
-        backgroundColor: AppColors.white,
+        backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),
@@ -130,13 +130,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             decoration: BoxDecoration(
               color: AppColors.white,
               borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.shadow.withValues(alpha: 0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              border: Border.all(color: AppColors.border.withValues(alpha: 0.3)),
             ),
             child: const Center(
               child: Icon(
@@ -150,267 +144,254 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Photo de profil moderne
-                Center(
-                  child: Stack(
+                // Header avec gradient
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppColors.primary.withValues(alpha: 0.08),
+                        AppColors.primaryDark.withValues(alpha: 0.05),
+                      ],
+                    ),
+                  ),
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+                  child: Column(
                     children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.2),
-                              blurRadius: 20,
-                              offset: const Offset(0, 8),
-                            ),
-                          ],
-                        ),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: AppColors.white,
-                              width: 4,
-                            ),
-                          ),
-                          child: CircleAvatar(
-                            radius: 56,
-                            backgroundColor: AppColors.primary.withValues(alpha: 0.15),
-                            child: const Icon(
-                              Icons.person_rounded,
-                              size: 56,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        ),
+                      const Icon(
+                        Icons.edit_rounded,
+                        size: 48,
+                        color: AppColors.primary,
                       ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [AppColors.primary, AppColors.primaryDark],
-                            ),
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: AppColors.white,
-                              width: 3,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.primary.withValues(alpha: 0.3),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: () {
-                                // TODO: Implémenter la sélection de photo
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: const Row(
-                                      children: [
-                                        Icon(Icons.info_rounded, color: AppColors.white),
-                                        SizedBox(width: 12),
-                                        Expanded(
-                                          child: Text(
-                                            'Fonctionnalité bientôt disponible',
-                                            style: TextStyle(
-                                              fontFamily: 'Gilroy',
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    backgroundColor: AppColors.info,
-                                    behavior: SnackBarBehavior.floating,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                  ),
-                                );
-                              },
-                              borderRadius: BorderRadius.circular(50),
-                              child: Container(
-                                padding: const EdgeInsets.all(12),
-                                child: const Icon(
-                                  Icons.camera_alt_rounded,
-                                  size: 20,
-                                  color: AppColors.white,
-                                ),
-                              ),
-                            ),
-                          ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        'Mettez à jour vos informations',
+                        style: TextStyle(
+                          fontFamily: 'Gilroy',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textSecondary,
                         ),
                       ),
                     ],
                   ),
                 ),
                 
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
                 
                 // Section Informations personnelles
-                _buildSectionTitle('Informations personnelles'),
-                const SizedBox(height: 16),
-                
-                // Prénom
-                _buildTextField(
-                  controller: _firstNameController,
-                  label: 'Prénom',
-                  hint: 'Entrez votre prénom',
-                  icon: Icons.person_outline_rounded,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Veuillez entrer votre prénom';
-                    }
-                    return null;
-                  },
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: _buildSectionTitle('Informations personnelles'),
                 ),
-                
                 const SizedBox(height: 16),
                 
-                // Nom
-                _buildTextField(
-                  controller: _lastNameController,
-                  label: 'Nom',
-                  hint: 'Entrez votre nom',
-                  icon: Icons.person_outline_rounded,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Veuillez entrer votre nom';
-                    }
-                    return null;
-                  },
-                ),
-                
-                const SizedBox(height: 16),
-                
-                // Nom du milieu (optionnel)
-                _buildTextField(
-                  controller: _middleNameController,
-                  label: 'Nom du milieu (optionnel)',
-                  hint: 'Entrez votre nom du milieu',
-                  icon: Icons.person_outline_rounded,
+                // Card pour informations personnelles
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.shadow.withValues(alpha: 0.06),
+                          blurRadius: 16,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        // Prénom
+                        _buildTextField(
+                          controller: _firstNameController,
+                          label: 'Prénom',
+                          hint: 'Entrez votre prénom',
+                          icon: Icons.person_outline_rounded,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Veuillez entrer votre prénom';
+                            }
+                            return null;
+                          },
+                        ),
+                        
+                        const SizedBox(height: 16),
+                        
+                        // Nom
+                        _buildTextField(
+                          controller: _lastNameController,
+                          label: 'Nom',
+                          hint: 'Entrez votre nom',
+                          icon: Icons.person_outline_rounded,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Veuillez entrer votre nom';
+                            }
+                            return null;
+                          },
+                        ),
+                        
+                        const SizedBox(height: 16),
+                        
+                        // Nom du milieu (optionnel)
+                        _buildTextField(
+                          controller: _middleNameController,
+                          label: 'Nom du milieu (optionnel)',
+                          hint: 'Entrez votre nom du milieu',
+                          icon: Icons.badge_outlined,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
                 
                 const SizedBox(height: 24),
                 
                 // Section Contact
-                _buildSectionTitle('Contact'),
-                const SizedBox(height: 16),
-                
-                // Email
-                _buildTextField(
-                  controller: _emailController,
-                  label: 'Email',
-                  hint: 'Entrez votre adresse email',
-                  icon: Icons.email_outlined,
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Veuillez entrer votre email';
-                    }
-                    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                      return 'Veuillez entrer un email valide';
-                    }
-                    return null;
-                  },
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: _buildSectionTitle('Contact'),
                 ),
-                
                 const SizedBox(height: 16),
                 
-                // Téléphone
-                _buildTextField(
-                  controller: _phoneController,
-                  label: 'Numéro de téléphone',
-                  hint: 'Entrez votre numéro de téléphone',
-                  icon: Icons.phone_outlined,
-                  keyboardType: TextInputType.phone,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Veuillez entrer votre numéro de téléphone';
-                    }
-                    if (value.length < 8) {
-                      return 'Le numéro de téléphone doit contenir au moins 8 chiffres';
-                    }
-                    return null;
-                  },
+                // Card pour contact
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.shadow.withValues(alpha: 0.06),
+                          blurRadius: 16,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        // Email
+                        _buildTextField(
+                          controller: _emailController,
+                          label: 'Email',
+                          hint: 'Entrez votre adresse email',
+                          icon: Icons.email_outlined,
+                          keyboardType: TextInputType.emailAddress,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Veuillez entrer votre email';
+                            }
+                            if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                              return 'Veuillez entrer un email valide';
+                            }
+                            return null;
+                          },
+                        ),
+                        
+                        const SizedBox(height: 16),
+                        
+                        // Téléphone
+                        _buildTextField(
+                          controller: _phoneController,
+                          label: 'Numéro de téléphone',
+                          hint: 'Entrez votre numéro de téléphone',
+                          icon: Icons.phone_outlined,
+                          keyboardType: TextInputType.phone,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Veuillez entrer votre numéro de téléphone';
+                            }
+                            if (value.length < 8) {
+                              return 'Le numéro de téléphone doit contenir au moins 8 chiffres';
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
                 
                 const SizedBox(height: 32),
                 
                 // Bouton de sauvegarde moderne
-                Consumer<AuthProvider>(
-                  builder: (context, authProvider, child) {
-                    return Container(
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [AppColors.primary, AppColors.primaryDark],
-                        ),
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.3),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Consumer<AuthProvider>(
+                    builder: (context, authProvider, child) {
+                      return Container(
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [AppColors.primary, AppColors.primaryDark],
                           ),
-                        ],
-                      ),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: authProvider.isLoading ? null : _saveProfile,
-                          borderRadius: BorderRadius.circular(14),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            child: authProvider.isLoading
-                                ? const Center(
-                                    child: SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: CircularProgressIndicator(
-                                        color: AppColors.white,
-                                        strokeWidth: 2,
-                                      ),
-                                    ),
-                                  )
-                                : const Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.check_circle_rounded,
-                                        color: AppColors.white,
-                                        size: 22,
-                                      ),
-                                      SizedBox(width: 10),
-                                      Text(
-                                        'Sauvegarder les modifications',
-                                        style: TextStyle(
-                                          fontFamily: 'Gilroy',
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w700,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.primary.withValues(alpha: 0.3),
+                              blurRadius: 16,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: authProvider.isLoading ? null : _saveProfile,
+                            borderRadius: BorderRadius.circular(16),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 18),
+                              child: authProvider.isLoading
+                                  ? const Center(
+                                      child: SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(
                                           color: AppColors.white,
-                                          letterSpacing: -0.2,
+                                          strokeWidth: 2.5,
                                         ),
                                       ),
-                                    ],
-                                  ),
+                                    )
+                                  : const Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.check_circle_rounded,
+                                          color: AppColors.white,
+                                          size: 24,
+                                        ),
+                                        SizedBox(width: 12),
+                                        Text(
+                                          'Sauvegarder les modifications',
+                                          style: TextStyle(
+                                            fontFamily: 'Gilroy',
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w700,
+                                            color: AppColors.white,
+                                            letterSpacing: -0.2,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
+                
+                const SizedBox(height: 32),
               ],
             ),
           ),
@@ -423,23 +404,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Row(
       children: [
         Container(
-          width: 4,
-          height: 20,
+          width: 5,
+          height: 24,
           decoration: BoxDecoration(
             gradient: const LinearGradient(
               colors: [AppColors.primary, AppColors.primaryDark],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
-            borderRadius: BorderRadius.circular(2),
+            borderRadius: BorderRadius.circular(3),
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 14),
         Text(
           title,
           style: const TextStyle(
             fontFamily: 'Gilroy',
-            fontSize: 18,
+            fontSize: 17,
             fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
             letterSpacing: -0.3,
@@ -463,17 +444,35 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       style: const TextStyle(
         fontFamily: 'Gilroy',
         fontSize: 15,
-        fontWeight: FontWeight.w500,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textPrimary,
       ),
       decoration: InputDecoration(
         labelText: label,
+        labelStyle: TextStyle(
+          fontFamily: 'Gilroy',
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textSecondary.withValues(alpha: 0.7),
+        ),
         hintText: hint,
+        hintStyle: TextStyle(
+          fontFamily: 'Gilroy',
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+          color: AppColors.textSecondary.withValues(alpha: 0.4),
+        ),
         prefixIcon: Container(
-          margin: const EdgeInsets.all(12),
+          margin: const EdgeInsets.all(10),
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
+            gradient: LinearGradient(
+              colors: [
+                AppColors.primary.withValues(alpha: 0.12),
+                AppColors.primaryDark.withValues(alpha: 0.08),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(
             icon,
@@ -482,26 +481,35 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
         ),
         filled: true,
-        fillColor: AppColors.white,
+        fillColor: AppColors.background,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: AppColors.border.withValues(alpha: 0.3),
+          ),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: AppColors.border.withValues(alpha: 0.3),
+          ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.error),
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.error, width: 2),
+        ),
+        errorStyle: const TextStyle(
+          fontFamily: 'Gilroy',
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),

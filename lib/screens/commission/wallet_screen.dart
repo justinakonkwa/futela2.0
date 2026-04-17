@@ -27,11 +27,11 @@ class _WalletScreenState extends State<WalletScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Mon Wallet',
           style: TextStyle(
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: Theme.of(context).textTheme.displayLarge?.color,
           ),
         ),
         backgroundColor: Colors.transparent,
@@ -41,7 +41,7 @@ class _WalletScreenState extends State<WalletScreen> {
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
@@ -51,9 +51,9 @@ class _WalletScreenState extends State<WalletScreen> {
                 ),
               ],
             ),
-            child: const Icon(
+            child: Icon(
               CupertinoIcons.back,
-              color: AppColors.textPrimary,
+              color: Theme.of(context).textTheme.displayLarge?.color,
               size: 20,
             ),
           ),
@@ -187,21 +187,15 @@ class _WalletScreenState extends State<WalletScreen> {
         ),
         _buildStatCard(
           title: 'En attente',
-          value: '${wallet.pendingCommissions.toStringAsFixed(2)} ${wallet.currency}',
+          value: '${wallet.pendingCommissions} commission${wallet.pendingCommissions > 1 ? 's' : ''}',
           icon: CupertinoIcons.clock,
           color: AppColors.warning,
         ),
         _buildStatCard(
-          title: 'Déjà retiré',
-          value: '${wallet.totalWithdrawn.toStringAsFixed(2)} ${wallet.currency}',
-          icon: CupertinoIcons.arrow_up_circle,
-          color: AppColors.info,
-        ),
-        _buildStatCard(
-          title: 'Retraits en cours',
-          value: '${wallet.pendingWithdrawals.toStringAsFixed(2)} ${wallet.currency}',
-          icon: CupertinoIcons.hourglass,
-          color: AppColors.secondary,
+          title: 'Vérifiées',
+          value: '${wallet.verifiedCount} commission${wallet.verifiedCount > 1 ? 's' : ''}',
+          icon: CupertinoIcons.checkmark_circle,
+          color: AppColors.success,
         ),
       ],
     );
@@ -216,9 +210,13 @@ class _WalletScreenState extends State<WalletScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white.withOpacity(0.1)
+              : AppColors.border,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -251,8 +249,8 @@ class _WalletScreenState extends State<WalletScreen> {
           const Spacer(),
           Text(
             title,
-            style: const TextStyle(
-              color: AppColors.textSecondary,
+            style: TextStyle(
+              color: Theme.of(context).textTheme.bodySmall?.color,
               fontSize: 12,
               fontWeight: FontWeight.w500,
             ),
@@ -260,8 +258,8 @@ class _WalletScreenState extends State<WalletScreen> {
           const SizedBox(height: 4),
           Text(
             value,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
+            style: TextStyle(
+              color: Theme.of(context).textTheme.displayLarge?.color,
               fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
@@ -324,17 +322,17 @@ class _WalletScreenState extends State<WalletScreen> {
         children: [
           Row(
             children: [
-              Icon(
+              const Icon(
                 CupertinoIcons.info_circle,
                 color: AppColors.info,
                 size: 20,
               ),
               const SizedBox(width: 8),
-              const Text(
+              Text(
                 'Comment ça marche ?',
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                  color: Theme.of(context).textTheme.displayLarge?.color,
                 ),
               ),
             ],
@@ -367,7 +365,7 @@ class _WalletScreenState extends State<WalletScreen> {
           Expanded(
             child: Text(
               text,
-              style: TextStyle(
+              style: const TextStyle(
                 color: AppColors.info,
                 fontSize: 14,
               ),
@@ -379,12 +377,15 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 
   Widget _buildLoadingSkeleton() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final shimmerColor = isDark ? Colors.grey[800]! : Colors.grey[300]!;
+    
     return Column(
       children: [
         Container(
           height: 160,
           decoration: BoxDecoration(
-            color: Colors.grey[300],
+            color: shimmerColor,
             borderRadius: BorderRadius.circular(20),
           ),
         ),
@@ -399,7 +400,7 @@ class _WalletScreenState extends State<WalletScreen> {
           children: List.generate(4, (index) {
             return Container(
               decoration: BoxDecoration(
-                color: Colors.grey[300],
+                color: shimmerColor,
                 borderRadius: BorderRadius.circular(16),
               ),
             );
@@ -419,24 +420,24 @@ class _WalletScreenState extends State<WalletScreen> {
       ),
       child: Column(
         children: [
-          Icon(
+          const Icon(
             CupertinoIcons.exclamationmark_triangle,
             size: 48,
             color: AppColors.error,
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Erreur de chargement',
             style: TextStyle(
               fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              color: Theme.of(context).textTheme.displayLarge?.color,
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Impossible de charger les informations du wallet',
             style: TextStyle(
-              color: AppColors.textSecondary,
+              color: Theme.of(context).textTheme.bodySmall?.color,
             ),
             textAlign: TextAlign.center,
           ),

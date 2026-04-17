@@ -21,6 +21,7 @@ class PropertyProvider with ChangeNotifier {
   List<Town> _towns = [];
 
   bool _isLoading = false;
+  bool _isLoadingHome = false; // Verrou spécifique pour éviter les appels multiples
   String? _error;
   String? _nextCursor;
   String? _prevCursor;

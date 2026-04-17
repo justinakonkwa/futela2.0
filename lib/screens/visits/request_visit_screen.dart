@@ -268,6 +268,7 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
   }
 
   Widget _dateTile(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: _pickDate,
       borderRadius: BorderRadius.circular(12),
@@ -285,8 +286,8 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
               : 'Choisir une date',
           style: TextStyle(
             color: _visitDate != null
-                ? AppColors.textPrimary
-                : AppColors.textTertiary,
+                ? Theme.of(context).textTheme.displayLarge?.color
+                : (isDark ? Colors.grey[500] : AppColors.textTertiary),
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -306,9 +307,9 @@ class _RequestVisitScreenState extends State<RequestVisitScreen> {
         ),
         child: Text(
           _visitTime.format(context),
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: Theme.of(context).textTheme.displayLarge?.color,
           ),
         ),
       ),
@@ -430,20 +431,27 @@ InputDecoration _paymentAlignedDecoration(
   required String labelText,
   String? hintText,
 }) {
+  final isDark = Theme.of(context).brightness == Brightness.dark;
   return InputDecoration(
     labelText: labelText,
     hintText: hintText,
     floatingLabelBehavior: FloatingLabelBehavior.auto,
     filled: true,
-    fillColor: AppColors.grey50,
+    fillColor: isDark ? Colors.grey[850] : AppColors.grey50,
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(color: AppColors.grey200, width: 1),
+      borderSide: BorderSide(
+        color: isDark ? Colors.grey[700]! : AppColors.grey200,
+        width: 1,
+      ),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(color: AppColors.grey200, width: 1),
+      borderSide: BorderSide(
+        color: isDark ? Colors.grey[700]! : AppColors.grey200,
+        width: 1,
+      ),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
@@ -458,7 +466,7 @@ InputDecoration _paymentAlignedDecoration(
       borderSide: const BorderSide(color: AppColors.error, width: 2),
     ),
     hintStyle: Theme.of(context).textTheme.bodyLarge?.copyWith(
-          color: AppColors.textTertiary,
+          color: isDark ? Colors.grey[500] : AppColors.textTertiary,
           fontWeight: FontWeight.w400,
         ),
     errorStyle: Theme.of(context).textTheme.bodySmall?.copyWith(

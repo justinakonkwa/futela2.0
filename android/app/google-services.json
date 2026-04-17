@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:474613582555:android:android_app_id_here",
         "android_client_info": {
-          "package_name": "com.naara.futela"
+          "package_name": "com.futelaapp.mobile"
         }
       },
       "oauth_client": [
@@ -17,7 +17,7 @@
           "client_id": "474613582555-t7p56t9dejfjfa2fovv8f4jc7ospogbm.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.naara.futela",
+            "package_name": "com.futelaapp.mobile",
             "certificate_hash": "YOUR_SHA1_FINGERPRINT_HERE"
           }
         }

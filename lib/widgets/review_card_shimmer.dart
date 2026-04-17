@@ -7,11 +7,15 @@ class ReviewCardShimmer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseColor = isDark ? Colors.grey[800]! : AppColors.grey200;
+    final highlightColor = isDark ? Colors.grey[700]! : AppColors.grey50;
+    
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -22,8 +26,8 @@ class ReviewCardShimmer extends StatelessWidget {
         ],
       ),
       child: Shimmer.fromColors(
-        baseColor: AppColors.grey200,
-        highlightColor: AppColors.grey50,
+        baseColor: baseColor,
+        highlightColor: highlightColor,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -33,8 +37,8 @@ class ReviewCardShimmer extends StatelessWidget {
                 Container(
                   width: 40,
                   height: 40,
-                  decoration: const BoxDecoration(
-                    color: AppColors.white,
+                  decoration: BoxDecoration(
+                    color: baseColor,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -47,7 +51,7 @@ class ReviewCardShimmer extends StatelessWidget {
                         height: 14,
                         width: 120,
                         decoration: BoxDecoration(
-                          color: AppColors.white,
+                          color: baseColor,
                           borderRadius: BorderRadius.circular(7),
                         ),
                       ),
@@ -56,7 +60,7 @@ class ReviewCardShimmer extends StatelessWidget {
                         height: 12,
                         width: 80,
                         decoration: BoxDecoration(
-                          color: AppColors.white,
+                          color: baseColor,
                           borderRadius: BorderRadius.circular(6),
                         ),
                       ),
@@ -67,7 +71,7 @@ class ReviewCardShimmer extends StatelessWidget {
                   width: 50,
                   height: 28,
                   decoration: BoxDecoration(
-                    color: AppColors.white,
+                    color: baseColor,
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
@@ -78,7 +82,7 @@ class ReviewCardShimmer extends StatelessWidget {
               height: 14,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: baseColor,
                 borderRadius: BorderRadius.circular(7),
               ),
             ),
@@ -87,7 +91,7 @@ class ReviewCardShimmer extends StatelessWidget {
               height: 14,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: baseColor,
                 borderRadius: BorderRadius.circular(7),
               ),
             ),
@@ -96,7 +100,7 @@ class ReviewCardShimmer extends StatelessWidget {
               height: 14,
               width: 200,
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: baseColor,
                 borderRadius: BorderRadius.circular(7),
               ),
             ),

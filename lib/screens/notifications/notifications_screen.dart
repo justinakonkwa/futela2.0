@@ -90,24 +90,24 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    const Text(
+                    Text(
                       'Impossible de charger',
                       style: TextStyle(
                         fontFamily: 'Gilroy',
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
+                        color: Theme.of(context).textTheme.displayLarge?.color,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       ErrorFormatter.format(provider.error),
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Gilroy',
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.textSecondary,
+                        color: Theme.of(context).textTheme.bodySmall?.color,
                         height: 1.5,
                       ),
                     ),
@@ -149,6 +149,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Widget _buildShimmer() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final baseColor = isDark ? Colors.grey[800]! : AppColors.grey200;
+    final highlightColor = isDark ? Colors.grey[700]! : AppColors.grey100;
+    
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: 6,
@@ -156,13 +160,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(
+            color: isDark 
+                ? AppColors.primary.withOpacity(0.3)
+                : AppColors.border,
+          ),
         ),
         child: Shimmer.fromColors(
-          baseColor: AppColors.grey200,
-          highlightColor: AppColors.grey100,
+          baseColor: baseColor,
+          highlightColor: highlightColor,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -171,7 +179,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: AppColors.grey200,
+                  color: baseColor,
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
@@ -185,7 +193,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       height: 14,
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: AppColors.grey200,
+                        color: baseColor,
                         borderRadius: BorderRadius.circular(6),
                       ),
                     ),
@@ -194,7 +202,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       height: 12,
                       width: 200,
                       decoration: BoxDecoration(
-                        color: AppColors.grey200,
+                        color: baseColor,
                         borderRadius: BorderRadius.circular(6),
                       ),
                     ),
@@ -203,7 +211,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       height: 10,
                       width: 80,
                       decoration: BoxDecoration(
-                        color: AppColors.grey200,
+                        color: baseColor,
                         borderRadius: BorderRadius.circular(6),
                       ),
                     ),
@@ -233,7 +241,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             Text(
               'Aucune notification',
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: AppColors.textPrimary,
+                    color: Theme.of(context).textTheme.displayLarge?.color,
                     fontWeight: FontWeight.w700,
                   ),
             ),
@@ -242,7 +250,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               'Vous n\'avez pas encore de notifications.\nElles apparaîtront ici quand vous en recevrez.',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: AppColors.textSecondary,
+                    color: Theme.of(context).textTheme.bodySmall?.color,
                   ),
             ),
           ],

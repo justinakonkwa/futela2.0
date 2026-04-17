@@ -62,7 +62,7 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text(
           'Mes visites',
@@ -74,7 +74,7 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
             color: AppColors.textPrimary,
           ),
         ),
-        backgroundColor: AppColors.white,
+        backgroundColor: theme.appBarTheme.backgroundColor ?? theme.scaffoldBackgroundColor,
         elevation: 0,
         leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),
@@ -82,7 +82,7 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: theme.cardColor,
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
@@ -117,7 +117,7 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
                     selected: sel,
                     onSelected: (_) => _applyFilter(p, value),
                     selectedColor: AppColors.primary.withValues(alpha: 0.15),
-                    backgroundColor: AppColors.white,
+                    backgroundColor: theme.cardColor,
                     checkmarkColor: AppColors.primary,
                     labelStyle: TextStyle(
                       fontFamily: 'Gilroy',
@@ -443,7 +443,7 @@ class _VisitCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: AppColors.white,
+                      color: theme.cardColor,
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(

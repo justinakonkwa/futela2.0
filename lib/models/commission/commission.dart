@@ -1,133 +1,83 @@
 class Commission {
   final String id;
-  final String commissionnaireId;
   final String visitId;
-  final String propertyId;
-  final String visitorId;
-  final double amount;
+  final String? propertyTitle;
+  final String? commissionnaireId;
+  final String? commissionnaireName;
+  final String? visitorId;
+  final String? visitorName;
+  final double commissionRate;
+  final double commissionAmount;
+  final double? platformFee;
   final String currency;
-  final CommissionStatus status;
-  final String? verificationCode;
-  final DateTime? codeExpiresAt;
-  final DateTime? verifiedAt;
+  final String verificationStatus;
+  final String verificationStatusLabel;
+  final String verificationStatusColor;
   final int failedAttempts;
   final bool isLocked;
+  final DateTime? verifiedAt;
+  final DateTime? attributedAt;
   final DateTime createdAt;
-  final DateTime updatedAt;
 
   Commission({
     required this.id,
-    required this.commissionnaireId,
     required this.visitId,
-    required this.propertyId,
-    required this.visitorId,
-    required this.amount,
+    this.propertyTitle,
+    this.commissionnaireId,
+    this.commissionnaireName,
+    this.visitorId,
+    this.visitorName,
+    required this.commissionRate,
+    required this.commissionAmount,
+    this.platformFee,
     required this.currency,
-    required this.status,
-    this.verificationCode,
-    this.codeExpiresAt,
-    this.verifiedAt,
+    required this.verificationStatus,
+    required this.verificationStatusLabel,
+    required this.verificationStatusColor,
     required this.failedAttempts,
     required this.isLocked,
+    this.verifiedAt,
+    this.attributedAt,
     required this.createdAt,
-    required this.updatedAt,
   });
 
   factory Commission.fromJson(Map<String, dynamic> json) {
     return Commission(
       id: json['id']?.toString() ?? '',
-      commissionnaireId: json['commissionnaireId']?.toString() ?? '',
       visitId: json['visitId']?.toString() ?? '',
-      propertyId: json['propertyId']?.toString() ?? '',
-      visitorId: json['visitorId']?.toString() ?? '',
-      amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
+      propertyTitle: json['propertyTitle']?.toString(),
+      commissionnaireId: json['commissionnaireId']?.toString(),
+      commissionnaireName: json['commissionnaireName']?.toString(),
+      visitorId: json['visitorId']?.toString(),
+      visitorName: json['visitorName']?.toString(),
+      commissionRate: (json['commissionRate'] as num?)?.toDouble() ?? 0.0,
+      commissionAmount: (json['commissionAmount'] as num?)?.toDouble() ?? 0.0,
+      platformFee: (json['platformFee'] as num?)?.toDouble(),
       currency: json['currency']?.toString() ?? 'USD',
-      status: CommissionStatus.fromString(json['status']?.toString() ?? ''),
-      verificationCode: json['verificationCode']?.toString(),
-      codeExpiresAt: _parseDate(json['codeExpiresAt']),
-      verifiedAt: _parseDate(json['verifiedAt']),
+      verificationStatus: json['verificationStatus']?.toString() ?? 'pending',
+      verificationStatusLabel: json['verificationStatusLabel']?.toString() ?? '',
+      verificationStatusColor: json['verificationStatusColor']?.toString() ?? 'grey',
       failedAttempts: (json['failedAttempts'] as num?)?.toInt() ?? 0,
       isLocked: json['isLocked'] as bool? ?? false,
+      verifiedAt: _parseDate(json['verifiedAt']),
+      attributedAt: _parseDate(json['attributedAt']),
       createdAt: _parseDate(json['createdAt']) ?? DateTime.now(),
-      updatedAt: _parseDate(json['updatedAt']) ?? DateTime.now(),
     );
   }
 
   static DateTime? _parseDate(dynamic value) {
     if (value == null) return null;
     try {
-      // Nettoyer les espaces dans les dates : "2026-04-10T15: 10: 16+02: 00" → "2026-04-10T15:10:16+02:00"
-      final s = value.toString().replaceAll(' ', '');
-      return DateTime.parse(s);
+      return DateTime.parse(value.toString().replaceAll(' ', ''));
     } catch (_) {
       return null;
     }
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'commissionnaireId': commissionnaireId,
-      'visitId': visitId,
-      'propertyId': propertyId,
-      'visitorId': visitorId,
-      'amount': amount,
-      'currency': currency,
-      'status': status.value,
-      'verificationCode': verificationCode,
-      'codeExpiresAt': codeExpiresAt?.toIso8601String(),
-      'verifiedAt': verifiedAt?.toIso8601String(),
-      'failedAttempts': failedAttempts,
-      'isLocked': isLocked,
-      'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt.toIso8601String(),
-    };
-  }
+  bool get isVerified => verificationStatus == 'verified';
+  bool get isCodeSent => verificationStatus == 'code_sent';
+  bool get isPending => verificationStatus == 'pending';
+  bool get canVerify => isCodeSent && !isLocked;
 
-  bool get isCodeExpired {
-    if (codeExpiresAt == null) return false;
-    return DateTime.now().isAfter(codeExpiresAt!);
-  }
-
-  bool get canVerify {
-    return status == CommissionStatus.codeSent && 
-           !isLocked && 
-           !isCodeExpired;
-  }
-}
-
-enum CommissionStatus {
-  pending('pending'),
-  codeSent('code_sent'),
-  verified('verified'),
-  expired('expired'),
-  locked('locked'),
-  cancelled('cancelled');
-
-  const CommissionStatus(this.value);
-  final String value;
-
-  static CommissionStatus fromString(String value) {
-    return CommissionStatus.values.firstWhere(
-      (status) => status.value == value,
-      orElse: () => CommissionStatus.pending,
-    );
-  }
-
-  String get displayName {
-    switch (this) {
-      case CommissionStatus.pending:
-        return 'En attente';
-      case CommissionStatus.codeSent:
-        return 'Code envoyé';
-      case CommissionStatus.verified:
-        return 'Vérifiée';
-      case CommissionStatus.expired:
-        return 'Expirée';
-      case CommissionStatus.locked:
-        return 'Verrouillée';
-      case CommissionStatus.cancelled:
-        return 'Annulée';
-    }
-  }
+  String get displayAmount => '${commissionAmount.toStringAsFixed(2)} $currency';
 }

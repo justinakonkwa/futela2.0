@@ -56,11 +56,11 @@ class _WithdrawalsScreenState extends State<WithdrawalsScreen>
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Retraits',
           style: TextStyle(
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: Theme.of(context).textTheme.displayLarge?.color,
           ),
         ),
         backgroundColor: Colors.transparent,
@@ -70,7 +70,7 @@ class _WithdrawalsScreenState extends State<WithdrawalsScreen>
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: Theme.of(context).cardColor,
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
@@ -80,9 +80,9 @@ class _WithdrawalsScreenState extends State<WithdrawalsScreen>
                 ),
               ],
             ),
-            child: const Icon(
+            child: Icon(
               CupertinoIcons.back,
-              color: AppColors.textPrimary,
+              color: Theme.of(context).textTheme.displayLarge?.color,
               size: 20,
             ),
           ),
@@ -257,17 +257,17 @@ class _WithdrawalsScreenState extends State<WithdrawalsScreen>
             children: [
               Row(
                 children: [
-                  Icon(
+                  const Icon(
                     CupertinoIcons.info_circle,
                     color: AppColors.info,
                     size: 20,
                   ),
                   const SizedBox(width: 8),
-                  const Text(
+                  Text(
                     'Informations importantes',
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+                      color: Theme.of(context).textTheme.displayLarge?.color,
                     ),
                   ),
                 ],
@@ -301,7 +301,7 @@ class _WithdrawalsScreenState extends State<WithdrawalsScreen>
       padding: const EdgeInsets.only(bottom: 4),
       child: Text(
         text,
-        style: TextStyle(
+        style: const TextStyle(
           color: AppColors.info,
           fontSize: 14,
         ),
@@ -343,9 +343,13 @@ class _WithdrawalsScreenState extends State<WithdrawalsScreen>
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white.withOpacity(0.1)
+              : AppColors.border,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -362,10 +366,10 @@ class _WithdrawalsScreenState extends State<WithdrawalsScreen>
             children: [
               Text(
                 '${withdrawal.amount.toStringAsFixed(2)} ${withdrawal.currency}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary,
+                  color: Theme.of(context).textTheme.displayLarge?.color,
                 ),
               ),
               Container(
@@ -394,13 +398,13 @@ class _WithdrawalsScreenState extends State<WithdrawalsScreen>
               Icon(
                 CupertinoIcons.device_phone_portrait,
                 size: 16,
-                color: AppColors.textSecondary,
+                color: Theme.of(context).textTheme.bodySmall?.color,
               ),
               const SizedBox(width: 8),
               Text(
                 withdrawal.phoneNumber,
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodySmall?.color,
                   fontSize: 14,
                 ),
               ),
@@ -412,13 +416,13 @@ class _WithdrawalsScreenState extends State<WithdrawalsScreen>
               Icon(
                 CupertinoIcons.calendar,
                 size: 16,
-                color: AppColors.textSecondary,
+                color: Theme.of(context).textTheme.bodySmall?.color,
               ),
               const SizedBox(width: 8),
               Text(
                 _formatDate(withdrawal.createdAt),
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
+                style: TextStyle(
+                  color: Theme.of(context).textTheme.bodySmall?.color,
                   fontSize: 14,
                 ),
               ),
@@ -434,7 +438,7 @@ class _WithdrawalsScreenState extends State<WithdrawalsScreen>
               ),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     CupertinoIcons.exclamationmark_triangle,
                     size: 16,
                     color: AppColors.error,
@@ -443,7 +447,7 @@ class _WithdrawalsScreenState extends State<WithdrawalsScreen>
                   Expanded(
                     child: Text(
                       withdrawal.rejectionReason!,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: AppColors.error,
                         fontSize: 12,
                       ),
@@ -459,6 +463,9 @@ class _WithdrawalsScreenState extends State<WithdrawalsScreen>
   }
 
   Widget _buildHistorySkeleton() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final shimmerColor = isDark ? Colors.grey[800]! : Colors.grey[300]!;
+    
     return ListView.builder(
       padding: const EdgeInsets.all(20),
       itemCount: 5,
@@ -467,7 +474,7 @@ class _WithdrawalsScreenState extends State<WithdrawalsScreen>
           margin: const EdgeInsets.only(bottom: 12),
           height: 100,
           decoration: BoxDecoration(
-            color: Colors.grey[300],
+            color: shimmerColor,
             borderRadius: BorderRadius.circular(12),
           ),
         );
@@ -482,31 +489,35 @@ class _WithdrawalsScreenState extends State<WithdrawalsScreen>
       child: Container(
         padding: const EdgeInsets.all(32),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
+          border: Border.all(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white.withOpacity(0.1)
+                : AppColors.border,
+          ),
         ),
         child: Column(
           children: [
             Icon(
               CupertinoIcons.arrow_up_circle,
               size: 64,
-              color: AppColors.textTertiary,
+              color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.6),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Aucun retrait',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textSecondary,
+                color: Theme.of(context).textTheme.bodySmall?.color,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Vos demandes de retrait apparaîtront ici',
               style: TextStyle(
-                color: AppColors.textTertiary,
+                color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.6),
               ),
               textAlign: TextAlign.center,
             ),
@@ -566,19 +577,19 @@ class _WithdrawalsScreenState extends State<WithdrawalsScreen>
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Demande envoyée !',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: Theme.of(context).textTheme.displayLarge?.color,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Votre demande de retrait a été envoyée. Vous recevrez une notification une fois traitée.',
               style: TextStyle(
-                color: AppColors.textSecondary,
+                color: Theme.of(context).textTheme.bodySmall?.color,
               ),
               textAlign: TextAlign.center,
             ),

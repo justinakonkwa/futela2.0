@@ -117,22 +117,22 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                       const SizedBox(height: 24),
                       Text(
                         'Erreur de chargement',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Gilroy',
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
+                          color: Theme.of(context).textTheme.displayLarge?.color,
                         ),
                       ),
                       const SizedBox(height: 12),
                       Text(
                         ErrorFormatter.format(propertyProvider.error),
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontFamily: 'Gilroy',
                           fontSize: 15,
                           fontWeight: FontWeight.w500,
-                          color: AppColors.textSecondary,
+                          color: Theme.of(context).textTheme.bodySmall?.color,
                           height: 1.5,
                         ),
                       ),
@@ -220,7 +220,6 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                           fontFamily: 'Gilroy',
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
                         ),
                       ),
                     ],
@@ -242,7 +241,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: AppColors.white,
+                    color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: [
                       BoxShadow(
@@ -257,10 +256,10 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                     child: InkWell(
                       onTap: () => Navigator.of(context).pop(),
                       borderRadius: BorderRadius.circular(14),
-                      child: const Center(
+                      child: Center(
                         child: Icon(
                           Icons.arrow_back_rounded,
-                          color: AppColors.textPrimary,
+                          color: Theme.of(context).textTheme.displayLarge?.color,
                           size: 24,
                         ),
                       ),

@@ -15,6 +15,8 @@ class SearchBarWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -30,15 +32,17 @@ class SearchBarWidget extends StatelessWidget {
           height: 52,
           padding: const EdgeInsets.symmetric(horizontal: 18),
           decoration: BoxDecoration(
-            color: AppColors.white,
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: AppColors.border.withOpacity(0.3),
+              color: isDark 
+                  ? AppColors.primary.withOpacity(0.3)
+                  : AppColors.border.withOpacity(0.3),
               width: 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.shadow.withOpacity(0.08),
+                color: AppColors.shadow.withOpacity(isDark ? 0.15 : 0.08),
                 blurRadius: 20,
                 offset: const Offset(0, 4),
               ),
@@ -67,8 +71,8 @@ class SearchBarWidget extends StatelessWidget {
                     fontSize: 15,
                     fontWeight: FontWeight.w500,
                     color: initialQuery != null
-                        ? AppColors.textPrimary
-                        : AppColors.textTertiary,
+                        ? Theme.of(context).textTheme.bodyLarge?.color
+                        : Theme.of(context).textTheme.bodySmall?.color,
                     letterSpacing: -0.2,
                   ),
                   maxLines: 1,
@@ -77,7 +81,7 @@ class SearchBarWidget extends StatelessWidget {
               ),
               Icon(
                 Icons.tune_rounded,
-                color: AppColors.textTertiary.withOpacity(0.6),
+                color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.6),
                 size: 20,
               ),
             ],

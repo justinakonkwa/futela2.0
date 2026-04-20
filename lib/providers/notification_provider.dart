@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:app_badge_plus/app_badge_plus.dart';
 import '../models/notification.dart';
 import '../services/notification_service.dart';
 
@@ -35,10 +36,19 @@ class NotificationProvider with ChangeNotifier {
   Future<void> loadUnreadCount() async {
     try {
       _unreadCount = await _service.getUnreadCount();
+      _updateAppBadge(_unreadCount);
       notifyListeners();
     } catch (_) {
       _unreadCount = 0;
       notifyListeners();
+    }
+  }
+
+  void _updateAppBadge(int count) {
+    try {
+      AppBadgePlus.updateBadge(count);
+    } catch (_) {
+      // Badge non supporté sur cet appareil
     }
   }
 
@@ -93,6 +103,7 @@ class NotificationProvider with ChangeNotifier {
               ))
           .toList();
       _unreadCount = 0;
+      _updateAppBadge(0);
       notifyListeners();
     } catch (_) {
       notifyListeners();

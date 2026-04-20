@@ -74,23 +74,18 @@ class CommissionService {
   /// Body: { phone: "0812345678" }  ← format local sans +243
   /// Retourne la commission en attente (code_sent) pour ce visiteur
   Future<Commission> findCommissionByPhone(String phoneNumber) async {
-    // Normaliser : enlever +243 ou 243 en tête et garder le format local 0XXXXXXXXX
     final normalized = _normalizePhone(phoneNumber);
-    debugPrint('find-by-phone → envoi phone: "$normalized"');
 
     try {
       final response = await _dio.post(
         '/api/commissionnaire/commissions/find-by-phone',
         data: {'phone': normalized},
       );
-      debugPrint('find-by-phone ← ${response.statusCode}: ${response.data}');
-
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         return Commission.fromJson(response.data as Map<String, dynamic>);
       }
       throw Exception(_extractErrorMessage(response.data));
     } on DioException catch (e) {
-      debugPrint('find-by-phone DioError ${e.response?.statusCode}: ${e.response?.data}');
       throw Exception(_extractErrorMessage(e.response?.data));
     }
   }
@@ -104,14 +99,11 @@ class CommissionService {
         '/api/commissionnaire/commissions/$commissionId/verify',
         data: {'code': code},
       );
-      debugPrint('verify ← ${response.statusCode}: ${response.data}');
-
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         return Commission.fromJson(response.data as Map<String, dynamic>);
       }
       throw Exception(_extractErrorMessage(response.data));
     } on DioException catch (e) {
-      debugPrint('verify DioError ${e.response?.statusCode}: ${e.response?.data}');
       throw Exception(_extractErrorMessage(e.response?.data));
     }
   }
@@ -123,7 +115,6 @@ class CommissionService {
   Future<List<Map<String, dynamic>>> getVerificationCodes() async {
     try {
       final response = await _dio.get('/api/me/verification-codes');
-      debugPrint('verification-codes ← ${response.statusCode}: ${response.data}');
       if (response.statusCode == 200) {
         final data = response.data;
         if (data is List) {
@@ -184,17 +175,13 @@ class CommissionService {
 
   // ─── Helpers ───────────────────────────────────────────────────────────────
 
-  /// Normalise le numéro au format local: 0812345678
+  /// Normalise le numéro au format 243XXXXXXXXX (sans +)
   /// Accepte: +243812345678, 243812345678, 0812345678, 812345678
   String _normalizePhone(String phone) {
-    String p = phone.trim().replaceAll(' ', '').replaceAll('-', '');
-    if (p.startsWith('+243')) {
-      p = '0${p.substring(4)}';
-    } else if (p.startsWith('243') && p.length >= 12) {
-      p = '0${p.substring(3)}';
-    } else if (!p.startsWith('0') && p.length == 9) {
-      p = '0$p';
-    }
+    String p = phone.trim().replaceAll(' ', '').replaceAll('-', '').replaceAll('+', '');
+    if (p.startsWith('243') && p.length >= 12) return p; // déjà 243XXX
+    if (p.startsWith('0') && p.length == 10) return '243${p.substring(1)}'; // 0XXX → 243XXX
+    if (p.length == 9) return '243$p'; // 9 chiffres → 243XXX
     return p;
   }
 

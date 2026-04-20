@@ -85,10 +85,15 @@ class CommissionProvider with ChangeNotifier {
     notifyListeners();
 
     try {
+      const int pageSize = 20;
       final newCommissions = await _commissionService.getCommissions(
         page: _currentPage,
-        itemsPerPage: 20,
+        itemsPerPage: pageSize,
       );
+
+      if (newCommissions.length < pageSize) {
+        _hasMoreCommissions = false;
+      }
 
       if (newCommissions.isEmpty) {
         _hasMoreCommissions = false;
@@ -103,7 +108,7 @@ class CommissionProvider with ChangeNotifier {
       _commissionsError = null;
     } catch (e) {
       _commissionsError = e.toString();
-      debugPrint('Erreur chargement commissions: $e');
+      debugPrint('❌ Erreur chargement commissions: $e');
     } finally {
       _isLoadingCommissions = false;
       notifyListeners();
@@ -234,6 +239,17 @@ class CommissionProvider with ChangeNotifier {
     } finally {
       _isLoadingCodes = false;
       notifyListeners();
+    }
+  }
+
+  /// Charger les codes de vérification pour une visite spécifique
+  Future<List<Map<String, dynamic>>> loadVerificationCodesForVisit(String visitId) async {
+    try {
+      final all = await _commissionService.getVerificationCodes();
+      return all.where((c) => c['visitId'] == visitId).toList();
+    } catch (e) {
+      debugPrint('Erreur chargement codes pour visite: $e');
+      return [];
     }
   }
 

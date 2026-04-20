@@ -8,6 +8,7 @@ import '../../widgets/custom_button.dart';
 import '../../widgets/property_card_shimmer.dart';
 import '../../widgets/futela_logo.dart';
 import 'visit_payment_pending_screen.dart';
+import 'visit_detail_screen.dart';
 
 /// Liste `GET /api/me/visits` avec filtres `status` + pagination.
 class MyVisitsScreen extends StatefulWidget {
@@ -64,14 +65,14 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Mes visites',
           style: TextStyle(
             fontFamily: 'Gilroy',
             fontSize: 20,
             fontWeight: FontWeight.w700,
             letterSpacing: -0.3,
-            color: AppColors.textPrimary,
+            color: theme.textTheme.displayLarge?.color,
           ),
         ),
         backgroundColor: theme.appBarTheme.backgroundColor ?? theme.scaffoldBackgroundColor,
@@ -86,17 +87,17 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.shadow.withValues(alpha: 0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
               ],
             ),
-            child: const Center(
+            child: Center(
               child: Icon(
                 Icons.arrow_back_rounded,
                 size: 20,
-                color: AppColors.textPrimary,
+                color: theme.textTheme.displayLarge?.color,
               ),
             ),
           ),
@@ -121,14 +122,14 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
                     checkmarkColor: AppColors.primary,
                     labelStyle: TextStyle(
                       fontFamily: 'Gilroy',
-                      color: sel ? AppColors.primary : AppColors.textPrimary,
+                      color: sel ? AppColors.primary : theme.textTheme.bodyMedium?.color,
                       fontWeight: sel ? FontWeight.w700 : FontWeight.w600,
                       fontSize: 13,
                     ),
                     side: BorderSide(
                       color: sel
                           ? AppColors.primary.withValues(alpha: 0.5)
-                          : AppColors.border,
+                          : theme.dividerColor,
                       width: sel ? 1.5 : 1,
                     ),
                     shape: RoundedRectangleBorder(
@@ -324,21 +325,20 @@ class _MyVisitsScreenState extends State<MyVisitsScreen> {
                         visit: v,
                         statusColor: _statusColor,
                         onTap: () {
-                          // Détail : résumé visite, reçu paiement, suivi FlexPay, annulation.
-                          // Navigator.of(context)
-                          //     .push(
-                          //   MaterialPageRoute(
-                          //     builder: (ctx) => VisitDetailScreen(visit: v),
-                          //   ),
-                          // )
-                          //     .then((changed) {
-                          //   if (changed == true) {
-                          //     visitProvider.loadMyVisits(
-                          //       refresh: true,
-                          //       itemsPerPage: _pageSize,
-                          //     );
-                          //   }
-                          // });
+                          Navigator.of(context)
+                              .push(
+                            MaterialPageRoute(
+                              builder: (ctx) => VisitDetailScreen(visit: v),
+                            ),
+                          )
+                              .then((changed) {
+                            if (changed == true) {
+                              visitProvider.loadMyVisits(
+                                refresh: true,
+                                itemsPerPage: _pageSize,
+                              );
+                            }
+                          });
                         },
                         onOpenPayment: v.needsPaymentPolling
                             ? () {
@@ -399,8 +399,14 @@ class _VisitCard extends StatelessWidget {
         ? df.format(visit.createdAt!.toLocal())
         : null;
 
-    final label = visit.statusLabel ??
-        visit.status.replaceAll('_', ' ').toUpperCase();
+    final label = visit.isPaid
+        ? 'Payé ✓'
+        : (visit.statusLabel ?? visit.status.replaceAll('_', ' ').toUpperCase());
+
+    // Si payé, on force la couleur verte pour le badge
+    Color Function(String?) effectiveStatusColor = visit.isPaid
+        ? (_) => AppColors.success
+        : statusColor;
 
     final locationLine = [
       if (visit.propertyCity != null && visit.propertyCity!.isNotEmpty)
@@ -433,8 +439,8 @@ class _VisitCard extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    statusColor(visit.statusColor).withValues(alpha: 0.08),
-                    statusColor(visit.statusColor).withValues(alpha: 0.05),
+                    effectiveStatusColor(visit.statusColor).withValues(alpha: 0.08),
+                    effectiveStatusColor(visit.statusColor).withValues(alpha: 0.05),
                   ],
                 ),
               ),
@@ -447,15 +453,15 @@ class _VisitCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: statusColor(visit.statusColor).withValues(alpha: 0.2),
+                          color: effectiveStatusColor(visit.statusColor).withValues(alpha: 0.2),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
                       ],
                     ),
                     child: Icon(
-                      Icons.home_work_rounded,
-                      color: statusColor(visit.statusColor),
+                      visit.isPaid ? Icons.verified_rounded : Icons.home_work_rounded,
+                      color: effectiveStatusColor(visit.statusColor),
                       size: 24,
                     ),
                   ),
@@ -478,10 +484,10 @@ class _VisitCard extends StatelessWidget {
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.place_outlined,
                                 size: 14,
-                                color: AppColors.textSecondary,
+                                color: theme.textTheme.bodySmall?.color,
                               ),
                               const SizedBox(width: 4),
                               Expanded(
@@ -489,7 +495,6 @@ class _VisitCard extends StatelessWidget {
                                   locationLine,
                                   style: theme.textTheme.bodySmall?.copyWith(
                                     fontFamily: 'Gilroy',
-                                    color: AppColors.textSecondary,
                                     fontSize: 13,
                                   ),
                                   maxLines: 1,
@@ -505,17 +510,17 @@ class _VisitCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: statusColor(visit.statusColor).withValues(alpha: 0.15),
+                      color: effectiveStatusColor(visit.statusColor).withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: statusColor(visit.statusColor).withValues(alpha: 0.3),
+                        color: effectiveStatusColor(visit.statusColor).withValues(alpha: 0.3),
                       ),
                     ),
                     child: Text(
                       label,
                       style: theme.textTheme.labelSmall?.copyWith(
                         fontFamily: 'Gilroy',
-                        color: statusColor(visit.statusColor),
+                        color: effectiveStatusColor(visit.statusColor),
                         fontWeight: FontWeight.w700,
                         fontSize: 11,
                       ),
@@ -551,22 +556,20 @@ class _VisitCard extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Date de visite',
-                              style: TextStyle(
+                              style: theme.textTheme.labelSmall?.copyWith(
                                 fontFamily: 'Gilroy',
                                 fontSize: 11,
-                                color: AppColors.textTertiary,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
                             const SizedBox(height: 2),
                             Text(
                               dateStr,
-                              style: const TextStyle(
+                              style: theme.textTheme.bodyMedium?.copyWith(
                                 fontFamily: 'Gilroy',
                                 fontSize: 14,
-                                color: AppColors.textPrimary,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -597,22 +600,20 @@ class _VisitCard extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 'Montant',
-                                style: TextStyle(
+                                style: theme.textTheme.labelSmall?.copyWith(
                                   fontFamily: 'Gilroy',
                                   fontSize: 11,
-                                  color: AppColors.textTertiary,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
                               const SizedBox(height: 2),
                               Text(
                                 '${visit.paymentAmount} ${visit.paymentCurrency ?? ''}'.trim(),
-                                style: const TextStyle(
+                                style: theme.textTheme.bodyMedium?.copyWith(
                                   fontFamily: 'Gilroy',
                                   fontSize: 14,
-                                  color: AppColors.textPrimary,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
@@ -657,19 +658,19 @@ class _VisitCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.grey50.withValues(alpha: 0.5),
+                        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: AppColors.border.withValues(alpha: 0.5),
+                          color: theme.dividerColor.withValues(alpha: 0.5),
                         ),
                       ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.note_outlined,
                             size: 16,
-                            color: AppColors.textSecondary,
+                            color: theme.textTheme.bodySmall?.color,
                           ),
                           const SizedBox(width: 8),
                           Expanded(
@@ -677,7 +678,6 @@ class _VisitCard extends StatelessWidget {
                               visit.notes!,
                               style: theme.textTheme.bodySmall?.copyWith(
                                 fontFamily: 'Gilroy',
-                                color: AppColors.textSecondary,
                                 fontStyle: FontStyle.italic,
                                 fontSize: 13,
                               ),
@@ -748,7 +748,6 @@ class _VisitCard extends StatelessWidget {
                       'Demandée le $createdStr · Réf. ${visit.id.length > 8 ? '…${visit.id.substring(visit.id.length - 8)}' : visit.id}',
                       style: theme.textTheme.labelSmall?.copyWith(
                         fontFamily: 'Gilroy',
-                        color: AppColors.textTertiary,
                         fontSize: 11,
                       ),
                     ),

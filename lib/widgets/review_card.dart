@@ -16,14 +16,14 @@ class ReviewCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: AppColors.border.withValues(alpha: 0.5),
+          color: Theme.of(context).dividerColor.withValues(alpha: 0.5),
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadow.withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -62,21 +62,21 @@ class ReviewCard extends StatelessWidget {
                   children: [
                     Text(
                       review.userName,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Gilroy',
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
+                        color: Theme.of(context).textTheme.displayLarge?.color,
                       ),
                     ),
                     const SizedBox(height: 1),
                     Text(
                       df.format(review.createdAt),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Gilroy',
                         fontSize: 11,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.textSecondary,
+                        color: Theme.of(context).textTheme.bodySmall?.color,
                       ),
                     ),
                   ],
@@ -116,22 +116,22 @@ class ReviewCard extends StatelessWidget {
             if (review.title != null && review.title!.isNotEmpty) ...[
               Text(
                 review.title!,
-                style: const TextStyle(
+                style: TextStyle(
                   fontFamily: 'Gilroy',
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
+                  color: Theme.of(context).textTheme.displayLarge?.color,
                 ),
               ),
               const SizedBox(height: 4),
             ],
             Text(
               review.comment!,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Gilroy',
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
+                color: Theme.of(context).textTheme.bodyMedium?.color,
                 height: 1.4,
               ),
             ),
@@ -139,11 +139,11 @@ class ReviewCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               review.title!,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'Gilroy',
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: Theme.of(context).textTheme.displayLarge?.color,
               ),
             ),
           ],

@@ -22,6 +22,7 @@ import '../../widgets/property_card_shimmer.dart';
 import '../../widgets/image_gallery_viewer.dart';
 import '../visits/request_visit_screen.dart';
 import 'add_property_screen.dart';
+import '../commission/delegate_property_screen.dart';
 import '../../providers/favorite_provider.dart';
 import '../../providers/review_provider.dart';
 import '../property/property_reviews_screen.dart';
@@ -54,7 +55,8 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadProperty();
       // Charger les 2 derniers avis pour la section aperçu
-      final reviewProvider = Provider.of<ReviewProvider>(context, listen: false);
+      final reviewProvider =
+          Provider.of<ReviewProvider>(context, listen: false);
       reviewProvider.reset();
       reviewProvider.loadReviews(
         propertyId: widget.propertyId,
@@ -64,7 +66,8 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
   }
 
   void _loadProperty() {
-    final propertyProvider = Provider.of<PropertyProvider>(context, listen: false);
+    final propertyProvider =
+        Provider.of<PropertyProvider>(context, listen: false);
     if (widget.myProperty) {
       propertyProvider.getMyPropertyById(widget.propertyId);
     } else {
@@ -84,7 +87,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Consumer<PropertyProvider>(
         builder: (context, propertyProvider, child) {
-          final property = widget.myProperty 
+          final property = widget.myProperty
               ? propertyProvider.myProperties
                   .where((p) => p.id == widget.propertyId)
                   .firstOrNull
@@ -121,7 +124,8 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                           fontFamily: 'Gilroy',
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
-                          color: Theme.of(context).textTheme.displayLarge?.color,
+                          color:
+                              Theme.of(context).textTheme.displayLarge?.color,
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -160,8 +164,9 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                             onTap: () => _loadProperty(),
                             borderRadius: BorderRadius.circular(16),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
-                              child:const  Row(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 16, horizontal: 32),
+                              child: const Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: const [
                                   Icon(
@@ -259,7 +264,8 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                       child: Center(
                         child: Icon(
                           Icons.arrow_back_rounded,
-                          color: Theme.of(context).textTheme.displayLarge?.color,
+                          color:
+                              Theme.of(context).textTheme.displayLarge?.color,
                           size: 24,
                         ),
                       ),
@@ -267,160 +273,188 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                   ),
                 ),
                 actions: [
-                  if (!widget.myProperty) Container(
-                    margin: const EdgeInsets.all(8),
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.15),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Consumer<FavoriteProvider>(
-                      builder: (context, favoriteProvider, child) {
-                        final isFavorite = favoriteProvider.isFavorite(widget.propertyId);
-                        return Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: favoriteProvider.isLoading
-                                ? null
-                                : () async {
-                                    if (!AuthHelper.requireAuth(
-                                      context,
-                                      message: 'Connectez-vous pour ajouter des propriétés à vos favoris',
-                                    )) {
-                                      return;
-                                    }
-                                    
-                                    try {
-                                      await favoriteProvider.toggleFavorite(widget.propertyId);
-                                      if (mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Row(
-                                              children: [
-                                                Icon(
-                                                  isFavorite ? Icons.favorite_border : Icons.favorite,
-                                                  color: AppColors.white,
-                                                  size: 20,
-                                                ),
-                                                const SizedBox(width: 12),
-                                                Text(
-                                                  favoriteProvider.isFavorite(widget.propertyId)
-                                                      ? 'Ajouté aux favoris'
-                                                      : 'Retiré des favoris',
-                                                  style: const TextStyle(
-                                                    fontFamily: 'Gilroy',
-                                                    fontWeight: FontWeight.w600,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            backgroundColor: favoriteProvider.isFavorite(widget.propertyId)
-                                                ? AppColors.success
-                                                : AppColors.warning,
-                                            behavior: SnackBarBehavior.floating,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(12),
-                                            ),
-                                          ),
-                                        );
+                  if (!widget.myProperty)
+                    Container(
+                      margin: const EdgeInsets.all(8),
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: AppColors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.15),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Consumer<FavoriteProvider>(
+                        builder: (context, favoriteProvider, child) {
+                          final isFavorite =
+                              favoriteProvider.isFavorite(widget.propertyId);
+                          return Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: favoriteProvider.isLoading
+                                  ? null
+                                  : () async {
+                                      if (!AuthHelper.requireAuth(
+                                        context,
+                                        message:
+                                            'Connectez-vous pour ajouter des propriétés à vos favoris',
+                                      )) {
+                                        return;
                                       }
-                                    } catch (e) {
-                                      if (mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Row(
-                                              children: [
-                                                const Icon(Icons.error_outline, color: AppColors.white, size: 20),
-                                                const SizedBox(width: 12),
-                                                Expanded(
-                                                  child: Text(
-                                                    'Erreur: $e',
+
+                                      try {
+                                        await favoriteProvider
+                                            .toggleFavorite(widget.propertyId);
+                                        if (mounted) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: Row(
+                                                children: [
+                                                  Icon(
+                                                    isFavorite
+                                                        ? Icons.favorite_border
+                                                        : Icons.favorite,
+                                                    color: AppColors.white,
+                                                    size: 20,
+                                                  ),
+                                                  const SizedBox(width: 12),
+                                                  Text(
+                                                    favoriteProvider.isFavorite(
+                                                            widget.propertyId)
+                                                        ? 'Ajouté aux favoris'
+                                                        : 'Retiré des favoris',
                                                     style: const TextStyle(
                                                       fontFamily: 'Gilroy',
-                                                      fontWeight: FontWeight.w600,
+                                                      fontWeight:
+                                                          FontWeight.w600,
                                                     ),
                                                   ),
-                                                ),
-                                              ],
+                                                ],
+                                              ),
+                                              backgroundColor:
+                                                  favoriteProvider.isFavorite(
+                                                          widget.propertyId)
+                                                      ? AppColors.success
+                                                      : AppColors.warning,
+                                              behavior:
+                                                  SnackBarBehavior.floating,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
                                             ),
-                                            backgroundColor: AppColors.error,
-                                            behavior: SnackBarBehavior.floating,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(12),
+                                          );
+                                        }
+                                      } catch (e) {
+                                        if (mounted) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                              content: Row(
+                                                children: [
+                                                  const Icon(
+                                                      Icons.error_outline,
+                                                      color: AppColors.white,
+                                                      size: 20),
+                                                  const SizedBox(width: 12),
+                                                  Expanded(
+                                                    child: Text(
+                                                      'Erreur: $e',
+                                                      style: const TextStyle(
+                                                        fontFamily: 'Gilroy',
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              backgroundColor: AppColors.error,
+                                              behavior:
+                                                  SnackBarBehavior.floating,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
                                             ),
-                                          ),
-                                        );
+                                          );
+                                        }
                                       }
-                                    }
-                                  },
-                            borderRadius: BorderRadius.circular(14),
-                            child: Center(
-                              child: favoriteProvider.isLoading
-                                  ? const SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                                    },
+                              borderRadius: BorderRadius.circular(14),
+                              child: Center(
+                                child: favoriteProvider.isLoading
+                                    ? const SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                  AppColors.primary),
+                                        ),
+                                      )
+                                    : Icon(
+                                        isFavorite
+                                            ? Icons.favorite_rounded
+                                            : Icons.favorite_border_rounded,
+                                        color: isFavorite
+                                            ? AppColors.error
+                                            : AppColors.textPrimary,
+                                        size: 24,
                                       ),
-                                    )
-                                  : Icon(
-                                      isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                                      color: isFavorite ? AppColors.error : AppColors.textPrimary,
-                                      size: 24,
-                                    ),
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  if (!widget.myProperty) Container(
-                    margin: const EdgeInsets.all(8),
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.15),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () {
-                          _showShareDialog(context, property);
+                          );
                         },
+                      ),
+                    ),
+                  if (!widget.myProperty)
+                    Container(
+                      margin: const EdgeInsets.all(8),
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: AppColors.white,
                         borderRadius: BorderRadius.circular(14),
-                        child: const Center(
-                          child: Icon(
-                            Icons.share_rounded,
-                            color: AppColors.textPrimary,
-                            size: 24,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.15),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            _showShareDialog(context, property);
+                          },
+                          borderRadius: BorderRadius.circular(14),
+                          child: const Center(
+                            child: Icon(
+                              Icons.share_rounded,
+                              color: AppColors.textPrimary,
+                              size: 24,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
                   Consumer<AuthProvider>(
                     builder: (context, authProvider, child) {
-                      final canEdit = widget.myProperty && authProvider.user != null;
-                      
+                      final canEdit =
+                          widget.myProperty && authProvider.user != null;
+
                       if (!canEdit) return const SizedBox.shrink();
-                      
+
                       return Container(
                         margin: const EdgeInsets.all(8),
                         width: 48,
@@ -465,12 +499,12 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                   ),
                   Consumer<AuthProvider>(
                     builder: (context, authProvider, child) {
-                      final canDelete = widget.myProperty && 
-                          authProvider.user != null && 
+                      final canDelete = widget.myProperty &&
+                          authProvider.user != null &&
                           RolePermissions.canAddProperties(authProvider.user!);
-                      
+
                       if (!canDelete) return const SizedBox.shrink();
-                      
+
                       return Container(
                         margin: const EdgeInsets.all(8),
                         width: 48,
@@ -501,8 +535,10 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                                       Container(
                                         padding: const EdgeInsets.all(8),
                                         decoration: BoxDecoration(
-                                          color: AppColors.error.withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(8),
+                                          color:
+                                              AppColors.error.withOpacity(0.1),
+                                          borderRadius:
+                                              BorderRadius.circular(8),
                                         ),
                                         child: const Icon(
                                           Icons.delete_outline_rounded,
@@ -523,7 +559,8 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                                   ),
                                   actions: [
                                     TextButton(
-                                      onPressed: () => Navigator.of(context).pop(false),
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(false),
                                       child: const Text(
                                         'Annuler',
                                         style: TextStyle(
@@ -533,12 +570,14 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                                       ),
                                     ),
                                     ElevatedButton(
-                                      onPressed: () => Navigator.of(context).pop(true),
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(true),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: AppColors.error,
                                         foregroundColor: AppColors.white,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                         ),
                                       ),
                                       child: const Text(
@@ -554,15 +593,18 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                               );
                               if (confirm == true) {
                                 try {
-                                  await Provider.of<PropertyProvider>(context, listen: false)
+                                  await Provider.of<PropertyProvider>(context,
+                                          listen: false)
                                       .deleteProperty(widget.propertyId);
                                   if (mounted) {
                                     Navigator.of(context).pop();
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Row(
-                                          children: const [
-                                            Icon(Icons.check_circle, color: AppColors.white, size: 20),
+                                        content: const Row(
+                                          children: [
+                                            Icon(Icons.check_circle,
+                                                color: AppColors.white,
+                                                size: 20),
                                             SizedBox(width: 12),
                                             Text(
                                               'Annonce supprimée',
@@ -576,7 +618,8 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                                         backgroundColor: AppColors.success,
                                         behavior: SnackBarBehavior.floating,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                         ),
                                       ),
                                     );
@@ -587,7 +630,9 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                                       SnackBar(
                                         content: Row(
                                           children: [
-                                            const Icon(Icons.error_outline, color: AppColors.white, size: 20),
+                                            const Icon(Icons.error_outline,
+                                                color: AppColors.white,
+                                                size: 20),
                                             const SizedBox(width: 12),
                                             Expanded(
                                               child: Text(
@@ -603,7 +648,8 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                                         backgroundColor: AppColors.error,
                                         behavior: SnackBarBehavior.floating,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                         ),
                                       ),
                                     );
@@ -646,7 +692,8 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                         children: [
                           PageView.builder(
                             controller: _pageController,
-                            onPageChanged: (i) => setState(() => _currentPage = i),
+                            onPageChanged: (i) =>
+                                setState(() => _currentPage = i),
                             itemCount: _imageUrls.length,
                             itemBuilder: (context, index) {
                               final url = _imageUrls[index];
@@ -666,10 +713,12 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                                   child: CachedNetworkImage(
                                     imageUrl: url,
                                     fit: BoxFit.cover,
-                                    placeholder: (context, _) => Shimmer.fromColors(
+                                    placeholder: (context, _) =>
+                                        Shimmer.fromColors(
                                       baseColor: AppColors.grey200,
                                       highlightColor: AppColors.grey100,
-                                      child: Container(color: AppColors.grey200),
+                                      child:
+                                          Container(color: AppColors.grey200),
                                     ),
                                     errorWidget: (context, _, __) => Container(
                                       color: AppColors.grey100,
@@ -684,25 +733,29 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                               );
                             },
                           ),
-                          
+
                           // Indicateur de position
                           Positioned(
-                            
                             left: 12,
                             bottom: MediaQuery.of(context).size.height * 0.25,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 6),
                               decoration: BoxDecoration(
                                 color: Colors.black54,
                                 borderRadius: BorderRadius.circular(14),
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.photo_library, size: 16, color: Colors.white),
+                                  const Icon(Icons.photo_library,
+                                      size: 16, color: Colors.white),
                                   const SizedBox(width: 6),
                                   Text(
                                     '${_currentPage + 1}/${_imageUrls.length}',
-                                    style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelMedium
+                                        ?.copyWith(
                                           color: Colors.white,
                                           fontWeight: FontWeight.w600,
                                         ),
@@ -711,7 +764,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                               ),
                             ),
                           ),
-                          
+
                           // Bandeau défilant : miniatures en cartes (sélectionnée vs non sélectionnée)
                           if (_imageUrls.length > 1)
                             Positioned(
@@ -732,7 +785,8 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                                 ),
                                 child: ListView.builder(
                                   scrollDirection: Axis.horizontal,
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 12),
                                   itemCount: _imageUrls.length,
                                   itemBuilder: (context, index) {
                                     final isSelected = index == _currentPage;
@@ -741,43 +795,55 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                                         setState(() => _currentPage = index);
                                         _pageController.animateToPage(
                                           index,
-                                          duration: const Duration(milliseconds: 300),
+                                          duration:
+                                              const Duration(milliseconds: 300),
                                           curve: Curves.easeInOut,
                                         );
                                       },
                                       child: AnimatedContainer(
-                                        duration: const Duration(milliseconds: 200),
+                                        duration:
+                                            const Duration(milliseconds: 200),
                                         width: 64,
                                         height: 64,
-                                        margin: const EdgeInsets.only(right: 10),
+                                        margin:
+                                            const EdgeInsets.only(right: 10),
                                         decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                           border: Border.all(
-                                            color: isSelected ? Colors.white : Colors.white24,
+                                            color: isSelected
+                                                ? Colors.white
+                                                : Colors.white24,
                                             width: isSelected ? 3 : 1,
                                           ),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.black.withOpacity(0.4),
+                                              color:
+                                                  Colors.black.withOpacity(0.4),
                                               blurRadius: isSelected ? 8 : 4,
                                               offset: const Offset(0, 2),
                                             ),
                                           ],
                                         ),
                                         child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(10),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
                                           child: Stack(
                                             fit: StackFit.expand,
                                             children: [
                                               CachedNetworkImage(
                                                 imageUrl: _imageUrls[index],
                                                 fit: BoxFit.cover,
-                                                placeholder: (context, _) => Shimmer.fromColors(
+                                                placeholder: (context, _) =>
+                                                    Shimmer.fromColors(
                                                   baseColor: AppColors.grey300,
-                                                  highlightColor: AppColors.grey200,
-                                                  child: Container(color: AppColors.grey300),
+                                                  highlightColor:
+                                                      AppColors.grey200,
+                                                  child: Container(
+                                                      color: AppColors.grey300),
                                                 ),
-                                                errorWidget: (context, _, __) => Container(
+                                                errorWidget: (context, _, __) =>
+                                                    Container(
                                                   color: AppColors.grey200,
                                                   child: const Icon(
                                                     Icons.image,
@@ -788,7 +854,8 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                                               ),
                                               if (!isSelected)
                                                 Container(
-                                                  color: Colors.black.withOpacity(0.25),
+                                                  color: Colors.black
+                                                      .withOpacity(0.25),
                                                 ),
                                             ],
                                           ),
@@ -841,10 +908,12 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                               children: [
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             property.pricePerDay != null
@@ -852,31 +921,48 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                                                 : property.pricePerMonth != null
                                                     ? '\$${property.pricePerMonth!.toStringAsFixed(0)}'
                                                     : '\$0',
-                                            style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                                              color: AppColors.primary,
-                                              fontWeight: FontWeight.w700,
-                                            ),
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .displaySmall
+                                                ?.copyWith(
+                                                  color: AppColors.primary,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
                                           ),
                                           if (property.pricePerDay != null)
                                             Text(
                                               '/jour',
-                                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                                color: AppColors.textSecondary,
-                                              ),
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyMedium
+                                                  ?.copyWith(
+                                                    color:
+                                                        AppColors.textSecondary,
+                                                  ),
                                             )
-                                          else if (property.pricePerMonth != null)
+                                          else if (property.pricePerMonth !=
+                                              null)
                                             Text(
                                               '/mois',
-                                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                                color: AppColors.textSecondary,
-                                              ),
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyMedium
+                                                  ?.copyWith(
+                                                    color:
+                                                        AppColors.textSecondary,
+                                                  ),
                                             ),
-                                          if (property.pricePerDay != null && property.pricePerMonth != null)
+                                          if (property.pricePerDay != null &&
+                                              property.pricePerMonth != null)
                                             Text(
                                               '(\$${property.pricePerMonth!.toStringAsFixed(0)}/mois)',
-                                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                                color: AppColors.textTertiary,
-                                              ),
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodySmall
+                                                  ?.copyWith(
+                                                    color:
+                                                        AppColors.textTertiary,
+                                                  ),
                                             ),
                                         ],
                                       ),
@@ -896,27 +982,30 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                                   ),
                                   child: Text(
                                     property.listingBadgeLabel,
-                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      color: AppColors.white,
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
+                                          color: AppColors.white,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                   ),
                                 ),
                               ],
                             ),
-                            
                             const SizedBox(height: 16),
-                            
                             Text(
                               property.title,
-                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurface,
-                                fontWeight: FontWeight.w600,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headlineSmall
+                                  ?.copyWith(
+                                    color:
+                                        Theme.of(context).colorScheme.onSurface,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                             ),
-                            
                             const SizedBox(height: 12),
-                            
                             Row(
                               children: [
                                 Container(
@@ -925,7 +1014,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                                     color: AppColors.primary.withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
-                                  child: Icon(
+                                  child: const Icon(
                                     Icons.location_on_outlined,
                                     size: 18,
                                     color: AppColors.primary,
@@ -935,28 +1024,38 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                                 Expanded(
                                   child: AddressDisplay(
                                     property: property,
-                                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                      color: AppColors.textSecondary,
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyLarge
+                                        ?.copyWith(
+                                          color: AppColors.textSecondary,
+                                          fontWeight: FontWeight.w500,
+                                        ),
                                   ),
                                 ),
                                 Consumer<LocationProvider>(
                                   builder: (context, locationProvider, child) {
-                                    final distance = locationProvider.calculateDistanceToProperty(property);
+                                    final distance = locationProvider
+                                        .calculateDistanceToProperty(property);
                                     if (distance != null) {
                                       return Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 4),
                                         decoration: BoxDecoration(
                                           color: AppColors.grey100,
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                         ),
                                         child: Text(
-                                          locationProvider.formatDistance(distance),
-                                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                            color: AppColors.textTertiary,
-                                            fontWeight: FontWeight.w500,
-                                          ),
+                                          locationProvider
+                                              .formatDistance(distance),
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.copyWith(
+                                                color: AppColors.textTertiary,
+                                                fontWeight: FontWeight.w500,
+                                              ),
                                         ),
                                       );
                                     }
@@ -971,21 +1070,25 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
 
                       // Détails de la propriété
                       _buildPropertyDetails(context, property),
+                      const SizedBox(height: 10),
 
                       // Section Avis
                       _buildReviewsSection(context, property),
+                      const SizedBox(height: 10),
 
                       // Description
                       if (property.description.isNotEmpty)
                         _buildDescription(context, property),
+                      const SizedBox(height: 10),
 
                       // Équipements
                       _buildAmenities(context, property),
+                      const SizedBox(height: 10),
 
                       // Informations sur le propriétaire
                       _buildOwnerInfo(context, property),
 
-                      const SizedBox(height: 100), // Espace pour le bouton fixe
+                      const SizedBox(height: 50), // Espace pour le bouton fixe
                     ],
                   ),
                 ),
@@ -1010,6 +1113,64 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Bouton Déléguer (visible pour admins sur toutes propriétés, et propriétaires sur leurs propriétés)
+              Consumer<AuthProvider>(
+                builder: (context, authProvider, _) {
+                  final user = authProvider.user;
+                  if (user == null) return const SizedBox.shrink();
+                  final isAdmin = RolePermissions.isAdmin(user);
+                  final canDelegate = isAdmin || (widget.myProperty && RolePermissions.canAddProperties(user));
+                  if (!canDelegate) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () async {
+                          // Chercher le titre de la propriété
+                          final propertyProvider = context.read<PropertyProvider>();
+                          final property = propertyProvider.myProperties
+                                  .where((p) => p.id == widget.propertyId)
+                                  .firstOrNull ??
+                              propertyProvider.properties
+                                  .where((p) => p.id == widget.propertyId)
+                                  .firstOrNull;
+                          final title = property?.title ?? 'Propriété';
+                          final result = await Navigator.of(context).push<bool>(
+                            MaterialPageRoute(
+                              builder: (context) => DelegatePropertyScreen(
+                                propertyId: widget.propertyId,
+                                propertyTitle: title,
+                              ),
+                            ),
+                          );
+                          if (result == true && mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Propriété déléguée avec succès'),
+                                backgroundColor: AppColors.success,
+                              ),
+                            );
+                          }
+                        },
+                        icon: const Icon(Icons.person_add_alt_1_rounded, size: 20),
+                        label: const Text(
+                          'Déléguer à un commissionnaire',
+                          style: TextStyle(fontFamily: 'Gilroy', fontWeight: FontWeight.w600),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.primary,
+                          side: const BorderSide(color: AppColors.primary),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
               // Bouton Demander visite en pleine largeur
               CustomButton(
                 width: double.maxFinite,
@@ -1030,44 +1191,44 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                   }
                 },
               ),
-              
-              // Bouton Contacter commenté
-              // Row(
-              //   children: [
-              //     Expanded(
-              //       child: CustomButton(
-              //         text: 'Contacter',
-              //         icon: Icon(Icons.chat_bubble_outline, size: 20, color: AppColors.primary),
-              //         isOutlined: true,
-              //         onPressed: () => _onContactPressed(context),
-              //       ),
-              //     ),
-              //     const SizedBox(width: 12),
-              //     Expanded(
-              //       child: CustomButton(
-              //         text: 'Demander visite',
-              //         onPressed: () {
-              //           // Vérifier l'authentification avant de permettre la demande de visite
-              //           if (AuthHelper.requireAuth(
-              //             context,
-              //             message: 'Connectez-vous pour demander une visite',
-              //           )) {
-              //             Navigator.of(context).push(
-              //               MaterialPageRoute(
-              //                 builder: (context) => RequestVisitScreen(
-              //                   propertyId: widget.propertyId,
-              //                 ),
-              //               ),
-              //             );
-              //           }
-              //         },
-              //       ),
-              //     ),
-              //   ],
-              // ),
             ],
           ),
         ),
+
+        // Bouton Contacter commenté
+        // Row(
+        //   children: [
+        //     Expanded(
+        //       child: CustomButton(
+        //         text: 'Contacter',
+        //         icon: Icon(Icons.chat_bubble_outline, size: 20, color: AppColors.primary),
+        //         isOutlined: true,
+        //         onPressed: () => _onContactPressed(context),
+        //       ),
+        //     ),
+        //     const SizedBox(width: 12),
+        //     Expanded(
+        //       child: CustomButton(
+        //         text: 'Demander visite',
+        //         onPressed: () {
+        //           // Vérifier l'authentification avant de permettre la demande de visite
+        //           if (AuthHelper.requireAuth(
+        //             context,
+        //             message: 'Connectez-vous pour demander une visite',
+        //           )) {
+        //             Navigator.of(context).push(
+        //               MaterialPageRoute(
+        //                 builder: (context) => RequestVisitScreen(
+        //                   propertyId: widget.propertyId,
+        //                 ),
+        //               ),
+        //             );
+        //           }
+        //         },
+        //       ),
+        //     ),
+        //   ],
+        // ),
       ),
     );
   }
@@ -1283,14 +1444,14 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
               Text(
                 'Caractéristiques',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
+                      fontWeight: FontWeight.w700,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
               ),
             ],
           ),
           const SizedBox(height: 20),
-          
+
           // Caractéristiques selon le type : Appartement
           if (property.type == 'apartment') ...[
             Row(
@@ -1298,22 +1459,35 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                 if (property.bedrooms != null)
                   Expanded(
                     child: _buildDetailCard(
-                      context, Icons.bed_outlined, '${property.bedrooms}',
-                      'Chambre${property.bedrooms! > 1 ? 's' : ''}', AppColors.primary,
+                      context,
+                      Icons.bed_outlined,
+                      '${property.bedrooms}',
+                      'Chambre${property.bedrooms! > 1 ? 's' : ''}',
+                      AppColors.primary,
                     ),
                   ),
-                if (property.bedrooms != null && property.bathrooms != null) const SizedBox(width: 12),
+                if (property.bedrooms != null && property.bathrooms != null)
+                  const SizedBox(width: 12),
                 if (property.bathrooms != null)
                   Expanded(
                     child: _buildDetailCard(
-                      context, Icons.bathtub_outlined, '${property.bathrooms}', 'SDB', AppColors.secondary,
+                      context,
+                      Icons.bathtub_outlined,
+                      '${property.bathrooms}',
+                      'SDB',
+                      AppColors.secondary,
                     ),
                   ),
                 if (property.squareMeters != null) ...[
-                  if (property.bedrooms != null || property.bathrooms != null) const SizedBox(width: 12),
+                  if (property.bedrooms != null || property.bathrooms != null)
+                    const SizedBox(width: 12),
                   Expanded(
                     child: _buildDetailCard(
-                      context, Icons.square_foot, '${property.squareMeters!.toInt()}', 'm²', AppColors.success,
+                      context,
+                      Icons.square_foot,
+                      '${property.squareMeters!.toInt()}',
+                      'm²',
+                      AppColors.success,
                     ),
                   ),
                 ],
@@ -1326,31 +1500,39 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                   if (property.floor != null)
                     Expanded(
                       child: _buildDetailCard(
-                        context, Icons.stairs, '${property.floor}', 'Étage', AppColors.warning,
+                        context,
+                        Icons.stairs,
+                        '${property.floor}',
+                        'Étage',
+                        AppColors.warning,
                       ),
                     ),
-                  if (property.floor != null && property.hasElevator) const SizedBox(width: 12),
+                  if (property.floor != null && property.hasElevator)
+                    const SizedBox(width: 12),
                   if (property.hasElevator)
                     Expanded(
-                      child: _buildDetailCard(context, Icons.elevator, '', 'Ascenseur', AppColors.info),
+                      child: _buildDetailCard(context, Icons.elevator, '',
+                          'Ascenseur', AppColors.info),
                     ),
                   if (property.hasBalcony) ...[
                     const SizedBox(width: 12),
                     Expanded(
-                      child: _buildDetailCard(context, Icons.balcony, '', 'Balcon', AppColors.info),
+                      child: _buildDetailCard(
+                          context, Icons.balcony, '', 'Balcon', AppColors.info),
                     ),
                   ],
                   if (property.isFurnished == true) ...[
                     const SizedBox(width: 12),
                     Expanded(
-                      child: _buildDetailCard(context, Icons.chair, '', 'Meublé', AppColors.info),
+                      child: _buildDetailCard(
+                          context, Icons.chair, '', 'Meublé', AppColors.info),
                     ),
                   ],
                 ],
               ),
             ],
           ],
-          
+
           // Caractéristiques selon le type : Maison (différent de l'appartement)
           if (property.type == 'house') ...[
             Row(
@@ -1358,23 +1540,34 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                 if (property.bedrooms != null)
                   Expanded(
                     child: _buildDetailCard(
-                      context, Icons.bed_outlined, '${property.bedrooms}',
-                      'Chambre${property.bedrooms! > 1 ? 's' : ''}', AppColors.primary,
+                      context,
+                      Icons.bed_outlined,
+                      '${property.bedrooms}',
+                      'Chambre${property.bedrooms! > 1 ? 's' : ''}',
+                      AppColors.primary,
                     ),
                   ),
-                if (property.bedrooms != null && property.bathrooms != null) const SizedBox(width: 12),
+                if (property.bedrooms != null && property.bathrooms != null)
+                  const SizedBox(width: 12),
                 if (property.bathrooms != null)
                   Expanded(
                     child: _buildDetailCard(
-                      context, Icons.bathtub_outlined, '${property.bathrooms}', 'SDB', AppColors.secondary,
+                      context,
+                      Icons.bathtub_outlined,
+                      '${property.bathrooms}',
+                      'SDB',
+                      AppColors.secondary,
                     ),
                   ),
                 if (property.floors != null) ...[
                   const SizedBox(width: 12),
                   Expanded(
                     child: _buildDetailCard(
-                      context, Icons.stairs, '${property.floors}',
-                      'Étage${property.floors! > 1 ? 's' : ''}', AppColors.warning,
+                      context,
+                      Icons.stairs,
+                      '${property.floors}',
+                      'Étage${property.floors! > 1 ? 's' : ''}',
+                      AppColors.warning,
                     ),
                   ),
                 ],
@@ -1386,26 +1579,37 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                 if (property.houseSquareMeters != null)
                   Expanded(
                     child: _buildDetailCard(
-                      context, Icons.home, '${property.houseSquareMeters!.toInt()}', 'm² habitable', AppColors.info,
+                      context,
+                      Icons.home,
+                      '${property.houseSquareMeters!.toInt()}',
+                      'm² habitable',
+                      AppColors.info,
                     ),
                   ),
-                if (property.houseSquareMeters != null && property.landSquareMeters != null) const SizedBox(width: 12),
+                if (property.houseSquareMeters != null &&
+                    property.landSquareMeters != null)
+                  const SizedBox(width: 12),
                 if (property.landSquareMeters != null)
                   Expanded(
                     child: _buildDetailCard(
-                      context, Icons.landscape, '${property.landSquareMeters!.toInt()}', 'm² terrain', AppColors.success,
+                      context,
+                      Icons.landscape,
+                      '${property.landSquareMeters!.toInt()}',
+                      'm² terrain',
+                      AppColors.success,
                     ),
                   ),
                 if (property.isFurnished == true) ...[
                   const SizedBox(width: 12),
                   Expanded(
-                    child: _buildDetailCard(context, Icons.chair, '', 'Meublé', AppColors.info),
+                    child: _buildDetailCard(
+                        context, Icons.chair, '', 'Meublé', AppColors.info),
                   ),
                 ],
               ],
             ),
           ],
-          
+
           // Caractéristiques selon le type : Terrain / Parcelle
           if (property.type == 'land') ...[
             Row(
@@ -1413,32 +1617,47 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                 if (property.squareMeters != null)
                   Expanded(
                     child: _buildDetailCard(
-                      context, Icons.square_foot, '${property.squareMeters!.toInt()}', 'm²', AppColors.success,
+                      context,
+                      Icons.square_foot,
+                      '${property.squareMeters!.toInt()}',
+                      'm²',
+                      AppColors.success,
                     ),
                   ),
-                if (property.landType != null && property.landType!.isNotEmpty) ...[
+                if (property.landType != null &&
+                    property.landType!.isNotEmpty) ...[
                   const SizedBox(width: 12),
                   Expanded(
                     child: _buildDetailCard(
-                      context, Icons.landscape,
-                      property.landType == 'residential' ? 'Résidentiel' : property.landType == 'commercial' ? 'Commercial' : property.landType == 'agricultural' ? 'Agricole' : 'Industriel',
-                      'Type', AppColors.info,
+                      context,
+                      Icons.landscape,
+                      property.landType == 'residential'
+                          ? 'Résidentiel'
+                          : property.landType == 'commercial'
+                              ? 'Commercial'
+                              : property.landType == 'agricultural'
+                                  ? 'Agricole'
+                                  : 'Industriel',
+                      'Type',
+                      AppColors.info,
                     ),
                   ),
                 ],
               ],
             ),
           ],
-          
+
           // Caractéristiques selon le type : Véhicule
           if (property.type == 'car') ...[
             Row(
               children: [
                 if (property.brand != null)
                   Expanded(
-                    child: _buildDetailCard(context, Icons.directions_car, property.brand!, 'Marque', AppColors.primary),
+                    child: _buildDetailCard(context, Icons.directions_car,
+                        property.brand!, 'Marque', AppColors.primary),
                   ),
-                if (property.brand != null && property.model != null) const SizedBox(width: 12),
+                if (property.brand != null && property.model != null)
+                  const SizedBox(width: 12),
                 if (property.model != null)
                   Expanded(
                     child: _buildDetailCard(
@@ -1452,7 +1671,8 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                 if (property.year != null) ...[
                   const SizedBox(width: 12),
                   Expanded(
-                    child: _buildDetailCard(context, Icons.calendar_today, '${property.year}', 'Année', AppColors.warning),
+                    child: _buildDetailCard(context, Icons.calendar_today,
+                        '${property.year}', 'Année', AppColors.warning),
                   ),
                 ],
               ],
@@ -1462,9 +1682,11 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
               children: [
                 if (property.seats != null)
                   Expanded(
-                    child: _buildDetailCard(context, Icons.event_seat, '${property.seats}', 'Places', AppColors.info),
+                    child: _buildDetailCard(context, Icons.event_seat,
+                        '${property.seats}', 'Places', AppColors.info),
                   ),
-                if (property.seats != null && property.fuelType != null) const SizedBox(width: 12),
+                if (property.seats != null && property.fuelType != null)
+                  const SizedBox(width: 12),
                 if (property.fuelType != null)
                   Expanded(
                     child: _buildDetailCard(
@@ -1487,16 +1709,25 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: _buildDetailCard(
-                      context, Icons.settings,
-                      property.transmission == 'automatic' ? 'Auto' : 'Manuelle',
-                      'Transmission', AppColors.textTertiary,
+                      context,
+                      Icons.settings,
+                      property.transmission == 'automatic'
+                          ? 'Auto'
+                          : 'Manuelle',
+                      'Transmission',
+                      AppColors.textTertiary,
                     ),
                   ),
                 ],
                 if (property.mileage != null) ...[
                   const SizedBox(width: 12),
                   Expanded(
-                    child: _buildDetailCard(context, Icons.speed, '${_formatNumber(property.mileage)} km', 'Kilométrage', AppColors.textTertiary),
+                    child: _buildDetailCard(
+                        context,
+                        Icons.speed,
+                        '${_formatNumber(property.mileage)} km',
+                        'Kilométrage',
+                        AppColors.textTertiary),
                   ),
                 ],
               ],
@@ -1507,19 +1738,21 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                 children: [
                   if (property.color != null)
                     Expanded(
-                      child: _buildDetailCard(context, Icons.palette, property.color!, 'Couleur', AppColors.info),
+                      child: _buildDetailCard(context, Icons.palette,
+                          property.color!, 'Couleur', AppColors.info),
                     ),
                   if (property.withDriver == true) ...[
                     if (property.color != null) const SizedBox(width: 12),
                     Expanded(
-                      child: _buildDetailCard(context, Icons.person, '', 'Avec chauffeur', AppColors.primary),
+                      child: _buildDetailCard(context, Icons.person, '',
+                          'Avec chauffeur', AppColors.primary),
                     ),
                   ],
                 ],
               ),
             ],
           ],
-          
+
           // Caractéristiques selon le type : Salle de fête / Événement (aligné sur le modèle API)
           if (property.type == 'event_hall') ...[
             Row(
@@ -1527,17 +1760,24 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                 if (property.capacity != null)
                   Expanded(
                     child: _buildDetailCard(
-                      context, Icons.groups, '${property.capacity}', 'Capacité (personnes)', AppColors.primary,
+                      context,
+                      Icons.groups,
+                      '${property.capacity}',
+                      'Capacité (personnes)',
+                      AppColors.primary,
                     ),
                   ),
-                if (property.capacity != null && property.hasParking) const SizedBox(width: 12),
+                if (property.capacity != null && property.hasParking)
+                  const SizedBox(width: 12),
                 if (property.hasParking)
                   Expanded(
-                    child: _buildDetailCard(context, Icons.local_parking, '', 'Parking', AppColors.success),
+                    child: _buildDetailCard(context, Icons.local_parking, '',
+                        'Parking', AppColors.success),
                   ),
               ],
             ),
-            if (property.eventTypes != null && property.eventTypes!.isNotEmpty) ...[
+            if (property.eventTypes != null &&
+                property.eventTypes!.isNotEmpty) ...[
               const SizedBox(height: 16),
               Wrap(
                 spacing: 8,
@@ -1546,18 +1786,20 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                   ...property.eventTypes!.map((e) {
                     final label = _eventTypeLabel(e);
                     return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
                         color: AppColors.primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                        border: Border.all(
+                            color: AppColors.primary.withOpacity(0.3)),
                       ),
                       child: Text(
                         label,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w500,
-                        ),
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w500,
+                            ),
                       ),
                     );
                   }),
@@ -1565,7 +1807,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
               ),
             ],
           ],
-          
+
           // Statistiques (vues et avis)
           if (property.viewCount > 0 || property.reviewCount > 0) ...[
             const SizedBox(height: 16),
@@ -1574,9 +1816,9 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                 if (property.viewCount > 0)
                   Expanded(
                     child: _buildDetailCard(
-                      context, 
-                      Icons.visibility_outlined, 
-                      '${property.viewCount}', 
+                      context,
+                      Icons.visibility_outlined,
+                      '${property.viewCount}',
                       'Vue${property.viewCount > 1 ? 's' : ''}',
                       AppColors.textTertiary,
                     ),
@@ -1586,9 +1828,9 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                 if (property.reviewCount > 0)
                   Expanded(
                     child: _buildDetailCard(
-                      context, 
-                      Icons.star_outline, 
-                      '${property.reviewCount}', 
+                      context,
+                      Icons.star_outline,
+                      '${property.reviewCount}',
                       'Avis',
                       AppColors.warning,
                     ),
@@ -1627,7 +1869,8 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
     return buf.toString();
   }
 
-  Widget _buildDetailCard(BuildContext context, IconData icon, String value, String label, Color color) {
+  Widget _buildDetailCard(BuildContext context, IconData icon, String value,
+      String label, Color color) {
     final displayValue = value.trim().isEmpty ? '—' : value;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
@@ -1649,9 +1892,9 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w700,
-                ),
+                      color: color,
+                      fontWeight: FontWeight.w700,
+                    ),
               ),
             ),
           const SizedBox(height: 2),
@@ -1661,9 +1904,9 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: AppColors.textSecondary,
-              fontWeight: FontWeight.w500,
-            ),
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
           ),
         ],
       ),
@@ -1727,7 +1970,6 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                             fontFamily: 'Gilroy',
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
-                            color: AppColors.textPrimary,
                           ),
                         ),
                         if (property.reviewCount > 0) ...[
@@ -1746,17 +1988,19 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                                   fontFamily: 'Gilroy',
                                   fontSize: 14,
                                   fontWeight: FontWeight.w700,
-                                  color: AppColors.textPrimary,
                                 ),
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 '(${property.reviewCount} avis)',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontFamily: 'Gilroy',
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
-                                  color: AppColors.textSecondary,
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.color,
                                 ),
                               ),
                             ],
@@ -1769,102 +2013,124 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
               ),
 
               // Les 2 derniers avis depuis le provider
-              if (reviewProvider.isLoading && reviewProvider.reviews.isEmpty) ...[
+              if (reviewProvider.isLoading &&
+                  reviewProvider.reviews.isEmpty) ...[
                 const SizedBox(height: 16),
                 const Center(
                   child: SizedBox(
-                    width: 24, height: 24,
+                    width: 24,
+                    height: 24,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.warning),
+                      valueColor:
+                          AlwaysStoppedAnimation<Color>(AppColors.warning),
                     ),
                   ),
                 ),
               ] else if (reviewProvider.reviews.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                ...reviewProvider.reviews.take(2).map((review) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.border.withValues(alpha: 0.3)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 16,
-                              backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                              child: Text(
-                                review.userName.isNotEmpty ? review.userName[0].toUpperCase() : 'U',
-                                style: const TextStyle(
-                                  fontFamily: 'Gilroy',
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.primary,
-                                ),
-                              ),
+                ...reviewProvider.reviews
+                    .take(2)
+                    .map((review) => Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).cardColor,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                  color: Theme.of(context)
+                                      .dividerColor
+                                      .withValues(alpha: 0.3)),
                             ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                review.userName,
-                                style: const TextStyle(
-                                  fontFamily: 'Gilroy',
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.textPrimary,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 16,
+                                      backgroundColor: AppColors.primary
+                                          .withValues(alpha: 0.1),
+                                      child: Text(
+                                        review.userName.isNotEmpty
+                                            ? review.userName[0].toUpperCase()
+                                            : 'U',
+                                        style: const TextStyle(
+                                          fontFamily: 'Gilroy',
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppColors.primary,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        review.userName,
+                                        style: TextStyle(
+                                          fontFamily: 'Gilroy',
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w700,
+                                          color: Theme.of(context)
+                                              .textTheme
+                                              .displayLarge
+                                              ?.color,
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.warning
+                                            .withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(Icons.star_rounded,
+                                              size: 14,
+                                              color: AppColors.warning),
+                                          const SizedBox(width: 3),
+                                          Text(
+                                            '${review.rating}',
+                                            style: const TextStyle(
+                                              fontFamily: 'Gilroy',
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w700,
+                                              color: AppColors.warning,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: AppColors.warning.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(Icons.star_rounded, size: 14, color: AppColors.warning),
-                                  const SizedBox(width: 3),
+                                if ((review.comment ?? '').isNotEmpty) ...[
+                                  const SizedBox(height: 8),
                                   Text(
-                                    '${review.rating}',
-                                    style: const TextStyle(
+                                    review.comment!,
+                                    style: TextStyle(
                                       fontFamily: 'Gilroy',
                                       fontSize: 13,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.warning,
+                                      fontWeight: FontWeight.w500,
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.color,
+                                      height: 1.4,
                                     ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
-                              ),
+                              ],
                             ),
-                          ],
-                        ),
-                        if ((review.comment ?? '').isNotEmpty) ...[
-                          const SizedBox(height: 8),
-                          Text(
-                            review.comment!,
-                            style: const TextStyle(
-                              fontFamily: 'Gilroy',
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.textSecondary,
-                              height: 1.4,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
                           ),
-                        ],
-                      ],
-                    ),
-                  ),
-                )).toList(),
+                        ))
+                    .toList(),
                 const SizedBox(height: 8),
                 Center(
                   child: Container(
@@ -1894,7 +2160,8 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                         ),
                         borderRadius: BorderRadius.circular(12),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 12),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -1908,7 +2175,8 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                                 ),
                               ),
                               const SizedBox(width: 6),
-                              const Icon(Icons.arrow_forward_rounded, color: AppColors.white, size: 18),
+                              const Icon(Icons.arrow_forward_rounded,
+                                  color: AppColors.white, size: 18),
                             ],
                           ),
                         ),
@@ -1934,13 +2202,13 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      const Text(
+                      Text(
                         'Aucun avis pour le moment',
                         style: TextStyle(
                           fontFamily: 'Gilroy',
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.textSecondary,
+                          color: Theme.of(context).textTheme.bodySmall?.color,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -1979,7 +2247,8 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                               child: const Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.rate_review_rounded, color: AppColors.white, size: 18),
+                                  Icon(Icons.rate_review_rounded,
+                                      color: AppColors.white, size: 18),
                                   SizedBox(width: 8),
                                   Text(
                                     'Laisser le premier avis',
@@ -2044,9 +2313,9 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
               Text(
                 'Description',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
+                      fontWeight: FontWeight.w700,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
               ),
             ],
           ),
@@ -2054,9 +2323,9 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
           Text(
             property.description,
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-              height: 1.6,
-            ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  height: 1.6,
+                ),
           ),
         ],
       ),
@@ -2137,9 +2406,9 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
               Text(
                 'Équipements & commodités',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
+                      fontWeight: FontWeight.w700,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
               ),
             ],
           ),
@@ -2150,7 +2419,8 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
             children: amenities.entries.map((entry) {
               final available = entry.value;
               return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
                   color: available
                       ? AppColors.success.withOpacity(0.12)
@@ -2168,15 +2438,22 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                     Icon(
                       available ? Icons.check_circle : Icons.cancel_outlined,
                       size: 18,
-                      color: available ? AppColors.success : Theme.of(context).colorScheme.onSurfaceVariant,
+                      color: available
+                          ? AppColors.success
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
                     const SizedBox(width: 8),
                     Text(
                       entry.key,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: available ? AppColors.success : Theme.of(context).colorScheme.onSurfaceVariant,
-                        fontWeight: available ? FontWeight.w600 : FontWeight.w500,
-                      ),
+                            color: available
+                                ? AppColors.success
+                                : Theme.of(context)
+                                    .colorScheme
+                                    .onSurfaceVariant,
+                            fontWeight:
+                                available ? FontWeight.w600 : FontWeight.w500,
+                          ),
                     ),
                   ],
                 ),
@@ -2241,25 +2518,25 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Commissionnaire',
                   style: TextStyle(
                     fontFamily: 'Gilroy',
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.textTertiary,
+                    color: Theme.of(context).textTheme.bodySmall?.color,
                     letterSpacing: 0.3,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   property.ownerName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'Gilroy',
                     fontSize: 17,
                     fontWeight: FontWeight.w700,
                     letterSpacing: -0.2,
-                    color: AppColors.textPrimary,
+                    color: Theme.of(context).textTheme.displayLarge?.color,
                   ),
                 ),
               ],
@@ -2293,11 +2570,13 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                 ),
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.person_rounded, color: AppColors.white, size: 18),
+                      Icon(Icons.person_rounded,
+                          color: AppColors.white, size: 18),
                       SizedBox(width: 6),
                       Text(
                         'Voir profil',
@@ -2338,7 +2617,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
 
   void _showShareDialog(BuildContext context, Property property) {
     final GlobalKey repaintBoundaryKey = GlobalKey();
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -2372,13 +2651,15 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
     );
   }
 
-  Future<void> _shareProperty(BuildContext context, Property property, GlobalKey repaintBoundaryKey) async {
+  Future<void> _shareProperty(BuildContext context, Property property,
+      GlobalKey repaintBoundaryKey) async {
     try {
       // Capturer l'image du widget
       final RenderRepaintBoundary boundary = repaintBoundaryKey.currentContext!
           .findRenderObject() as RenderRepaintBoundary;
       final ui.Image image = await boundary.toImage(pixelRatio: 3.0);
-      final ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      final ByteData? byteData =
+          await image.toByteData(format: ui.ImageByteFormat.png);
       final Uint8List pngBytes = byteData!.buffer.asUint8List();
 
       // Sauvegarder l'image temporairement
@@ -2388,16 +2669,18 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
       await file.writeAsBytes(pngBytes);
 
       // Texte adapté à la propriété (catégorie, type, prix, adresse)
-      final categoryLabel = property.categoryName.isNotEmpty ? '${property.categoryName} • ' : '';
+      final categoryLabel =
+          property.categoryName.isNotEmpty ? '${property.categoryName} • ' : '';
       await Share.shareXFiles(
         [XFile(file.path)],
         text: 'Découvrez cette annonce sur Futela !\n\n'
-              '$categoryLabel${property.typeDisplayName}\n'
-              '${property.title}\n'
-              '${property.formattedPrice}${property.type == 'for-rent' ? '/mois' : ''}\n'
-              '${property.fullAddress}\n\n'
-              'Téléchargez l\'app Futela ou visitez futela.com',
-        subject: 'Futela - ${property.categoryName.isNotEmpty ? property.categoryName : "Annonce"} : ${property.title}',
+            '$categoryLabel${property.typeDisplayName}\n'
+            '${property.title}\n'
+            '${property.formattedPrice}${property.type == 'for-rent' ? '/mois' : ''}\n'
+            '${property.fullAddress}\n\n'
+            'Téléchargez l\'app Futela ou visitez futela.com',
+        subject:
+            'Futela - ${property.categoryName.isNotEmpty ? property.categoryName : "Annonce"} : ${property.title}',
       );
     } catch (e) {
       if (context.mounted) {

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/favorite_provider.dart';
+import '../providers/notification_provider.dart';
+import '../services/version_check_service.dart';
 import '../utils/app_colors.dart';
 import '../utils/role_permissions.dart';
 import 'home/home_screen.dart';
@@ -31,6 +33,25 @@ class _MainNavigationState extends State<MainNavigation> {
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkForUpdate();
+      _loadNotificationBadge();
+    });
+  }
+
+  Future<void> _checkForUpdate() async {
+    if (!mounted) return;
+    await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
+    // forceShow: false en production — affiche uniquement si une vraie MAJ est dispo
+    await VersionCheckService.checkAndShowUpdateDialog(context);
+  }
+
+  Future<void> _loadNotificationBadge() async {
+    if (!mounted) return;
+    try {
+      await context.read<NotificationProvider>().loadUnreadCount();
+    } catch (_) {}
   }
 
   @override

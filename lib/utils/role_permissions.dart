@@ -61,9 +61,10 @@ class RolePermissions {
   static bool canAccessCommissionFeatures(User user) {
     if (!_hasAnyRole(user, [commissionnaire, admin, superAdmin])) return false;
     // Pour les commissionnaires, vérifier que le compte est approuvé
+    // Si approvalStatus est null (non renvoyé par l'API), on considère approuvé
     if (_hasAnyRole(user, [commissionnaire]) &&
         !_hasAnyRole(user, [admin, superAdmin])) {
-      return user.approvalStatus == 'approved';
+      return user.approvalStatus == null || user.approvalStatus == 'approved';
     }
     return true;
   }

@@ -17,7 +17,7 @@ class NotificationService {
           await _dio.get('/api/notifications', queryParameters: params);
 
       if (response.statusCode == 200 && response.data is Map) {
-        final list = response.data['notifications'];
+        final list = response.data['member'] ?? response.data['notifications'];
         if (list is List) {
           return list
               .map((e) => AppNotification.fromJson(e as Map<String, dynamic>))
@@ -34,7 +34,7 @@ class NotificationService {
     try {
       final response = await _dio.get('/api/notifications/unread');
       if (response.statusCode == 200 && response.data is Map) {
-        final list = response.data['notifications'];
+        final list = response.data['member'] ?? response.data['notifications'];
         if (list is List) {
           return list
               .map((e) => AppNotification.fromJson(e as Map<String, dynamic>))
@@ -64,7 +64,11 @@ class NotificationService {
   }
 
   Future<void> markAsRead(String id) async {
-    await _dio.put('/api/notifications/$id/read');
+    try {
+      await _dio.put('/api/notifications/$id/read');
+    } on DioException {
+      // Silently ignore — server-side issue
+    }
   }
 
   Future<void> deleteNotification(String id) async {

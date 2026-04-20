@@ -136,54 +136,60 @@ class _CommissionsListScreenState extends State<CommissionsListScreen> {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: _getStatusColor(commission.status).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      _getStatusIcon(commission.status),
-                      color: _getStatusColor(commission.status),
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${commission.amount.toStringAsFixed(2)} ${commission.currency}',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Theme.of(context).textTheme.displayLarge?.color,
-                        ),
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: _getStatusColor(commission.verificationStatus).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      Text(
-                        commission.status.displayName,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: _getStatusColor(commission.status),
-                          fontWeight: FontWeight.w500,
-                        ),
+                      child: Icon(
+                        _getStatusIcon(commission.verificationStatus),
+                        color: _getStatusColor(commission.verificationStatus),
+                        size: 20,
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${commission.commissionAmount.toStringAsFixed(2)} ${commission.currency}',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).textTheme.displayLarge?.color,
+                            ),
+                          ),
+                          Text(
+                            commission.verificationStatusLabel,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: _getStatusColor(commission.verificationStatus),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
                     _formatDate(commission.createdAt),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
-                      color: AppColors.textSecondary,
+                      color: Theme.of(context).textTheme.bodySmall?.color,
                     ),
                   ),
                   if (commission.verifiedAt != null)
@@ -200,7 +206,7 @@ class _CommissionsListScreenState extends State<CommissionsListScreen> {
           ),
           const SizedBox(height: 12),
           _buildCommissionDetails(commission),
-          if (commission.status.value == 'code_sent' && commission.canVerify)
+          if (commission.verificationStatus == 'code_sent' && commission.canVerify)
             _buildVerificationSection(commission),
         ],
       ),
@@ -219,13 +225,13 @@ class _CommissionsListScreenState extends State<CommissionsListScreen> {
           _buildDetailRow(
             icon: CupertinoIcons.building_2_fill,
             label: 'Propriété',
-            value: commission.propertyId,
+            value: commission.propertyTitle ?? commission.visitId,
           ),
           const SizedBox(height: 8),
           _buildDetailRow(
             icon: CupertinoIcons.person_fill,
             label: 'Visiteur',
-            value: commission.visitorId,
+            value: commission.visitorName ?? commission.visitorId ?? '—',
           ),
           const SizedBox(height: 8),
           _buildDetailRow(
@@ -268,13 +274,18 @@ class _CommissionsListScreenState extends State<CommissionsListScreen> {
             color: Theme.of(context).textTheme.bodySmall?.color,
           ),
         ),
-        const Spacer(),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 12,
-            color: valueColor ?? Theme.of(context).textTheme.displayLarge?.color,
-            fontWeight: FontWeight.w500,
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyle(
+              fontSize: 12,
+              color: valueColor ?? Theme.of(context).textTheme.displayLarge?.color,
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.end,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
         ),
       ],
@@ -308,14 +319,6 @@ class _CommissionsListScreenState extends State<CommissionsListScreen> {
               ),
             ),
           ),
-          if (commission.codeExpiresAt != null)
-            Text(
-              'Expire ${_formatTimeRemaining(commission.codeExpiresAt!)}',
-              style: const TextStyle(
-                color: AppColors.warning,
-                fontSize: 10,
-              ),
-            ),
         ],
       ),
     );
@@ -398,7 +401,8 @@ class _CommissionsListScreenState extends State<CommissionsListScreen> {
   }
 
   Color _getStatusColor(status) {
-    switch (status.value) {
+    final statusValue = status is String ? status : status.value;
+    switch (statusValue) {
       case 'verified':
         return AppColors.success;
       case 'code_sent':
@@ -415,7 +419,8 @@ class _CommissionsListScreenState extends State<CommissionsListScreen> {
   }
 
   IconData _getStatusIcon(status) {
-    switch (status.value) {
+    final statusValue = status is String ? status : status.value;
+    switch (statusValue) {
       case 'verified':
         return CupertinoIcons.checkmark_circle_fill;
       case 'code_sent':

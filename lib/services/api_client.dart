@@ -81,7 +81,7 @@ class ApiClient {
       },
       onResponse: (response, handler) {
         // Log response
-        print('<-- ${response.statusCode} ${response.requestOptions.path}');
+        print('<-- ${response.statusCode} ${response.requestOptions.path}: ${response.data}');
         return handler.next(response);
       },
       onError: (DioException e, handler) async {

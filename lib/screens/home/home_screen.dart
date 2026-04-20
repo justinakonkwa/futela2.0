@@ -4,6 +4,7 @@ import '../../providers/property_provider.dart';
 import '../../providers/location_provider.dart';
 import '../../providers/favorite_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/notification_provider.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/error_formatter.dart';
 import '../../utils/role_permissions.dart';
@@ -200,43 +201,83 @@ class _HomeScreenState extends State<HomeScreen> {
                                         return const SizedBox.shrink();
                                       },
                                     ),
-                                    // Icône de notification
-                                    Container(
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context).cardColor,
-                                        borderRadius: BorderRadius.circular(14),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: AppColors.primary
-                                                .withOpacity(0.15),
-                                            blurRadius: 12,
-                                            offset: const Offset(0, 4),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Material(
-                                        color: Colors.transparent,
-                                        child: InkWell(
-                                          onTap: () {
-                                            Navigator.of(context).push(
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    const NotificationsScreen(),
+                                    // Icône de notification avec badge
+                                    Consumer<NotificationProvider>(
+                                      builder: (context, notifProvider, _) {
+                                        final count = notifProvider.unreadCount;
+                                        return Stack(
+                                          clipBehavior: Clip.none,
+                                          children: [
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                color: Theme.of(context).cardColor,
+                                                borderRadius: BorderRadius.circular(14),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: AppColors.primary
+                                                        .withOpacity(0.15),
+                                                    blurRadius: 12,
+                                                    offset: const Offset(0, 4),
+                                                  ),
+                                                ],
                                               ),
-                                            );
-                                          },
-                                          borderRadius:
-                                              BorderRadius.circular(14),
-                                          child: Container(
-                                            padding: const EdgeInsets.all(12),
-                                            child: const Icon(
-                                              Icons.notifications_outlined,
-                                              color: AppColors.primary,
-                                              size: 24,
+                                              child: Material(
+                                                color: Colors.transparent,
+                                                child: InkWell(
+                                                  onTap: () {
+                                                    Navigator.of(context).push(
+                                                      MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            const NotificationsScreen(),
+                                                      ),
+                                                    );
+                                                  },
+                                                  borderRadius:
+                                                      BorderRadius.circular(14),
+                                                  child: Container(
+                                                    padding: const EdgeInsets.all(12),
+                                                    child: const Icon(
+                                                      Icons.notifications_outlined,
+                                                      color: AppColors.primary,
+                                                      size: 24,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
                                             ),
-                                          ),
-                                        ),
-                                      ),
+                                            if (count > 0)
+                                              Positioned(
+                                                top: -4,
+                                                right: -4,
+                                                child: Container(
+                                                  padding: const EdgeInsets.all(4),
+                                                  constraints: const BoxConstraints(
+                                                    minWidth: 18,
+                                                    minHeight: 18,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    color: AppColors.error,
+                                                    shape: BoxShape.circle,
+                                                    border: Border.all(
+                                                      color: Theme.of(context).cardColor,
+                                                      width: 2,
+                                                    ),
+                                                  ),
+                                                  child: Text(
+                                                    count > 99 ? '99+' : '$count',
+                                                    style: const TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 10,
+                                                      fontWeight: FontWeight.w700,
+                                                      fontFamily: 'Gilroy',
+                                                    ),
+                                                    textAlign: TextAlign.center,
+                                                  ),
+                                                ),
+                                              ),
+                                          ],
+                                        );
+                                      },
                                     ),
                                   ],
                                 ),

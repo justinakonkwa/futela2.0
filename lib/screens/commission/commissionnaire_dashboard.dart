@@ -412,12 +412,12 @@ class _CommissionnaireDashboardState extends State<CommissionnaireDashboard> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: _getStatusColor(commission.status).withOpacity(0.1),
+              color: _getStatusColor(commission.verificationStatus).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
-              _getStatusIcon(commission.status),
-              color: _getStatusColor(commission.status),
+              _getStatusIcon(commission.verificationStatus),
+              color: _getStatusColor(commission.verificationStatus),
               size: 20,
             ),
           ),
@@ -427,17 +427,17 @@ class _CommissionnaireDashboardState extends State<CommissionnaireDashboard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${commission.amount.toStringAsFixed(2)} ${commission.currency}',
+                  '${commission.commissionAmount.toStringAsFixed(2)} ${commission.currency}',
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     color: Theme.of(context).textTheme.displayLarge?.color,
                   ),
                 ),
                 Text(
-                  commission.status.displayName,
+                  commission.verificationStatusLabel,
                   style: TextStyle(
                     fontSize: 12,
-                    color: _getStatusColor(commission.status),
+                    color: _getStatusColor(commission.verificationStatus),
                   ),
                 ),
               ],
@@ -533,7 +533,8 @@ class _CommissionnaireDashboardState extends State<CommissionnaireDashboard> {
   }
 
   Color _getStatusColor(status) {
-    switch (status.value) {
+    final statusValue = status is String ? status : status.value;
+    switch (statusValue) {
       case 'verified':
         return AppColors.success;
       case 'code_sent':
@@ -550,7 +551,8 @@ class _CommissionnaireDashboardState extends State<CommissionnaireDashboard> {
   }
 
   IconData _getStatusIcon(status) {
-    switch (status.value) {
+    final statusValue = status is String ? status : status.value;
+    switch (statusValue) {
       case 'verified':
         return CupertinoIcons.checkmark_circle_fill;
       case 'code_sent':

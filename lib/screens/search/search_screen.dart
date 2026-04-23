@@ -71,6 +71,9 @@ class _SearchScreenState extends State<SearchScreen> {
     propertyProvider.loadCategories();
     propertyProvider.loadProvinces();
     locationProvider.getCurrentLocation();
+
+    // Charger toutes les propriétés par défaut (sans filtre)
+    _performSearch(refresh: true);
   }
 
   void _onScroll() {

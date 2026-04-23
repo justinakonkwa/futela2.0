@@ -47,6 +47,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
   late final PageController _pageController;
   int _currentPage = 0;
   List<String> _imageUrls = [];
+  final GlobalKey _shareButtonKey = GlobalKey();
 
   @override
   void initState() {
@@ -434,6 +435,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                       child: Material(
                         color: Colors.transparent,
                         child: InkWell(
+                          key: _shareButtonKey,
                           onTap: () {
                             _showShareDialog(context, property);
                           },
@@ -1101,11 +1103,11 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
-          boxShadow: [
+          boxShadow:const  [
             BoxShadow(
               color: AppColors.shadow,
               blurRadius: 10,
-              offset: const Offset(0, -2),
+              offset:  Offset(0, -2),
             ),
           ],
         ),
@@ -1434,7 +1436,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
                   color: AppColors.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.info_outline,
                   size: 20,
                   color: AppColors.primary,
@@ -2617,11 +2619,10 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
 
   void _showShareDialog(BuildContext context, Property property) {
     final GlobalKey repaintBoundaryKey = GlobalKey();
-
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Partager cette propriété'),
+        title: const Text('Partager cette annonce'),
         content: SizedBox(
           width: 350,
           height: 500,
@@ -2637,9 +2638,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
-              // Ne pas fermer le dialog immédiatement
               await _shareProperty(context, property, repaintBoundaryKey);
-              // Fermer le dialog seulement après le partage
               if (mounted && Navigator.of(context).canPop()) {
                 Navigator.of(context).pop();
               }
@@ -2668,6 +2667,14 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
       final File file = File('${tempDir.path}/$fileName');
       await file.writeAsBytes(pngBytes);
 
+      // Récupérer la position du bouton share pour iOS (sharePositionOrigin requis)
+      Rect? shareOrigin;
+      final renderBox = _shareButtonKey.currentContext?.findRenderObject() as RenderBox?;
+      if (renderBox != null && renderBox.hasSize) {
+        final offset = renderBox.localToGlobal(Offset.zero);
+        shareOrigin = offset & renderBox.size;
+      }
+
       // Texte adapté à la propriété (catégorie, type, prix, adresse)
       final categoryLabel =
           property.categoryName.isNotEmpty ? '${property.categoryName} • ' : '';
@@ -2681,6 +2688,7 @@ class _PropertyDetailScreenState extends State<PropertyDetailScreen> {
             'Téléchargez l\'app Futela ou visitez futela.com',
         subject:
             'Futela - ${property.categoryName.isNotEmpty ? property.categoryName : "Annonce"} : ${property.title}',
+        sharePositionOrigin: shareOrigin,
       );
     } catch (e) {
       if (context.mounted) {

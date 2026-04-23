@@ -4,8 +4,9 @@ import '../../providers/auth_provider.dart';
 import '../main_navigation.dart';
 import 'role_selection_screen.dart';
 
-/// Wrapper qui vérifie si le profil est complété après une connexion OAuth
-/// et redirige vers l'écran de sélection de rôle si nécessaire
+/// Wrapper qui vérifie si le profil est complété après une connexion OAuth.
+/// Seuls les commissionnaires avec profileCompleted=false sont bloqués.
+/// Les visiteurs (ROLE_USER) accèdent directement à l'app.
 class ProfileCompletionWrapper extends StatelessWidget {
   const ProfileCompletionWrapper({super.key});
 
@@ -15,21 +16,19 @@ class ProfileCompletionWrapper extends StatelessWidget {
       builder: (context, authProvider, child) {
         final user = authProvider.user;
 
-        // Si pas d'utilisateur, ne devrait pas arriver ici
         if (user == null) {
           return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
+            body: Center(child: CircularProgressIndicator()),
           );
         }
 
-        // Si le profil n'est pas complété, rediriger vers la sélection de rôle
-        if (!user.profileCompleted) {
+        // Commissionnaire sans profil complété → complétion obligatoire
+        final isCommissionnaire = user.roles.contains('ROLE_COMMISSIONNAIRE');
+        if (isCommissionnaire && !user.profileCompleted) {
           return const RoleSelectionScreen();
         }
 
-        // Sinon, afficher la navigation principale
+        // Tous les autres (visiteurs, propriétaires, etc.) → accès direct
         return const MainNavigation();
       },
     );

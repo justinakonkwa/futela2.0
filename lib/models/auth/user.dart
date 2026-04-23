@@ -55,6 +55,16 @@ class User {
     this.taxId,
   });
 
+  /// Gère les deux formats que le backend peut renvoyer :
+  /// - tableau  : ["ROLE_USER", "ROLE_COMMISSIONNAIRE"]
+  /// - objet    : {"0": "ROLE_USER", "2": "ROLE_COMMISSIONNAIRE"}
+  static List<String> _parseRoles(dynamic raw) {
+    if (raw == null) return [];
+    if (raw is List) return List<String>.from(raw);
+    if (raw is Map) return raw.values.map((v) => v.toString()).toList();
+    return [];
+  }
+
   /// Parses ISO8601 date string, tolerating spaces in time part (e.g. "08: 00: 00").
   static DateTime _parseDate(dynamic value) {
     if (value == null) return DateTime.now();
@@ -83,7 +93,7 @@ class User {
       phoneNumber: phoneStr,
       firstName: json['firstName'] as String? ?? '',
       lastName: json['lastName'] as String? ?? '',
-      roles: List<String>.from(json['roles'] ?? []),
+      roles: _parseRoles(json['roles']),
       isEmailVerified: json['isEmailVerified'] == true || (json['isEmailVerified'] == null && isVerified),
       isPhoneVerified: json['isPhoneVerified'] == true || (json['isPhoneVerified'] == null && isVerified),
       createdAt: _parseDate(json['createdAt']),

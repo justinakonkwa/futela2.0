@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:http_parser/http_parser.dart';
 import '../models/auth/user.dart';
@@ -11,34 +12,33 @@ class ProfileService {
   ProfileService() : _dio = ApiClient().dio;
 
   /// PUT /api/users/me/complete-profile
-  /// Compléter le profil après inscription OAuth
+  /// Compléter le profil après inscription OAuth (appelable une seule fois)
   Future<User> completeProfile(ProfileCompletionRequest request) async {
     try {
-      print('📝 COMPLETE PROFILE REQUEST');
-      print('URL: /api/users/me/complete-profile');
-      print('Data: ${request.toJson()}');
+      debugPrint('📝 PUT /api/users/me/complete-profile');
+      debugPrint('Data: ${request.toJson()}');
 
       final response = await _dio.put(
         '/api/users/me/complete-profile',
         data: request.toJson(),
       );
 
-      print('📝 COMPLETE PROFILE RESPONSE');
-      print('Status: ${response.statusCode}');
-      print('Data: ${response.data}');
+      debugPrint('📝 Réponse: ${response.statusCode} — ${response.data}');
 
-      if (response.statusCode == 200) {
-        return User.fromJson(response.data);
-      } else {
-        throw Exception('Échec de complétion du profil');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return User.fromJson(response.data as Map<String, dynamic>);
       }
+
+      final message = (response.data as Map?)?['error']?['message'] ??
+          (response.data as Map?)?['message'] ??
+          'Échec de complétion du profil (${response.statusCode})';
+      throw Exception(message);
     } on DioException catch (e) {
-      print('❌ DioException completing profile: ${e.message}');
-      print('Response: ${e.response?.data}');
-      
+      debugPrint('❌ DioException: ${e.response?.statusCode} — ${e.response?.data}');
+
       final statusCode = e.response?.statusCode;
-      final message = e.response?.data?['error']?['message'] ?? 
-                      e.response?.data?['message'];
+      final message = e.response?.data?['error']?['message'] ??
+          e.response?.data?['message'];
 
       if (statusCode == 400) {
         if (message != null && message.toString().contains('profileCompleted')) {
@@ -47,12 +47,11 @@ class ProfileService {
         throw Exception(message ?? 'Données invalides');
       } else if (statusCode == 401) {
         throw Exception('Session expirée. Veuillez vous reconnecter.');
+      } else if (statusCode == 404) {
+        throw Exception('Route introuvable — vérifiez que le backend est à jour.');
       }
 
       throw Exception(message ?? 'Erreur de connexion. Veuillez réessayer.');
-    } catch (e) {
-      print('❌ Error completing profile: $e');
-      rethrow;
     }
   }
 

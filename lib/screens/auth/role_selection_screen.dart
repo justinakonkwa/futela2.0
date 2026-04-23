@@ -6,7 +6,11 @@ import '../../widgets/custom_button.dart';
 import 'complete_profile_screen.dart';
 
 class RoleSelectionScreen extends StatefulWidget {
-  const RoleSelectionScreen({super.key});
+  /// Si fourni, pré-sélectionne ce rôle et va directement au formulaire.
+  /// Utilisé depuis le profil pour "Devenir commissionnaire".
+  final String? forceRole;
+
+  const RoleSelectionScreen({super.key, this.forceRole});
 
   @override
   State<RoleSelectionScreen> createState() => _RoleSelectionScreenState();
@@ -14,6 +18,21 @@ class RoleSelectionScreen extends StatefulWidget {
 
 class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
   String? _selectedRole;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.forceRole != null) {
+      // Aller directement au formulaire sans afficher la sélection de rôle
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => CompleteProfileScreen(role: widget.forceRole!),
+          ),
+        );
+      });
+    }
+  }
 
   final List<RoleOption> _roles = [
     RoleOption(

@@ -46,18 +46,21 @@ class AuthService {
     String? email,
     String? phoneNumber,
   }) async {
-    final response = await _dio.post('/api/auth/register', data: {
-      'password': password,
-      'firstName': firstName,
-      'lastName': lastName,
-      'email': email,
-      'phoneNumber': phoneNumber,
-    });
+    try {
+      final response = await _dio.post('/api/auth/register', data: {
+        'password': password,
+        'firstName': firstName,
+        'lastName': lastName,
+        'email': email,
+        'phoneNumber': phoneNumber,
+      });
 
-    if (response.statusCode == 201) {
-      return AuthResponse.fromJson(response.data);
-    } else {
-      throw Exception('Registration failed: ${response.data}');
+      if (response.statusCode == 201) {
+        return AuthResponse.fromJson(response.data);
+      }
+      throw Exception(_messageFromResponse(response.data, 'Erreur lors de l\'inscription'));
+    } on DioException catch (e) {
+      throw Exception(_messageFromResponse(e.response?.data, _friendlyRegisterError(e.response?.statusCode)));
     }
   }
 
@@ -90,12 +93,25 @@ class AuthService {
     if (businessAddress != null) data['businessAddress'] = businessAddress;
     if (taxId != null) data['taxId'] = taxId;
 
-    final response = await _dio.post('/api/auth/register', data: data);
+    try {
+      final response = await _dio.post('/api/auth/register', data: data);
 
-    if (response.statusCode == 201) {
-      return AuthResponse.fromJson(response.data);
-    } else {
-      throw Exception('Registration failed: ${response.data}');
+      if (response.statusCode == 201) {
+        return AuthResponse.fromJson(response.data);
+      }
+      throw Exception(_messageFromResponse(response.data, 'Erreur lors de l\'inscription'));
+    } on DioException catch (e) {
+      throw Exception(_messageFromResponse(e.response?.data, _friendlyRegisterError(e.response?.statusCode)));
+    }
+  }
+
+  /// Traduit les codes d'erreur d'inscription en messages lisibles
+  static String _friendlyRegisterError(int? statusCode) {
+    switch (statusCode) {
+      case 409: return 'Ce compte existe déjà. Essayez de vous connecter.';
+      case 400: return 'Informations invalides. Vérifiez les champs.';
+      case 422: return 'Données incorrectes. Vérifiez les champs.';
+      default:  return 'Erreur lors de l\'inscription. Réessayez.';
     }
   }
 

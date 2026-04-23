@@ -629,6 +629,14 @@ class PropertyShareButton extends StatelessWidget {
       final File file = File('${tempDir.path}/$fileName');
       await file.writeAsBytes(pngBytes);
 
+      // Récupérer la position du contexte pour iOS sharePositionOrigin
+      Rect? shareOrigin;
+      final renderBox = context.findRenderObject() as RenderBox?;
+      if (renderBox != null) {
+        final offset = renderBox.localToGlobal(Offset.zero);
+        shareOrigin = offset & renderBox.size;
+      }
+
       // Texte adapté à la propriété (catégorie, type, prix, adresse)
       final categoryLabel = property.categoryName.isNotEmpty ? '${property.categoryName} • ' : '';
       await Share.shareXFiles(
@@ -640,6 +648,7 @@ class PropertyShareButton extends StatelessWidget {
               '${property.fullAddress}\n\n'
               'Téléchargez l\'app Futela pour plus d\'annonces !',
         subject: 'Futela - ${property.categoryName.isNotEmpty ? property.categoryName : "Annonce"} : ${property.title}',
+        sharePositionOrigin: shareOrigin,
       );
     } catch (e) {
       if (context.mounted) {

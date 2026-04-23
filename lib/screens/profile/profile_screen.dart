@@ -28,6 +28,7 @@ import '../commission/visitor_codes_screen.dart';
 import '../commission/delegate_property_screen.dart';
 import '../settings/connected_devices_screen.dart';
 import '../settings/delete_account_screen.dart';
+import '../auth/role_selection_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -383,13 +384,23 @@ class ProfileScreen extends StatelessWidget {
                         );
                       },
                     ),
-                    // _MenuItem(
-                    //   icon: Icons.verified_user_outlined,
-                    //   title: 'Vérification d\'identité',
-                    //   onTap: () {
-                    //     // TODO: Implémenter la vérification d'identité
-                    //   },
-                    // ),
+                    // Option "Devenir commissionnaire" uniquement pour ROLE_USER
+                    if (!user.roles.contains('ROLE_COMMISSIONNAIRE'))
+                      _MenuItem(
+                        icon: Icons.workspace_premium_rounded,
+                        title: 'Devenir commissionnaire',
+                        subtitle: 'Rejoignez notre réseau de professionnels',
+                        iconColor: Colors.purple,
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const RoleSelectionScreen(
+                                forceRole: 'ROLE_COMMISSIONNAIRE',
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                   ],
                 ),
                 
@@ -1285,6 +1296,7 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _buildMenuItem(BuildContext context, _MenuItem item) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = item.iconColor ?? AppColors.primary;
     
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -1307,12 +1319,12 @@ class ProfileScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: isDark 
-                        ? AppColors.primary.withOpacity(0.15)
+                        ? color.withOpacity(0.15)
                         : AppColors.white,
                     borderRadius: BorderRadius.circular(10),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.primary.withOpacity(0.1),
+                        color: color.withOpacity(0.1),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -1321,22 +1333,39 @@ class ProfileScreen extends StatelessWidget {
                   child: Icon(
                     item.icon,
                     size: 20,
-                    color: AppColors.primary,
+                    color: color,
                   ),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
-                  child: Text(
-                    item.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontFamily: 'Gilroy',
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).textTheme.bodyLarge?.color,
-                      letterSpacing: -0.2,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontFamily: 'Gilroy',
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                      if (item.subtitle != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          item.subtitle!,
+                          style: TextStyle(
+                            fontFamily: 'Gilroy',
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            color: Theme.of(context).textTheme.bodySmall?.color,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -1677,12 +1706,16 @@ class ProfileScreen extends StatelessWidget {
 class _MenuItem {
   final IconData icon;
   final String title;
+  final String? subtitle;
+  final Color? iconColor;
   final int? badgeCount;
   final VoidCallback onTap;
 
   _MenuItem({
     required this.icon,
     required this.title,
+    this.subtitle,
+    this.iconColor,
     this.badgeCount,
     required this.onTap,
   });

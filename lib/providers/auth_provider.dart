@@ -109,9 +109,21 @@ class AuthProvider with ChangeNotifier {
   }
 
   /// Affiche le message d'erreur sans le préfixe "Exception: ".
+  /// Nettoie aussi les placeholders backend non résolus (ex: %identifier%).
   static String _cleanErrorMessage(dynamic e) {
-    final s = e.toString();
-    return s.replaceFirst(RegExp(r'^Exception:\s*'), '').trim();
+    var s = e.toString();
+    s = s.replaceFirst(RegExp(r'^Exception:\s*'), '').trim();
+    // Nettoyer les placeholders backend non résolus
+    s = s.replaceAll(RegExp(r'"%\w+%"'), 'cette valeur');
+    s = s.replaceAll(RegExp(r'%\w+%'), '');
+    // Cas 409 spécifiques
+    if (s.contains('téléphone') && s.contains('déjà utilisé')) {
+      return 'Ce numéro de téléphone est déjà associé à un compte. Connectez-vous ou utilisez un autre numéro.';
+    }
+    if (s.contains('email') && s.contains('déjà utilisé')) {
+      return 'Cette adresse email est déjà associée à un compte. Connectez-vous ou utilisez une autre adresse.';
+    }
+    return s;
   }
 
   Future<bool> register({

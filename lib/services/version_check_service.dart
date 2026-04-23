@@ -6,11 +6,16 @@ import 'package:new_version_plus/new_version_plus.dart';
 /// et affiche un dialog si c'est le cas.
 class VersionCheckService {
   // IDs de production Futela
+  // La vérification ne fonctionnera qu'une fois l'app publiée sur les stores
   static final NewVersionPlus _newVersion = NewVersionPlus(
     androidId: 'com.futelaapp.mobile',
     iOSId: 'com.futelaapp.mobile',
     androidHtmlReleaseNotes: false,
   );
+
+  /// Indique si l'app est publiée sur les stores.
+  /// Passer à true une fois l'app live sur App Store / Play Store.
+  static const bool _isPublishedOnStores = false;
 
   /// Vérifie la version et affiche un dialog si une mise à jour est disponible.
   /// [context] : le BuildContext courant (doit être monté).
@@ -19,6 +24,12 @@ class VersionCheckService {
     BuildContext context, {
     bool forceShow = false,
   }) async {
+    // Ne pas vérifier tant que l'app n'est pas publiée sur les stores
+    if (!_isPublishedOnStores) {
+      debugPrint('[VersionCheck] ⏭️ App non publiée sur les stores — vérification ignorée');
+      return;
+    }
+
     debugPrint('[VersionCheck] 🔍 Début de la vérification...');
     
     try {

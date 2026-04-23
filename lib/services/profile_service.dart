@@ -11,15 +11,15 @@ class ProfileService {
 
   ProfileService() : _dio = ApiClient().dio;
 
-  /// PUT /api/users/me/complete-profile
+  /// PUT /api/me/complete-profile
   /// Compléter le profil après inscription OAuth (appelable une seule fois)
   Future<User> completeProfile(ProfileCompletionRequest request) async {
     try {
-      debugPrint('📝 PUT /api/users/me/complete-profile');
+      debugPrint('📝 PUT /api/me/complete-profile');
       debugPrint('Data: ${request.toJson()}');
 
       final response = await _dio.put(
-        '/api/users/me/complete-profile',
+        '/api/me/complete-profile',
         data: request.toJson(),
       );
 
